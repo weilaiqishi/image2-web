@@ -1,0 +1,28 @@
+[package]
+name = "image2-studio"
+version = "0.1.0"
+description = "A local-first GPT Image generation and annotation studio"
+authors = ["Image2 Studio"]
+edition = "2021"
+
+[lib]
+name = "image2_studio_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.6", features = [] }
+
+[dependencies]
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+keyring = { version = "3.6", features = ["apple-native", "windows-native"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"] }
+rfd = "0.15"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2.11.1", features = ["protocol-asset"] }
+thiserror = "2"
+tokio = { version = "1", features = ["sync"] }
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+
