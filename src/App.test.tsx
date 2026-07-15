@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import App from "./App";
 
@@ -12,6 +12,11 @@ describe("Image2 Studio shell", () => {
     render(<App />);
     expect(await screen.findByRole("form", { name: "连接设置" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "生成" })).toBeInTheDocument();
+    expect(within(screen.getByRole("navigation", { name: "工作模式" })).getAllByRole("button").map((button) => button.textContent)).toEqual([
+      "生成",
+      "标注修改",
+      "灵感",
+    ]);
     expect(screen.getByPlaceholderText("https://api.openai.com/v1")).toBeInTheDocument();
   });
 

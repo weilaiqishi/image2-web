@@ -20,6 +20,7 @@ import {
   IText,
   Line,
   Triangle,
+  type TPointerEvent,
 } from "fabric";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { assetSrc, bridge, errorMessage } from "../lib/bridge";
@@ -35,6 +36,15 @@ interface AnnotationEditorProps {
 
 type Tool = "select" | "ellipse" | "arrow" | "text";
 
+type DrawingGesture = {
+  tool: "ellipse" | "arrow";
+  startX: number;
+  startY: number;
+  ellipse?: Ellipse;
+  line?: Line;
+  head?: Triangle;
+};
+
 const annotationColors = ["#d64536", "#2455c3", "#181a18", "#ffffff"];
 
 export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: AnnotationEditorProps) {
@@ -46,6 +56,9 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   const historyIndexRef = useRef(-1);
   const restoringRef = useRef(false);
   const saveTimerRef = useRef<number | null>(null);
+  const toolRef = useRef<Tool>("select");
+  const colorRef = useRef(annotationColors[0]);
+  const drawingRef = useRef<DrawingGesture | null>(null);
   const [stageSize, setStageSize] = useState({ width: 720, height: 720 });
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState(annotationColors[0]);
@@ -55,6 +68,19 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   const [, setHistoryVersion] = useState(0);
 
   const imageUrl = assetSrc(asset);
+
+  useEffect(() => {
+    toolRef.current = tool;
+    colorRef.current = color;
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+    const isDrawing = tool === "ellipse" || tool === "arrow";
+    canvas.selection = !isDrawing;
+    canvas.skipTargetFind = isDrawing;
+    canvas.defaultCursor = isDrawing ? "crosshair" : "default";
+    canvas.hoverCursor = isDrawing ? "crosshair" : "move";
+    canvas.requestRenderAll();
+  }, [color, tool]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,17 +121,122 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   useLayoutEffect(() => {
     const element = canvasElementRef.current;
     if (!element) return;
+    const startsInDrawingMode = toolRef.current === "ellipse" || toolRef.current === "arrow";
     const canvas = new FabricCanvas(element, {
       width: stageSize.width,
       height: stageSize.height,
       enableRetinaScaling: false,
       preserveObjectStacking: true,
+      selection: !startsInDrawingMode,
+      skipTargetFind: startsInDrawingMode,
+      defaultCursor: startsInDrawingMode ? "crosshair" : "default",
+      hoverCursor: startsInDrawingMode ? "crosshair" : "move",
       selectionColor: "rgba(36, 85, 195, 0.08)",
       selectionBorderColor: "#2455c3",
       selectionLineWidth: 1,
     });
     fabricRef.current = canvas;
     let disposed = false;
+
+    const pointFromEvent = (event: { e: TPointerEvent }) => canvas.getScenePoint(event.e);
+
+    const startDrawing = (event: { e: TPointerEvent }) => {
+      const drawingTool = toolRef.current;
+      if (drawingTool !== "ellipse" && drawingTool !== "arrow") return;
+      const point = pointFromEvent(event);
+      canvas.discardActiveObject();
+
+      if (drawingTool === "ellipse") {
+        const ellipse = new Ellipse({
+          left: point.x,
+          top: point.y,
+          rx: 0,
+          ry: 0,
+          fill: "transparent",
+          stroke: colorRef.current,
+          strokeWidth: 5,
+          selectable: false,
+          evented: false,
+        });
+        canvas.add(ellipse);
+        drawingRef.current = { tool: drawingTool, startX: point.x, startY: point.y, ellipse };
+      } else {
+        const line = new Line([point.x, point.y, point.x, point.y], {
+          stroke: colorRef.current,
+          strokeWidth: 5,
+          selectable: false,
+          evented: false,
+        });
+        const head = new Triangle({
+          left: point.x,
+          top: point.y,
+          width: 20,
+          height: 24,
+          fill: colorRef.current,
+          originX: "center",
+          originY: "center",
+          selectable: false,
+          evented: false,
+        });
+        canvas.add(line, head);
+        drawingRef.current = { tool: drawingTool, startX: point.x, startY: point.y, line, head };
+      }
+      canvas.requestRenderAll();
+    };
+
+    const continueDrawing = (event: { e: TPointerEvent }) => {
+      const gesture = drawingRef.current;
+      if (!gesture) return;
+      const point = pointFromEvent(event);
+
+      if (gesture.tool === "ellipse" && gesture.ellipse) {
+        gesture.ellipse.set({
+          left: Math.min(gesture.startX, point.x),
+          top: Math.min(gesture.startY, point.y),
+          rx: Math.abs(point.x - gesture.startX) / 2,
+          ry: Math.abs(point.y - gesture.startY) / 2,
+        });
+        gesture.ellipse.setCoords();
+      } else if (gesture.line && gesture.head) {
+        const angle = Math.atan2(point.y - gesture.startY, point.x - gesture.startX) * 180 / Math.PI;
+        gesture.line.set({ x2: point.x, y2: point.y });
+        gesture.head.set({ left: point.x, top: point.y, angle: angle + 90 });
+        gesture.line.setCoords();
+        gesture.head.setCoords();
+      }
+      canvas.requestRenderAll();
+    };
+
+    const finishDrawing = (event: { e: TPointerEvent }) => {
+      const gesture = drawingRef.current;
+      if (!gesture) return;
+      continueDrawing(event);
+      drawingRef.current = null;
+
+      const point = pointFromEvent(event);
+      const distance = Math.hypot(point.x - gesture.startX, point.y - gesture.startY);
+      let completed: Ellipse | Group | undefined;
+
+      if (distance >= 8 && gesture.tool === "ellipse" && gesture.ellipse) {
+        gesture.ellipse.set({ selectable: true, evented: true });
+        completed = gesture.ellipse;
+      } else if (distance >= 8 && gesture.line && gesture.head) {
+        canvas.remove(gesture.line, gesture.head);
+        completed = new Group([gesture.line, gesture.head], { selectable: true, evented: true });
+        canvas.add(completed);
+      } else {
+        if (gesture.ellipse) canvas.remove(gesture.ellipse);
+        if (gesture.line) canvas.remove(gesture.line);
+        if (gesture.head) canvas.remove(gesture.head);
+      }
+
+      if (completed) {
+        canvas.setActiveObject(completed);
+        pushHistory(canvas);
+      }
+      setTool("select");
+      canvas.requestRenderAll();
+    };
 
     const initialize = async () => {
       const saved = await bridge.loadAnnotation(asset.id).catch(() => null);
@@ -178,52 +309,22 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
 
     const modified = () => pushHistory(canvas);
     canvas.on("object:modified", modified);
+    canvas.on("mouse:down", startDrawing);
+    canvas.on("mouse:move", continueDrawing);
+    canvas.on("mouse:up", finishDrawing);
     void initialize().catch((error) => setEditorError(errorMessage(error)));
 
     return () => {
       disposed = true;
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
       canvas.off("object:modified", modified);
+      canvas.off("mouse:down", startDrawing);
+      canvas.off("mouse:move", continueDrawing);
+      canvas.off("mouse:up", finishDrawing);
       canvas.dispose();
       fabricRef.current = null;
     };
   }, [asset.id, imageUrl, pushHistory, stageSize.height, stageSize.width]);
-
-  const addEllipse = () => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
-    const ellipse = new Ellipse({
-      left: stageSize.width * 0.24,
-      top: stageSize.height * 0.24,
-      rx: Math.max(48, stageSize.width * 0.14),
-      ry: Math.max(34, stageSize.height * 0.1),
-      fill: "transparent",
-      stroke: color,
-      strokeWidth: 5,
-    });
-    canvas.add(ellipse);
-    canvas.setActiveObject(ellipse);
-    canvas.requestRenderAll();
-    pushHistory(canvas);
-    setTool("select");
-  };
-
-  const addArrow = () => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
-    const length = Math.max(100, stageSize.width * 0.2);
-    const line = new Line([0, 0, length, 0], { stroke: color, strokeWidth: 5, originX: "left", originY: "center" });
-    const head = new Triangle({ left: length, top: 0, width: 20, height: 24, fill: color, angle: 90, originX: "center", originY: "center" });
-    const arrow = new Group([line, head], {
-      left: stageSize.width * 0.36,
-      top: stageSize.height * 0.62,
-    });
-    canvas.add(arrow);
-    canvas.setActiveObject(arrow);
-    canvas.requestRenderAll();
-    pushHistory(canvas);
-    setTool("select");
-  };
 
   const addText = () => {
     const canvas = fabricRef.current;
@@ -247,8 +348,6 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   };
 
   useEffect(() => {
-    if (tool === "ellipse") addEllipse();
-    if (tool === "arrow") addArrow();
     if (tool === "text") addText();
     // The action tools intentionally reset to selection after inserting an object.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -268,7 +367,7 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
     persist(canvas);
   };
 
-  const deleteSelection = () => {
+  const deleteSelection = useCallback(() => {
     const canvas = fabricRef.current;
     if (!canvas) return;
     const selected = canvas.getActiveObjects().filter((object) => object.selectable !== false);
@@ -276,7 +375,26 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
     canvas.discardActiveObject();
     canvas.requestRenderAll();
     if (selected.length) pushHistory(canvas);
-  };
+  }, [pushHistory]);
+
+  useEffect(() => {
+    const deleteWithKeyboard = (event: KeyboardEvent) => {
+      if (event.key !== "Delete" && event.key !== "Backspace") return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.matches("input, textarea") || target.isContentEditable)) return;
+
+      const canvas = fabricRef.current;
+      const activeObject = canvas?.getActiveObject();
+      if (!canvas || (activeObject instanceof IText && activeObject.isEditing)) return;
+      if (!canvas.getActiveObjects().some((object) => object.selectable !== false)) return;
+
+      event.preventDefault();
+      deleteSelection();
+    };
+
+    window.addEventListener("keydown", deleteWithKeyboard);
+    return () => window.removeEventListener("keydown", deleteWithKeyboard);
+  }, [deleteSelection]);
 
   const changeZoom = (next: number) => setZoom(Math.min(1.75, Math.max(0.5, next)));
 
@@ -306,8 +424,8 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
       <aside className="annotation-toolbar" aria-label="标注工具">
         <ToolButton active={tool === "select"} label="选择" onClick={() => setTool("select")}><MousePointer2 size={18} /></ToolButton>
         <span className="tool-divider" />
-        <ToolButton label="圈选" onClick={() => setTool("ellipse")}><Circle size={18} /></ToolButton>
-        <ToolButton label="箭头" onClick={() => setTool("arrow")}><ArrowUpRight size={18} /></ToolButton>
+        <ToolButton active={tool === "ellipse"} drawing label="圈选" onClick={() => setTool("ellipse")}><Circle size={18} /></ToolButton>
+        <ToolButton active={tool === "arrow"} drawing label="箭头" onClick={() => setTool("arrow")}><ArrowUpRight size={18} /></ToolButton>
         <ToolButton label="文字" onClick={() => setTool("text")}><Type size={18} /></ToolButton>
         <span className="tool-divider" />
         <ToolButton label="撤销" disabled={historyIndexRef.current <= 0} onClick={() => void restoreAt(historyIndexRef.current - 1)}><Undo2 size={18} /></ToolButton>
@@ -358,6 +476,6 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   );
 }
 
-function ToolButton({ active, label, disabled, onClick, children }: { active?: boolean; label: string; disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button className={active ? "active" : ""} type="button" disabled={disabled} onClick={onClick} aria-label={label} title={label}>{children}</button>;
+function ToolButton({ active, drawing, label, disabled, onClick, children }: { active?: boolean; drawing?: boolean; label: string; disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
+  return <button className={active ? drawing ? "active drawing" : "active" : ""} type="button" disabled={disabled} onClick={onClick} aria-label={label} title={label}>{children}</button>;
 }

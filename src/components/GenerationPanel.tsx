@@ -30,6 +30,19 @@ export function GenerationPanel({
   const update = <K extends keyof GenerationParams>(key: K, value: GenerationParams[K]) => {
     onChange({ ...params, [key]: value });
   };
+  const pasteReferences = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const itemImages = Array.from(event.clipboardData.items)
+      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file));
+    const images = itemImages.length
+      ? itemImages
+      : Array.from(event.clipboardData.files).filter((file) => file.type.startsWith("image/"));
+
+    if (!images.length) return;
+    event.preventDefault();
+    onReferences(images);
+  };
 
   return (
     <aside className="control-panel">
@@ -45,6 +58,7 @@ export function GenerationPanel({
         className="prompt-input"
         value={params.prompt}
         onChange={(event) => update("prompt", event.target.value)}
+        onPaste={pasteReferences}
         placeholder="例如：一盒精致的广式月饼，深红礼盒，商业产品摄影，柔和侧光……"
         aria-label="图片描述"
       />

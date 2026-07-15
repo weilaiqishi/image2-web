@@ -148,11 +148,11 @@ export default function App() {
           <button className={mode === "generate" ? "active" : ""} type="button" onClick={() => setMode("generate")}>
             <ImageIcon size={16} />生成
           </button>
-          <button className={mode === "inspire" ? "active" : ""} type="button" onClick={() => setMode("inspire")}>
-            <Lightbulb size={16} />灵感
-          </button>
           <button className={mode === "annotate" ? "active" : ""} type="button" disabled={!selectedAsset} onClick={() => setMode("annotate")}>
             <PenTool size={16} />标注修改
+          </button>
+          <button className={mode === "inspire" ? "active" : ""} type="button" onClick={() => setMode("inspire")}>
+            <Lightbulb size={16} />灵感
           </button>
         </nav>
         <div className="header-actions">
