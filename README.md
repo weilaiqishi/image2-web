@@ -112,3 +112,15 @@ npm run tauri:build
 ```
 
 Tauri 会为当前操作系统生成原生安装包。macOS 与 Windows 需要分别在对应平台构建；当前 MVP 未配置发行签名和公证。
+
+## GitHub Actions 打包
+
+`.github/workflows/desktop-build.yml` 会在推送到 `main`、推送 `v*` 版本标签或手动触发时执行测试和桌面打包，生成以下 Actions Artifacts：
+
+- `image2-studio-macos-arm64`：Apple Silicon 的 `.dmg` 和 `.app`
+- `image2-studio-macos-x64`：Intel Mac 的 `.dmg` 和 `.app`
+- `image2-studio-windows10-x64`：兼容 Windows 10 x64 的 NSIS `.exe` 和 MSI 安装包
+
+在 GitHub 仓库的 **Actions → Desktop packages → Run workflow** 中可手动启动。任务完成后，安装包可从该次运行页面底部的 **Artifacts** 区域下载，默认保留 14 天。
+
+这些产物当前未签名。macOS 首次打开时可能出现 Gatekeeper 提示，Windows 也可能显示 SmartScreen 警告；正式分发前仍需配置平台证书和签名流程。

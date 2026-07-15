@@ -1,36 +1,89 @@
-name: Desktop build
+name: Desktop packages
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-packages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: Build ${{ matrix.name }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
-            args: --target aarch64-apple-darwin
-          - platform: macos-13
-            args: --target x86_64-apple-darwin
-          - platform: windows-latest
-            args: --target x86_64-pc-windows-msvc
-    runs-on: ${{ matrix.platform }}
+          - name: macOS Apple Silicon
+            runner: macos-15
+            target: aarch64-apple-darwin
+            bundles: dmg,app
+            artifact: image2-studio-macos-arm64
+            paths: |
+              src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+              src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
+          - name: macOS Intel
+            runner: macos-15-intel
+            target: x86_64-apple-darwin
+            bundles: dmg,app
+            artifact: image2-studio-macos-x64
+            paths: |
+              src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+              src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app
+          - name: Windows 10 x64
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            bundles: nsis,msi
+            artifact: image2-studio-windows10-x64
+            paths: |
+              src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+              src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+    runs-on: ${{ matrix.runner }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin,x86_64-pc-windows-msvc
-      - run: npm ci
-      - run: npm test
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
         with:
-          args: ${{ matrix.args }}
+          workspaces: src-tauri -> target
+          key: ${{ matrix.target }}
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Run Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Build desktop packages
+        run: npm run tauri:build -- --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.paths }}
+          if-no-files-found: error
+          retention-days: 14
