@@ -33,6 +33,13 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "shortDescription": "Generate and revise images with visual annotations",
     "longDescription": "A local-first desktop image studio for GPT Image generation and Cowart-inspired annotation workflows.",
     "category": "GraphicsAndDesign",

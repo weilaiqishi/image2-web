@@ -77,6 +77,12 @@ jobs:
       - name: Run Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml
 
+      - name: Verify bundle icons
+        shell: bash
+        run: |
+          test -f src-tauri/icons/icon.icns
+          test -f src-tauri/icons/icon.ico
+
       - name: Build desktop packages
         run: npm run tauri:build -- --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
 
