@@ -1,15 +1,16 @@
-import catalogJson from "../data/prompt-catalog.json";
-import type { AspectRatio, PromptCatalogSource, PromptTemplate, Resolution } from "../types";
+import catalogJson from "../data/prompt-catalog-v2.json";
+import type { AspectRatio, PromptCatalogSource, PromptTemplate, PromptTemplateView, Resolution } from "../types";
+import { createDefaultLocalState, mergePromptView } from "./promptCatalogStore";
 
 interface PromptCatalogData {
-  source: PromptCatalogSource;
+  sources: PromptCatalogSource[];
   items: PromptTemplate[];
 }
 
-const data = catalogJson as PromptCatalogData;
+const data = catalogJson as unknown as PromptCatalogData;
 
-export const promptCatalog = data.items;
-export const promptCatalogSource = data.source;
+export const promptCatalog = data.items.map((item) => mergePromptView(item, createDefaultLocalState(item.id, item.importedAt)));
+export const promptCatalogSources = data.sources;
 
 export const categoryLabels: Record<string, string> = {
   character: "角色",
@@ -37,35 +38,43 @@ export function localizedCategory(category: string): string {
   return categoryLabels[category.toLowerCase()] ?? category;
 }
 
-export function filterPromptTemplates(items: PromptTemplate[], query: string, category = "all"): PromptTemplate[] {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
+export interface PromptFilters {
+  query?: string;
+  category?: string;
+  sourceId?: string;
+  view?: "all" | "favorites" | "recent" | "modified" | "archived";
+}
+
+export function filterPromptTemplates(items: PromptTemplateView[], queryOrFilters: string | PromptFilters = "", legacyCategory = "all"): PromptTemplateView[] {
+  const filters: PromptFilters = typeof queryOrFilters === "string" ? { query: queryOrFilters, category: legacyCategory } : queryOrFilters;
+  const normalizedQuery = filters.query?.trim().toLocaleLowerCase() ?? "";
   return items.filter((item) => {
-    if (category !== "all" && item.category.toLowerCase() !== category.toLowerCase()) return false;
+    if (filters.category && filters.category !== "all" && item.category.toLowerCase() !== filters.category.toLowerCase()) return false;
+    if (filters.sourceId && filters.sourceId !== "all" && !item.sourceReferences.some((source) => source.sourceId === filters.sourceId)) return false;
+    if (filters.view === "favorites" && !item.local.favorite) return false;
+    if (filters.view === "recent" && !item.local.lastUsedAt) return false;
+    if (filters.view === "modified" && !item.local.customPrompt && !item.local.customTitle && !item.local.note && !item.local.customTags.length) return false;
+    if (filters.view === "archived" && !item.archivedAt) return false;
+    if (filters.view !== "archived" && item.archivedAt && !item.local.favorite && !item.local.useCount && !item.local.customPrompt) return false;
     if (!normalizedQuery) return true;
-    return [item.title, item.description, item.prompt, item.category, item.bestFor, ...item.tags]
+    return [item.displayTitle, item.description, item.displayPrompt, item.category, item.bestFor, item.attribution, ...item.displayTags]
       .join(" ")
       .toLocaleLowerCase()
       .includes(normalizedQuery);
   });
 }
 
-export function normalizeAspectRatio(source: string): AspectRatio {
+export function normalizeAspectRatio(source = "1:1"): AspectRatio {
   const [width, height] = source.split(":").map(Number);
   if (!width || !height) return "1:1";
   const ratio = width / height;
   const supported: Array<[AspectRatio, number]> = [
-    ["1:1", 1],
-    ["4:3", 4 / 3],
-    ["16:9", 16 / 9],
-    ["3:4", 3 / 4],
-    ["9:16", 9 / 16],
+    ["1:1", 1], ["4:3", 4 / 3], ["16:9", 16 / 9], ["3:4", 3 / 4], ["9:16", 9 / 16],
   ];
-  return supported.reduce((best, candidate) =>
-    Math.abs(Math.log(candidate[1] / ratio)) < Math.abs(Math.log(best[1] / ratio)) ? candidate : best,
-  )[0];
+  return supported.reduce((best, candidate) => Math.abs(Math.log(candidate[1] / ratio)) < Math.abs(Math.log(best[1] / ratio)) ? candidate : best)[0];
 }
 
-export function normalizeResolution(source: string): Resolution {
+export function normalizeResolution(source = "2K"): Resolution {
   const normalized = source.toUpperCase();
   if (normalized.includes("4K")) return "4K";
   if (normalized.includes("1K")) return "1K";

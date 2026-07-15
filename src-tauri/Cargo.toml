@@ -20,9 +20,9 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "mul
 rfd = "0.15"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
 tauri = { version = "2.11.1", features = ["protocol-asset"] }
 thiserror = "2"
 tokio = { version = "1", features = ["sync"] }
 url = "2"
 uuid = { version = "1", features = ["v4", "serde"] }
-

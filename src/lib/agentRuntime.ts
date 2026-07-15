@@ -10,12 +10,14 @@ import type {
   GenerationTask,
   ReferenceAttachment,
   Settings,
+  AnnotationDocumentV2,
   WorkspaceState,
 } from "../types";
 import { bridge, errorMessage } from "./bridge";
 import { createAgentTurn, recommendGenerationSettings } from "./agentProvider";
 import { SIZE_PRESETS } from "../types";
 import { defaultGenerationParams, interruptRunningTasks, loadWorkspace, saveWorkspace } from "./workspaceStore";
+import { assertCompilable, compileEditRequest, providerCapabilitiesForModel, referenceConflictDiagnostics, renderMaskDataUrl } from "./promptCompiler";
 
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const now = () => new Date().toISOString();
@@ -26,6 +28,7 @@ export class AgentRuntime {
   private state: WorkspaceState;
   private listeners = new Set<Listener>();
   private processing = false;
+  private pendingSubmissions = new Map<string, { token: string; userMessageId: string; draft: ComposerDraft; conversation: Conversation }>();
 
   private constructor(state: WorkspaceState) {
     this.state = state;
@@ -64,7 +67,7 @@ export class AgentRuntime {
       ...this.state,
       selectedConversationId: conversation.id,
       conversations: [conversation, ...this.state.conversations],
-      drafts: { ...this.state.drafts, [conversation.id]: { text: "", attachments: [], params: { ...defaultGenerationParams } } },
+      drafts: { ...this.state.drafts, [conversation.id]: { text: "", attachments: [], nextImageSequence: 1, params: { ...defaultGenerationParams } } },
     });
   }
 
@@ -96,17 +99,54 @@ export class AgentRuntime {
   }
 
   async updateDraft(conversationId: string, update: Partial<ComposerDraft>) {
-    const current = this.state.drafts[conversationId] ?? { text: "", attachments: [], params: { ...defaultGenerationParams } };
+    const current = this.state.drafts[conversationId] ?? { text: "", attachments: [], nextImageSequence: 1, params: { ...defaultGenerationParams } };
     const next = { ...current, ...update };
     if (update.attachments && !update.attachments.some((attachment) => attachment.kind === "reference" || attachment.kind === "asset")) next.recommendation = undefined;
     await this.commit({ ...this.state, drafts: { ...this.state.drafts, [conversationId]: next } });
+  }
+
+  async upsertAnnotationDocument(document: AnnotationDocumentV2) {
+    await this.commit({
+      ...this.state,
+      annotationDocuments: { ...this.state.annotationDocuments, [document.id]: document },
+    });
+  }
+
+  preflightDraft(conversationId: string, settings: Settings) {
+    const draft = this.state.drafts[conversationId];
+    if (!draft) throw new Error("找不到当前草稿");
+    const labels = new Set(draft.attachments.filter((attachment) => attachment.kind !== "annotation").map((attachment) => attachment.descriptor?.label).filter(Boolean));
+    const objectNames = new Set(draft.attachments.filter((attachment): attachment is AnnotationAttachment => attachment.kind === "annotation").flatMap((attachment) => this.state.annotationDocuments[attachment.documentId]?.objects.map((object) => object.displayName) ?? []));
+    const diagnostics = referenceConflictDiagnostics(draft.attachments);
+    for (const match of draft.text.matchAll(/@(Image\d+)/g)) {
+      if (!labels.has(match[1])) diagnostics.push({ code: "missing-reference", severity: "error", message: `提示词引用了不存在的 @${match[1]}`, targetId: match[1] });
+    }
+    for (const match of draft.text.matchAll(/@(Mark\d+|Region\d+|Move\d+|Note\d+)/g)) {
+      if (!objectNames.has(match[1])) diagnostics.push({ code: "missing-object", severity: "error", message: `提示词引用了不存在的 @${match[1]}`, targetId: match[1] });
+    }
+    for (const match of draft.text.matchAll(/#[0-9A-Za-z]{6}\b/g)) {
+      if (!/^#[0-9A-Fa-f]{6}$/.test(match[0])) diagnostics.push({ code: "invalid-color", severity: "error", message: `非法 Hex 色值 ${match[0]}`, targetId: match[0] });
+    }
+    const errors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
+    if (errors.length) throw new Error(errors.map((diagnostic) => diagnostic.message).join("；"));
+    const capabilities = providerCapabilitiesForModel(settings.imageModel);
+    return draft.attachments.filter((attachment): attachment is AnnotationAttachment => attachment.kind === "annotation").map((attachment) => {
+      const document = this.state.annotationDocuments[attachment.documentId];
+      if (!document) throw new Error("草稿引用的标注文档不存在");
+      const compiled = compileEditRequest({ ...document, promptText: [document.promptText, draft.text].filter(Boolean).join("\n") }, draft.attachments, draft.params, capabilities);
+      assertCompilable(compiled);
+      return compiled;
+    });
   }
 
   private async attachmentImages(attachments: Attachment[]): Promise<Record<string, string[]>> {
     const entries = await Promise.all(attachments.map(async (attachment): Promise<[string, string[]]> => {
       if (attachment.kind === "reference") return [attachment.id, [attachment.dataUrl]];
       if (attachment.kind === "asset") return [attachment.id, [await bridge.readAssetDataUrl(attachment.assetId)]];
-      return [attachment.id, [await bridge.readAssetDataUrl(attachment.sourceAssetId), attachment.annotatedDataUrl]];
+      const document = this.state.annotationDocuments[attachment.documentId];
+      const legacyOverlay = attachment.annotatedDataUrl ?? document?.legacyAnnotatedDataUrl;
+      const overlay = legacyOverlay ?? (attachment.compiledOverlayAssetId ? await bridge.readAnnotationOverlayDataUrl(attachment.compiledOverlayAssetId).catch(() => undefined) : undefined);
+      return [attachment.id, [await bridge.readAssetDataUrl(attachment.sourceAssetId), ...(overlay ? [overlay] : [])]];
     }));
     return Object.fromEntries(entries);
   }
@@ -114,11 +154,23 @@ export class AgentRuntime {
   async addAttachmentsAndRecommend(conversationId: string, attachments: Attachment[], settings: Settings) {
     const draft = this.state.drafts[conversationId];
     if (!draft || !attachments.length) return;
-    const combined = [...draft.attachments, ...attachments].slice(0, 6);
+    let nextImageSequence = draft.nextImageSequence;
+    const normalized = attachments.map((attachment): Attachment => {
+      if (attachment.kind === "annotation") return attachment;
+      if (attachment.descriptor?.label) {
+        const existingSequence = Number(attachment.descriptor.label.match(/^Image(\d+)$/)?.[1] ?? 0);
+        nextImageSequence = Math.max(nextImageSequence, existingSequence + 1);
+        return attachment;
+      }
+      const descriptor = { label: `Image${String(nextImageSequence).padStart(3, "0")}`, roles: ["other" as const], priority: 0, preserve: [] };
+      nextImageSequence += 1;
+      return { ...attachment, descriptor };
+    });
+    const combined = [...draft.attachments, ...normalized].slice(0, 6);
     const reference = attachments.find((attachment) => attachment.kind === "reference" || attachment.kind === "asset");
     await this.commit({
       ...this.state,
-      drafts: { ...this.state.drafts, [conversationId]: { ...draft, attachments: combined, recommendation: reference && settings.hasApiKey ? { aspectRatio: draft.params.aspectRatio, quality: draft.params.quality, reason: "正在分析参考图", status: "loading" } : draft.recommendation } },
+      drafts: { ...this.state.drafts, [conversationId]: { ...draft, attachments: combined, nextImageSequence, recommendation: reference && settings.hasApiKey ? { aspectRatio: draft.params.aspectRatio, quality: draft.params.quality, reason: "正在分析参考图", status: "loading" } : draft.recommendation } },
     });
     if (!reference || !settings.hasApiKey) return;
     try {
@@ -150,11 +202,16 @@ export class AgentRuntime {
   async submit(conversationId: string, settings: Settings) {
     const draft = this.state.drafts[conversationId];
     if (!draft || (!draft.text.trim() && !draft.attachments.length)) return;
+    if (this.pendingSubmissions.has(conversationId)) throw new Error("当前会话正在创建任务");
     const timestamp = now();
     const userMessage: ChatMessage = {
       id: newId(), conversationId, role: "user", content: draft.text.trim() || "请根据附件继续", attachments: draft.attachments, createdAt: timestamp,
     };
     const existingMessages = this.state.messages.filter((message) => message.conversationId === conversationId);
+    const conversation = this.state.conversations.find((item) => item.id === conversationId);
+    if (!conversation) throw new Error("找不到当前会话");
+    const submissionToken = newId();
+    this.pendingSubmissions.set(conversationId, { token: submissionToken, userMessageId: userMessage.id, draft: structuredClone(draft), conversation: { ...conversation } });
     await this.commit({
       ...this.state,
       messages: [...this.state.messages, userMessage],
@@ -168,30 +225,68 @@ export class AgentRuntime {
         messages: [...existingMessages, userMessage],
         attachments,
         attachmentImages: await this.attachmentImages(attachments),
+        annotationDocuments: this.state.annotationDocuments,
       }, bridge.proxyAgent);
+      if (this.pendingSubmissions.get(conversationId)?.token !== submissionToken) return;
       if (!result.plan) {
+        this.pendingSubmissions.delete(conversationId);
         await this.appendAssistant(conversationId, result.text || "我需要更多信息才能创建图片任务。请补充主体、视角或用途。" );
         return;
       }
 
       const batchId = newId();
       const tasks: GenerationTask[] = result.plan.tasks.map((planned, position) => {
-        const taskAttachments = attachments.filter((attachment) => planned.referenceIds.includes(attachment.id) || planned.annotationId === attachment.id);
+        const taskAttachments = attachments.filter((attachment) => planned.referenceIds.includes(attachment.id) || planned.annotationId === attachment.id || (attachment.kind === "annotation" && planned.annotationDocumentId === attachment.documentId));
+        const inferredBaseAssetId = taskAttachments.find((attachment): attachment is AssetAttachment => attachment.kind === "asset" && Boolean(attachment.descriptor?.roles.includes("base")))?.assetId;
+        const annotationSnapshot = planned.annotationDocumentId ? structuredClone(this.state.annotationDocuments[planned.annotationDocumentId]) : undefined;
+        const capabilitiesSnapshot = providerCapabilitiesForModel(settings.imageModel);
+        const compiledPrompt = annotationSnapshot ? compileEditRequest(
+          { ...annotationSnapshot, objects: planned.annotationObjectIds?.length ? annotationSnapshot.objects.filter((object) => planned.annotationObjectIds?.includes(object.id)) : annotationSnapshot.objects, promptText: [annotationSnapshot.promptText, planned.prompt].filter(Boolean).join("\n") },
+          taskAttachments,
+          draft.params,
+          capabilitiesSnapshot,
+          planned.preserve,
+        ).prompt : undefined;
         return {
           id: newId(), batchId, position, title: planned.title, prompt: planned.prompt, operation: planned.operation,
           status: "queued", referenceIds: planned.referenceIds, attachments: taskAttachments,
-          annotationId: planned.annotationId, attempt: 0,
+          annotationId: planned.annotationId,
+          annotationDocumentId: planned.annotationDocumentId,
+          annotationObjectIds: planned.annotationObjectIds,
+          baseAssetId: planned.baseAssetId ?? inferredBaseAssetId,
+          preserve: planned.preserve,
+          variantGroupId: planned.variantGroupId,
+          annotationSnapshot,
+          capabilitiesSnapshot,
+          compiledPrompt,
+          attempt: 0,
         };
       });
       const batch: GenerationBatch = { id: batchId, conversationId, status: "queued", params: { ...draft.params }, taskIds: tasks.map((task) => task.id), createdAt: now() };
       const assistant: ChatMessage = {
         id: newId(), conversationId, role: "assistant", content: result.plan.summary || result.text || `已创建 ${tasks.length} 个串行任务。`, attachments: [], batchId, createdAt: now(),
       };
+      this.pendingSubmissions.delete(conversationId);
       await this.commit({ ...this.state, batches: [...this.state.batches, batch], tasks: [...this.state.tasks, ...tasks], messages: [...this.state.messages, assistant] });
       void this.processQueue();
     } catch (error) {
+      if (this.pendingSubmissions.get(conversationId)?.token !== submissionToken) return;
+      this.pendingSubmissions.delete(conversationId);
       await this.appendAssistant(conversationId, `未能创建任务：${errorMessage(error)}`);
     }
+  }
+
+  async cancelPendingSubmission(conversationId: string) {
+    const pending = this.pendingSubmissions.get(conversationId);
+    if (!pending) return false;
+    this.pendingSubmissions.delete(conversationId);
+    await this.commit({
+      ...this.state,
+      conversations: this.state.conversations.map((conversation) => conversation.id === conversationId ? pending.conversation : conversation),
+      messages: this.state.messages.filter((message) => message.id !== pending.userMessageId),
+      drafts: { ...this.state.drafts, [conversationId]: pending.draft },
+    });
+    return true;
   }
 
   private async appendAssistant(conversationId: string, content: string) {
@@ -204,10 +299,34 @@ export class AgentRuntime {
     const assetIds = task.attachments.filter((item): item is AssetAttachment => item.kind === "asset").map((item) => item.assetId);
     const annotation = task.attachments.find((item): item is AnnotationAttachment => item.kind === "annotation" && (!task.annotationId || item.id === task.annotationId));
     if (task.operation === "edit" && annotation) {
-      return bridge.edit({ ...params, prompt: task.prompt, originalAssetId: annotation.sourceAssetId, annotatedDataUrl: annotation.annotatedDataUrl, annotationPrompt: `${annotation.instruction}\n${task.prompt}` });
+      const sourceDocument = task.annotationSnapshot ?? this.state.annotationDocuments[task.annotationDocumentId ?? annotation.documentId];
+      if (!sourceDocument) throw new Error("编辑任务引用的标注文档不存在");
+      const selectedObjects = task.annotationObjectIds?.length
+        ? sourceDocument.objects.filter((object) => task.annotationObjectIds?.includes(object.id))
+        : sourceDocument.objects;
+      const taskDocument = { ...sourceDocument, objects: selectedObjects, promptText: [sourceDocument.promptText, task.prompt].filter(Boolean).join("\n") };
+      const capabilities = task.capabilitiesSnapshot ?? providerCapabilitiesForModel((await bridge.getSettings()).imageModel);
+      const compiled = compileEditRequest(taskDocument, task.attachments, params, capabilities, task.preserve);
+      assertCompilable(compiled);
+      const annotatedDataUrl = annotation.annotatedDataUrl ?? sourceDocument.legacyAnnotatedDataUrl;
+      return bridge.edit({
+        ...params,
+        prompt: task.prompt,
+        originalAssetId: task.baseAssetId ?? compiled.originalAssetId,
+        annotatedDataUrl,
+        overlayAssetId: compiled.overlayAssetId ?? annotation.compiledOverlayAssetId,
+        maskDataUrl: capabilities.supportsMask ? renderMaskDataUrl(taskDocument) : undefined,
+        referenceAssetIds: compiled.referenceAssetIds,
+        referenceDataUrls: compiled.referenceDataUrls,
+        structuredRegions: compiled.structuredRegions,
+        sourceTaskId: task.id,
+        sourceDocumentId: sourceDocument.id,
+        branchLabel: task.title,
+        annotationPrompt: compiled.prompt,
+      });
     }
     if (annotation) assetIds.push(annotation.sourceAssetId);
-    return bridge.generate({ ...params, prompt: task.prompt, referenceDataUrls: references, referenceAssetIds: assetIds });
+    return bridge.generate({ ...params, prompt: task.prompt, referenceDataUrls: references, referenceAssetIds: assetIds, parentAssetId: task.baseAssetId, sourceTaskId: task.id, sourceDocumentId: task.annotationDocumentId, branchLabel: task.title });
   }
 
   private async processQueue() {

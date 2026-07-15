@@ -1,0 +1,1075 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "20260715134634",
+  "generatedAt": "2026-07-15T13:46:34.897Z",
+  "items": [
+    {
+      "id": "awesome-gpt4o-images:94",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "94",
+      "sourceUrl": "https://x.com/berryxia_ai/status/1920795648946782583",
+      "license": "CC-BY-4.0",
+      "attribution": "@berryxia_ai / @jamez-bondos",
+      "title": "三只动物与地标自拍",
+      "description": "可替换提示词中的 [动物类型] 和 [地标] 为具体描述。",
+      "prompt": "三只[动物类型]在标志性[地标]前的特写自拍照，它们表情各异，拍摄于黄金时刻，采用电影般的灯光。动物们靠近镜头，头挨着头，模仿自拍姿势，展现出喜悦、惊讶和平静的表情。背景展示了[地标]完整的建筑细节，光线柔和，氛围温暖。采用摄影感、写实卡通风格拍摄，高细节，1:1 宽高比。",
+      "language": "zh",
+      "category": "creative",
+      "tags": [
+        "Sora",
+        "@berryxia_ai"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/94/three_animals_selfie_at_landmark.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-94-535cde2d6c.webp",
+      "promptHash": "535cde2d6c24e339107beb22084788c2dd8b0d931fc412d837a95a6c4523abf3",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "94",
+          "sourceUrl": "https://x.com/berryxia_ai/status/1920795648946782583",
+          "license": "CC-BY-4.0",
+          "attribution": "@berryxia_ai / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "94",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-94",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:97",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "97",
+      "sourceUrl": "https://x.com/ZHO_ZHO_ZHO/status/1921148024861938077",
+      "license": "CC-BY-4.0",
+      "attribution": "@ZHO_ZHO_ZHO / @jamez-bondos",
+      "title": "可爱温馨针织玩偶",
+      "description": "上传一张照片作为参考，生成其可爱Q版针织玩偶形象。",
+      "prompt": "一张特写、构图专业的照片，展示一个手工钩织的毛线玩偶被双手轻柔地托着。玩偶造型圆润，【上传图片】人物得可爱Q版形象，色彩对比鲜明，细节丰富。持玩偶的双手自然、温柔，手指姿态清晰可见，皮肤质感与光影过渡自然，展现出温暖且真实的触感。背景轻微虚化，表现为室内环境，有温暖的木质桌面和从窗户洒入的自然光，营造出舒适、亲密的氛围。整体画面传达出精湛的工艺感与被珍视的温馨情绪。",
+      "language": "zh",
+      "category": "interior",
+      "tags": [
+        "Sora",
+        "@ZHO_ZHO_ZHO"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/97/cute_cozy_knitted_doll.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-97-712805fad7.webp",
+      "promptHash": "712805fad7fa6da07bac503ef0cb9d1f27383970e044669c43bddcd14b39061a",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "97",
+          "sourceUrl": "https://x.com/ZHO_ZHO_ZHO/status/1921148024861938077",
+          "license": "CC-BY-4.0",
+          "attribution": "@ZHO_ZHO_ZHO / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "97",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-97",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:90",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "90",
+      "sourceUrl": "https://x.com/egeberkina/status/1918291652210311278",
+      "license": "CC-BY-4.0",
+      "attribution": "@egeberkina / @jamez-bondos",
+      "title": "品牌化键盘键帽",
+      "description": "替换品牌名、标语、键帽颜色",
+      "prompt": "一个超逼真的3D渲染图，展示了四个机械键盘键帽，排列成紧密的2x2网格，所有键帽相互接触。从等轴测角度观察。一个键帽是透明的，上面用红色印刷着“{just}”字样。另外三个键帽采用颜色：{黑色、紫色和白色}。一个键帽上带有Github的Logo。另外两个键帽上分别写着“{fork}”和“{it}”。逼真的塑料纹理，圆润的雕刻键帽，柔和的阴影，干净的浅灰色背景。",
+      "language": "zh",
+      "category": "marketing",
+      "tags": [
+        "Sora",
+        "@egeberkina"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/90/case.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-90-095502f9ea.webp",
+      "promptHash": "095502f9ea58f8f64d742f52d7839ce01743131b955148bb82ffca8e02cbcea4",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "90",
+          "sourceUrl": "https://x.com/egeberkina/status/1918291652210311278",
+          "license": "CC-BY-4.0",
+          "attribution": "@egeberkina / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "90",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-90",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:96",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "96",
+      "sourceUrl": "https://x.com/dotey/status/1920851135516082246",
+      "license": "CC-BY-4.0",
+      "attribution": "@dotey / @jamez-bondos",
+      "title": "定制动漫手办",
+      "description": "请上传一张包含人物全身姿势、面部表情及服装造型的照片，用于生成手办模型。",
+      "prompt": "生成一张摆放于桌面上的动漫风格手办照片，以日常随手用手机拍摄的轻松休闲视角呈现。手办模型以附件中人物照片为基础，精确还原照片中人物的全身姿势、面部表情以及服装造型，确保手办全身完整呈现。整体设计精致细腻，头发与服饰采用自然柔和的渐变色彩与细腻质感，风格偏向日系动漫风，细节丰富，质感真实，观感精美。",
+      "language": "zh",
+      "category": "character",
+      "tags": [
+        "Sora",
+        "@dotey"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/96/custom-anime-figure-from-photo.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-96-07c6b04af2.webp",
+      "promptHash": "07c6b04af2a9920fbaf9b7462dcdd6ad27fffe7b4b13eb4a7dba11411ea97a47",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "96",
+          "sourceUrl": "https://x.com/dotey/status/1920851135516082246",
+          "license": "CC-BY-4.0",
+          "attribution": "@dotey / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "96",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-96",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:100",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "100",
+      "sourceUrl": "https://x.com/azed_ai/status/1923016036120658122",
+      "license": "CC-BY-4.0",
+      "attribution": "@azed_ai / @jamez-bondos",
+      "title": "实物与手绘涂鸦创意广告",
+      "description": "请将提示词中的 [真实物体]、[涂鸦概念及交互]、[广告文案] 和 [品牌标志] 替换为具体内容。\n例如：\n[真实物体]：咖啡豆\n[涂鸦概念及交互]：巨型咖啡豆变成一个太空行星，一个小宇航员站在其表面上，并插上旗帜\n[广告文案]：“Explore Bold Flavor”\n[品牌标志]：星巴克 Logo",
+      "prompt": "一则简约且富有创意的广告，设置在纯白背景上。\n一个真实的 [真实物体] 与手绘黑色墨水涂鸦相结合，线条松散而俏皮。涂鸦描绘了：[涂鸦概念及交互：以巧妙、富有想象力的方式与物体互动]。在顶部或中部加入粗体黑色 [广告文案] 文字。在底部清晰放置 [品牌标志]。视觉效果应简洁、有趣、高对比度且构思巧妙。",
+      "language": "zh",
+      "category": "marketing",
+      "tags": [
+        "Sora",
+        "@azed_ai"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/100/creative-ad-real-object-hand-drawn-doodle.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-100-9c1c13134f.webp",
+      "promptHash": "9c1c13134f9ac6845f6d217d4782cd9b348635b08c0621a56bfda27a99a4935e",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "100",
+          "sourceUrl": "https://x.com/azed_ai/status/1923016036120658122",
+          "license": "CC-BY-4.0",
+          "attribution": "@azed_ai / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "100",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-100",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:93",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "93",
+      "sourceUrl": "https://x.com/egeberkina/status/1920448389960909085",
+      "license": "CC-BY-4.0",
+      "attribution": "@egeberkina / @jamez-bondos",
+      "title": "玻璃质感重塑",
+      "description": "本提示词请使用 GPT-4o 生成图片；使用Sora可能无法生成正确的风格。",
+      "prompt": "对参考图片进行重新纹理化，基于下方的 JSON 美学定义\n{\n \"style\": \"photorealistic 3D render\",\n \"material\": \"glass with transparent and iridescent effects\",\n \"surface_texture\": \"smooth, polished with subtle reflections and refractive effects\",\n \"lighting\": {\n \"type\": \"studio HDRI\",\n \"intensity\": \"high\",\n \"direction\": \"angled top-left key light and ambient fill\",\n \"accent_colors\": [\"blue\", \"green\", \"purple\"],\n \"reflections\": true,\n \"refractions\": true,\n \"dispersion_effects\": true,\n \"bloom\": true\n },\n \"color_scheme\": {\n \"primary\": \"transparent with iridescent blue, green, and purple hues\",\n \"secondary\": \"crystal-clear with subtle chromatic shifts\",\n \"highlights\": \"soft, glowing accents reflecting rainbow-like effects\",\n \"rim_light\": \"soft reflective light around edges\"\n },\n \"background\": {\n \"color\": \"black\",\n \"vignette\": true,\n \"texture\": \"none\"\n },\n \"post_processing\": {\n \"chromatic_aberration\": true,\n \"glow\": true,\n \"high_contrast\": true,\n \"sharp_details\": true\n }\n}",
+      "language": "zh",
+      "category": "creative",
+      "tags": [
+        "GPT-4o",
+        "@egeberkina"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/93/glass_retexturing.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-93-c1d8b3df43.webp",
+      "promptHash": "c1d8b3df43c8aefd5954aee4047d00d4cc0bc5f32ee0096cc43f4cb7658a1e3a",
+      "publishedAt": "2025-05-25",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "93",
+          "sourceUrl": "https://x.com/egeberkina/status/1920448389960909085",
+          "license": "CC-BY-4.0",
+          "attribution": "@egeberkina / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "93",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-93",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:98",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "98",
+      "sourceUrl": "https://x.com/umesh_ai/status/1921487841634156999",
+      "license": "CC-BY-4.0",
+      "attribution": "@umesh_ai / @jamez-bondos",
+      "title": "磨砂玻璃后的虚实对比剪影",
+      "description": "请在 [主体] 和 [部分] 中填入具体且富有画面感的描述，突出“模糊主体 + 清晰局部”的反差效果。\n例如：[主体] 可写为“手持红色光剑的西斯领主”，[部分] 可写为“另一只聚集暗黑原力的手”。",
+      "prompt": "一张黑白照片，展示了一个[主体]在磨砂或半透明表面后的模糊剪影。其[部分]轮廓清晰，紧贴表面，与其余朦胧、模糊的身影形成鲜明对比。背景是柔和的灰色渐变色调，增强了神秘和艺术的氛围。",
+      "language": "zh",
+      "category": "creative",
+      "tags": [
+        "Sora",
+        "@umesh_ai"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/98/blurred-silhouette-frosted-glass.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-98-69cd6ec013.webp",
+      "promptHash": "69cd6ec013e1948bfc5bf6b6557a03dc91156aefdcf7968b044fdb40eb0f39c7",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "98",
+          "sourceUrl": "https://x.com/umesh_ai/status/1921487841634156999",
+          "license": "CC-BY-4.0",
+          "attribution": "@umesh_ai / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "98",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-98",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:95",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "95",
+      "sourceUrl": "https://x.com/thisdudelikesAI/status/1920433372243136730",
+      "license": "CC-BY-4.0",
+      "attribution": "@thisdudelikesAI / @jamez-bondos",
+      "title": "自拍生成摇头娃娃",
+      "description": "请将提示词中的[把它放在书架上]替换为您想要的特定场景或背景，例如“把它放在书架上”或“把它放在办公桌上”，或“把它放在中性背景上”，或“生成透明背景”。",
+      "prompt": "将这张照片变成一个摇头娃娃：头部稍微放大，保持面部准确，身体卡通化。[把它放在书架上]。",
+      "language": "zh",
+      "category": "creative",
+      "tags": [
+        "Sora",
+        "@thisdudelikesAI"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/95/selfie-to-bobblehead-generator.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-95-f18265ccbb.webp",
+      "promptHash": "f18265ccbb309149b4b19c7c3d4e58c17d3d8cd5167d52283ffff550fba46a21",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "95",
+          "sourceUrl": "https://x.com/thisdudelikesAI/status/1920433372243136730",
+          "license": "CC-BY-4.0",
+          "attribution": "@thisdudelikesAI / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "95",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-95",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:91",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "91",
+      "sourceUrl": "https://x.com/umesh_ai/status/1919701229363466328",
+      "license": "CC-BY-4.0",
+      "attribution": "@umesh_ai / @jamez-bondos",
+      "title": "谷歌地图变身古代藏宝图",
+      "description": "需要上传一张谷歌地图截图或其他地图图片作为转换的基础。",
+      "prompt": "将图像转换为绘制在古老羊皮纸上的古代藏宝图。地图包含详细的元素，如海洋上的帆船、海岸线上的古老港口或城堡、通向标记宝藏地点的大“X”的虚线路径、山脉、棕榈树和装饰性的罗盘玫瑰。整体风格让人联想到旧时的海盗冒险电影。",
+      "language": "zh",
+      "category": "creative",
+      "tags": [
+        "Sora",
+        "@umesh_ai"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/91/case.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-91-692cbcf2eb.webp",
+      "promptHash": "692cbcf2ebba6d12b7dc6e09b384abd15b4eba08799b94ceb77875bdf2aa2df0",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "91",
+          "sourceUrl": "https://x.com/umesh_ai/status/1919701229363466328",
+          "license": "CC-BY-4.0",
+          "attribution": "@umesh_ai / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "91",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-91",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:92",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "92",
+      "sourceUrl": "https://x.com/ZHO_ZHO_ZHO/status/1920355982703509588",
+      "license": "CC-BY-4.0",
+      "attribution": "@ZHO_ZHO_ZHO / @jamez-bondos",
+      "title": "透视3D出屏效果",
+      "description": "可将提示词中的【安妮海瑟薇】替换为其他人物名称。或者使用一张人物照片作为参考图片。",
+      "prompt": "超写实，从上往下俯视角拍摄，一个美丽的ins模特【安妮海瑟薇 / 见参考图片】，有着精致美丽的妆容和时尚的造型，站在一部被人托起的智能手机屏幕上，画面营造出强烈的透视错觉。强调女孩从手机中站出来的三维效果。她戴着黑框眼镜，穿着高街风，俏皮地摆着可爱的pose。手机屏幕被处理成深色地板，像是一个小舞台。场景使用强烈的强制透视（forced perspective）表现手掌、手机与女孩之间的比例差异。背景为干净的灰色，使用柔和室内光，浅景深，整体风格为超现实写实合成。透视特别强",
+      "language": "zh",
+      "category": "interior",
+      "tags": [
+        "Sora",
+        "@ZHO_ZHO_ZHO"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/92/perspective-3d-pop-out-effect.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-92-ee0f812724.webp",
+      "promptHash": "ee0f8127242ee4987bcef6aec3d24dbcb3966efa84604d971c32b67bd9242e95",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "92",
+          "sourceUrl": "https://x.com/ZHO_ZHO_ZHO/status/1920355982703509588",
+          "license": "CC-BY-4.0",
+          "attribution": "@ZHO_ZHO_ZHO / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "92",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-92",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:89",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "89",
+      "sourceUrl": "https://x.com/egeberkina/status/1919398870867440124",
+      "license": "CC-BY-4.0",
+      "attribution": "@egeberkina / @jamez-bondos",
+      "title": "镀铬emoji徽章",
+      "description": "替换 {👍} emoji 图标；替换标题和标语。",
+      "prompt": "高精度的 3D 渲染图，按照 emoji 图标 {👍} 展示一个金属质感的徽章，固定在竖直的商品卡片上，具有超光滑的镀铬质感和圆润的 3D 图标造型，风格化的未来主义设计，带有柔和的反光与干净的阴影。纸质卡片顶部中央带有一个冲切的欧式挂孔，徽章上方是醒目的标题 “{Awesome}”，下方配有趣味标语 “{Smash that ⭐ if you like it!}”。背景为柔和的灰色，使用柔光摄影棚灯光，整体风格极简。",
+      "language": "zh",
+      "category": "product",
+      "tags": [
+        "Sora",
+        "@egeberkina"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/89/case.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-89-6cc5a96669.webp",
+      "promptHash": "6cc5a9666977b866f5317222ed6d2059e1571679f735323e0760b400150849d0",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "89",
+          "sourceUrl": "https://x.com/egeberkina/status/1919398870867440124",
+          "license": "CC-BY-4.0",
+          "attribution": "@egeberkina / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "89",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-89",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "awesome-gpt4o-images:99",
+      "sourceId": "awesome-gpt4o-images",
+      "sourceKey": "99",
+      "sourceUrl": "https://x.com/ZHO_ZHO_ZHO/status/1922150692145283299",
+      "license": "CC-BY-4.0",
+      "attribution": "@ZHO_ZHO_ZHO / @jamez-bondos",
+      "title": "黑白肖像艺术",
+      "description": "",
+      "prompt": "高分辨率的黑白肖像艺术作品，采用编辑类和艺术摄影风格。背景呈现柔和渐变效果，从中灰过渡到近乎纯白，营造出层次感与寂静氛围。细腻的胶片颗粒质感为画面增添了一种可触摸的、模拟摄影般的柔和质地，让人联想到经典的黑白摄影。\n\n画面右侧，一个模糊却惊艳的哈利波特面容从阴影中隐约浮现，并非传统的摆拍，而像是被捕捉于思索或呼吸之间的瞬间。他的脸部只露出一部分：也许是一个眼睛、一块颧骨，还有唇角的轮廓，唤起神秘、亲密与优雅之感。他的五官精致而深刻，散发出忧郁与诗意之美，却不显矫饰。\n\n一束温柔的定向光，柔和地漫射开来，轻抚他的面颊曲线，或在眼中闪现光点——这是画面的情感核心。其余部分以大量负空间占据，刻意保持简洁，使画面自由呼吸。画面中没有文字、没有标志——只有光影与情绪交织。\n\n整体氛围抽象却深具人性，仿佛一瞥即逝的目光，或半梦半醒间的记忆：亲密、永恒、令人怅然的美。",
+      "language": "zh",
+      "category": "portrait",
+      "tags": [
+        "Sora",
+        "@ZHO_ZHO_ZHO"
+      ],
+      "modelFamilies": [
+        "gpt-4o",
+        "gpt-image-1"
+      ],
+      "previewUrl": "https://raw.githubusercontent.com/jamez-bondos/awesome-gpt4o-images/main/cases/99/harry-potter-black-white-portrait-art.png",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/awesome-gpt4o-images-99-ac36f0ce2f.webp",
+      "promptHash": "ac36f0ce2f2ba6bacec6fbf9dd5d70656f16705afbe09c6df2518c8c5cd74066",
+      "publishedAt": "2025-05-24",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "awesome-gpt4o-images",
+          "sourceKey": "99",
+          "sourceUrl": "https://x.com/ZHO_ZHO_ZHO/status/1922150692145283299",
+          "license": "CC-BY-4.0",
+          "attribution": "@ZHO_ZHO_ZHO / @jamez-bondos"
+        },
+        {
+          "sourceId": "awesome-prompts",
+          "sourceKey": "99",
+          "sourceUrl": "https://github.com/songtianlun/awesome-prompts/blob/main/docs/text-to-image/gpt/awesome-gpt4o-images.md#案例-99",
+          "license": "MIT",
+          "attribution": "songtianlun/awesome-prompts"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:cherry-blossom-garden",
+      "sourceId": "image2-net",
+      "sourceKey": "cherry-blossom-garden",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/cherry-blossom-garden/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Cherry Blossom Garden in Bloom",
+      "description": "",
+      "prompt": "Japanese cherry blossom garden in full bloom, soft pink sakura petals drifting in the air, stone lantern beside a koi pond, gentle spring sunlight, dreamy bokeh, photorealistic, ultra-detailed",
+      "language": "en",
+      "category": "nature",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "3:2",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/cherry-blossom-garden.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-cherry-blossom-garden-c020dad02c.webp",
+      "promptHash": "c020dad02c4c76d4fe121fda3fceef8244a73cdd3b64698eecd78b4b090d3559",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "cherry-blossom-garden",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/cherry-blossom-garden/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:cinematic-silhouette-portrait",
+      "sourceId": "image2-net",
+      "sourceKey": "cinematic-silhouette-portrait",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/cinematic-silhouette-portrait/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Cinematic Silhouette Portrait",
+      "description": "",
+      "prompt": "Generate a cinematic portrait of a solitary figure standing in an intense orange-to-red gradient environment. Strong silhouette lighting from behind, deep shadow contrast, reflective glossy floor mirroring the figure. Symmetrical composition, minimal set design, no background clutter. The mood is contemplative and powerful, like a still from a Denis Villeneuve film. Aspect ratio 16:9.",
+      "language": "en",
+      "category": "portrait",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "16:9",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/cinematic-silhouette-portrait.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-cinematic-silhouette-portrait-7d8c09dec7.webp",
+      "promptHash": "7d8c09dec780a4a31c09ab373458f49469d6e3a27ee77e40a62a20a1777129c4",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "cinematic-silhouette-portrait",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/cinematic-silhouette-portrait/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:deep-ocean-underwater",
+      "sourceId": "image2-net",
+      "sourceKey": "deep-ocean-underwater",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/deep-ocean-underwater/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Deep Ocean Underwater World",
+      "description": "",
+      "prompt": "deep ocean underwater world, god rays piercing through deep blue water, schools of tropical fish, vivid coral reef, sea turtle in the distance, photorealistic, cinematic, ultra-detailed",
+      "language": "en",
+      "category": "nature",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "16:9",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/deep-ocean-underwater.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-deep-ocean-underwater-3a7bc3433e.webp",
+      "promptHash": "3a7bc3433e5d8f10a93ec97754aecb00b1b1f214e255f7e99e143e10b7ebecbe",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "deep-ocean-underwater",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/deep-ocean-underwater/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:diner-menu-board-5am",
+      "sourceId": "image2-net",
+      "sourceKey": "diner-menu-board-5am",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/diner-menu-board-5am/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Diner Menu Board at 5AM",
+      "description": "",
+      "prompt": "Create a photoreal photograph of a 24 hour diner menu board at 5 in the morning, shot from the counter seat at slight angle. Plastic letter tracks, uneven letter spacing, one missing letter slot, yellowed light from incandescent bulbs, legible prices, categories labeled BREAKFAST, GRIDDLE, SANDWICHES, SIDES, DRINKS, and a daily special that reads CHICKEN FRIED STEAK 8.25. The type must be 100 percent readable and physically believable. No watermark, no brand logos, no text artifacts.",
+      "language": "en",
+      "category": "poster",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "4:5",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/diner-menu-board-5am.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-diner-menu-board-5am-06864912ef.webp",
+      "promptHash": "06864912efa96d904678cc6522bfe34af82525f5c1d4a1a59f6768570d925762",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "diner-menu-board-5am",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/diner-menu-board-5am/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:editorial-typographic-poster",
+      "sourceId": "image2-net",
+      "sourceKey": "editorial-typographic-poster",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/editorial-typographic-poster/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Editorial Typographic Poster",
+      "description": "",
+      "prompt": "A bold contemporary typographic poster, vertical 2:3 ratio. Background: deep midnight blue gradient with subtle paper grain. Main headline reads \"QUIET STORM\" in oversized geometric sans-serif, positioned upper-center, color #f5f5f5. Subheadline below in smaller serif italic: \"an evening of ambient sound\". Bottom-left corner: small label \"LIVE 2026\" with a thin horizontal rule. Decorative element: one minimal abstract shape (a single thin circle) in muted gold in negative space. Editorial magazine aesthetic, generous margins, clean hierarchy.",
+      "language": "en",
+      "category": "poster",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "2:3",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/editorial-typographic-poster.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-editorial-typographic-poster-3be49ff196.webp",
+      "promptHash": "3be49ff19629dd3d93c3367e40473d6060a5a7b4da380ea49c4fb30175fee856",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "editorial-typographic-poster",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/editorial-typographic-poster/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:fishmonger-coastal-market",
+      "sourceId": "image2-net",
+      "sourceKey": "fishmonger-coastal-market",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/fishmonger-coastal-market/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Fishmonger at Coastal Market",
+      "description": "",
+      "prompt": "Create a color documentary photograph of a fishmonger unpacking crates of mackerel onto crushed ice at a small coastal market just after dawn. Steam from breath in the cold air, rubber boots, wet concrete floor, incandescent work lamp spilling warm light, a paper ledger with handwritten prices clipped to a wooden post. Realistic skin texture and fish scales, shallow depth of field, 35mm feel. No commercial styling, no watermark.",
+      "language": "en",
+      "category": "documentary",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "3:2",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/fishmonger-coastal-market.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-fishmonger-coastal-market-e8d445dda5.webp",
+      "promptHash": "e8d445dda5218ef21fb89ad5c795c2c447ba84783ecc237c12fa2abf613f97f2",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "fishmonger-coastal-market",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/fishmonger-coastal-market/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:istanbul-florist-blue-hour",
+      "sourceId": "image2-net",
+      "sourceKey": "istanbul-florist-blue-hour",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/istanbul-florist-blue-hour/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Istanbul Florist at Blue Hour",
+      "description": "",
+      "prompt": "A narrow side street in Istanbul just after light rain at blue hour. A florist locking up for the night. Wet pavement reflections, metal shutter half closed, green apron, tired posture, a paper bundle of unsold tulips in one hand, mixed cool street light and warm shop light, 50mm documentary feel, slight film grain, realistic skin texture, no posed glamour. Editorial newspaper feature photo. No watermark, no logos, no tourist postcard color grading.",
+      "language": "en",
+      "category": "documentary",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "3:2",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/istanbul-florist-blue-hour.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-istanbul-florist-blue-hour-7b503ee70d.webp",
+      "promptHash": "7b503ee70d08366ada57ba6de0eb3ac0c3646c0386f192e4550ebc92ead01093",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "istanbul-florist-blue-hour",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/istanbul-florist-blue-hour/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:linkedin-professional-headshot",
+      "sourceId": "image2-net",
+      "sourceKey": "linkedin-professional-headshot",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/linkedin-professional-headshot/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "LinkedIn Professional Headshot",
+      "description": "",
+      "prompt": "A professional medium-shot portrait of a confident woman in her 30s wearing a tailored navy blue blazer. Neutral grey studio background. Soft three-point lighting. Realistic skin texture, visible pores, and natural hair strands. 8k resolution, shot on 85mm lens.",
+      "language": "en",
+      "category": "portrait",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "1:1",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/linkedin-professional-headshot.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-linkedin-professional-headshot-3f8a4cdb31.webp",
+      "promptHash": "3f8a4cdb31645ab4f09b0402b1028993f7cddfadc1ae811f4a81ff78e4121890",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "linkedin-professional-headshot",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/linkedin-professional-headshot/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:night-train-window-portrait",
+      "sourceId": "image2-net",
+      "sourceKey": "night-train-window-portrait",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/night-train-window-portrait/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Night Train Window Self-Portrait",
+      "description": "",
+      "prompt": "Create a reflection self portrait in a night train window showing a young traveler with headphones and a tired expression, while the landscape outside blurs past at speed. Cool overhead train light mixed with warm town lights outside, ghosted double reflection on the glass, condensation at the edge, a thermos and a book on the tray table. Cinematic but believable. No watermark.",
+      "language": "en",
+      "category": "documentary",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "4:5",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/night-train-window-portrait.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-night-train-window-portrait-ff647a2791.webp",
+      "promptHash": "ff647a279104083a5c2f18340704659ba1f9628408eef1eb9c4d76e155181159",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "night-train-window-portrait",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/night-train-window-portrait/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:personal-brand-cafe-lifestyle",
+      "sourceId": "image2-net",
+      "sourceKey": "personal-brand-cafe-lifestyle",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/personal-brand-cafe-lifestyle/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Personal Brand Cafe Lifestyle",
+      "description": "",
+      "prompt": "A person sitting in a modern outdoor cafe, working on a sleek laptop. A cup of latte with latte art on the table. Soft-focus background of a city street. Lifestyle photography style, warm color grading.",
+      "language": "en",
+      "category": "lifestyle",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "3:2",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/personal-brand-cafe-lifestyle.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-personal-brand-cafe-lifestyle-aacc305928.webp",
+      "promptHash": "aacc3059289cdd62d37bb93569b3ef579fe7042fff40be42e177bb123c15b8d1",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "personal-brand-cafe-lifestyle",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/personal-brand-cafe-lifestyle/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:photoreal-editorial-portrait",
+      "sourceId": "image2-net",
+      "sourceKey": "photoreal-editorial-portrait",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/photoreal-editorial-portrait/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Photoreal Editorial Portrait",
+      "description": "",
+      "prompt": "Photorealistic medium close-up portrait of a 32-year-old East Asian woman with shoulder-length black hair and a small mole near her left eye. Wearing a cream linen shirt, seated by a sunlit window in a quiet ceramic studio. Shot on a 35mm full-frame camera with a 50mm f/1.4 lens, shallow depth of field, golden hour window light from camera left, 3200K warm color temperature. Natural skin texture with visible pores, sharp focus on eyes, slight film grain, no smoothing or beauty filter. Vertical 4:5 framing.",
+      "language": "en",
+      "category": "portrait",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "4:5",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/photoreal-editorial-portrait.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-photoreal-editorial-portrait-4a15cef046.webp",
+      "promptHash": "4a15cef046b6d0a92df9bda02bbcd85f6b9af7308dd4778a0a0bfe7fe0f6f920",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "photoreal-editorial-portrait",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/photoreal-editorial-portrait/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "image2-net:vietnamese-coffee-plantation-morning",
+      "sourceId": "image2-net",
+      "sourceKey": "vietnamese-coffee-plantation-morning",
+      "sourceUrl": "https://image-2.net/gpt-image-2-prompts/vietnamese-coffee-plantation-morning/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "title": "Vietnamese Coffee Plantation Morning",
+      "description": "",
+      "prompt": "Morning fog in a Vietnamese coffee plantation, a young farmer pouring beans into a metal drum, golden hour light, hyperrealistic cinematic style",
+      "language": "en",
+      "category": "nature",
+      "tags": [],
+      "modelFamilies": [
+        "gpt-image-2"
+      ],
+      "aspectRatio": "16:9",
+      "previewUrl": "https://static.image-2.net/templates/thumbs/vietnamese-coffee-plantation-morning.webp",
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-vietnamese-coffee-plantation-morning-b300a88c4b.webp",
+      "promptHash": "b300a88c4b8905b3fe428890874cb4b273de4a195efc880c7772ff700ce4ab03",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "image2-net",
+          "sourceKey": "vietnamese-coffee-plantation-morning",
+          "sourceUrl": "https://image-2.net/gpt-image-2-prompts/vietnamese-coffee-plantation-morning/",
+          "license": "Source terms",
+          "attribution": "image-2.net"
+        }
+      ]
+    },
+    {
+      "id": "openai-cookbook:generate-images-1",
+      "sourceId": "openai-cookbook",
+      "sourceKey": "generate-images-1",
+      "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "title": "Cookbook image example 1",
+      "description": "",
+      "prompt": "Render a realistic image of this character:\nBlobby Alien Character Spec Name: Glorptak (or nickname: \"Glorp\")\nVisual Appearance Body Shape: Amorphous and gelatinous. Overall silhouette resembles a teardrop or melting marshmallow, shifting slightly over time. Can squish and elongate when emotional or startled.\nMaterial Texture: Semi-translucent, bio-luminescent goo with a jelly-like wobble. Surface occasionally ripples when communicating or moving quickly.\nColor Palette:\n- Base: Iridescent lavender or seafoam green\n- Accents: Subsurface glowing veins of neon pink, electric blue, or golden yellow\n- Mood-based color shifts (anger = dark red, joy = bright aqua, fear = pale gray)\nFacial Features:\n- Eyes: 3–5 asymmetrical floating orbs inside the blob that rotate or blink independently\n- Mouth: Optional—appears as a rippling crescent on the surface when speaking or emoting\n- No visible nose or ears; uses vibration-sensitive receptors embedded in goo\n- Limbs: None by default, but can extrude pseudopods (tentacle-like limbs) when needed for interaction or locomotion. Can manifest temporary feet or hands.\nMovement & Behavior Locomotion:\n- Slides, bounces, and rolls.\n- Can stick to walls and ceilings via suction. When scared, may flatten and ooze away quickly.\nMannerisms:\n- Constant wiggling or wobbling even at rest\n- Leaves harmless glowing slime trails\n- Tends to absorb nearby small objects temporarily out of curiosity",
+      "language": "en",
+      "category": "character",
+      "tags": [
+        "official",
+        "cookbook"
+      ],
+      "modelFamilies": [
+        "gpt-image-1"
+      ],
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/openai-cookbook-generate-images-1-a0dc33d5f9.webp",
+      "promptHash": "a0dc33d5f9bb4962e7b6d042cd82bdf16948edb16ac06c1017c670162caaf10f",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "openai-cookbook",
+          "sourceKey": "generate-images-1",
+          "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+          "license": "MIT",
+          "attribution": "OpenAI Cookbook"
+        }
+      ]
+    },
+    {
+      "id": "openai-cookbook:generate-images-2",
+      "sourceId": "openai-cookbook",
+      "sourceKey": "generate-images-2",
+      "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "title": "Cookbook image example 2",
+      "description": "",
+      "prompt": "generate a portrait, pixel-art style, of a grey tabby cat dressed as a blond woman on a dark background.",
+      "language": "en",
+      "category": "portrait",
+      "tags": [
+        "official",
+        "cookbook"
+      ],
+      "modelFamilies": [
+        "gpt-image-1"
+      ],
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/openai-cookbook-generate-images-2-e9bfbd8d56.webp",
+      "promptHash": "e9bfbd8d56cf15bba0b6832a0385bb73cfd017d29d9ee1267c710d3a385d4fee",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "openai-cookbook",
+          "sourceKey": "generate-images-2",
+          "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+          "license": "MIT",
+          "attribution": "OpenAI Cookbook"
+        }
+      ]
+    },
+    {
+      "id": "openai-cookbook:generate-images-3",
+      "sourceId": "openai-cookbook",
+      "sourceKey": "generate-images-3",
+      "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "title": "Cookbook image example 3",
+      "description": "",
+      "prompt": "generate a pixel-art style picture of a green bucket hat with a pink quill on a transparent background.",
+      "language": "en",
+      "category": "creative",
+      "tags": [
+        "official",
+        "cookbook"
+      ],
+      "modelFamilies": [
+        "gpt-image-1"
+      ],
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/openai-cookbook-generate-images-3-c2dc1bbea8.webp",
+      "promptHash": "c2dc1bbea8e276c22ff27e7ab275f501876500a588b5b38ea8acdea79102d7da",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "openai-cookbook",
+          "sourceKey": "generate-images-3",
+          "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+          "license": "MIT",
+          "attribution": "OpenAI Cookbook"
+        }
+      ]
+    },
+    {
+      "id": "openai-cookbook:generate-images-4",
+      "sourceId": "openai-cookbook",
+      "sourceKey": "generate-images-4",
+      "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "title": "Cookbook image example 4",
+      "description": "",
+      "prompt": "Combine the images of the cat and the hat to show the cat wearing the hat while being perched in a tree, still in pixel-art style.",
+      "language": "en",
+      "category": "creative",
+      "tags": [
+        "official",
+        "cookbook"
+      ],
+      "modelFamilies": [
+        "gpt-image-1"
+      ],
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/openai-cookbook-generate-images-4-06e22542fa.webp",
+      "promptHash": "06e22542fad95b0c8bbcfc0aa973a5f62813d249bf5705b9eae81d00a1c481fc",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "openai-cookbook",
+          "sourceKey": "generate-images-4",
+          "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+          "license": "MIT",
+          "attribution": "OpenAI Cookbook"
+        }
+      ]
+    },
+    {
+      "id": "openai-cookbook:generate-images-5",
+      "sourceId": "openai-cookbook",
+      "sourceKey": "generate-images-5",
+      "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "title": "Cookbook image example 5",
+      "description": "",
+      "prompt": "generate a mask delimiting the entire character in the picture, using white where the character is and black for the background. Return an image in the same size as the input image.",
+      "language": "en",
+      "category": "character",
+      "tags": [
+        "official",
+        "cookbook"
+      ],
+      "modelFamilies": [
+        "gpt-image-1"
+      ],
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/openai-cookbook-generate-images-5-a427f83f6c.webp",
+      "promptHash": "a427f83f6c2929567ff5cc00a30c5d51f455d4461eb799b586e95a5fa09aaf51",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "openai-cookbook",
+          "sourceKey": "generate-images-5",
+          "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+          "license": "MIT",
+          "attribution": "OpenAI Cookbook"
+        }
+      ]
+    },
+    {
+      "id": "openai-cookbook:generate-images-6",
+      "sourceId": "openai-cookbook",
+      "sourceKey": "generate-images-6",
+      "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "title": "Cookbook image example 6",
+      "description": "",
+      "prompt": "A strange character on a colorful galaxy background, with lots of stars and planets.",
+      "language": "en",
+      "category": "character",
+      "tags": [
+        "official",
+        "cookbook"
+      ],
+      "modelFamilies": [
+        "gpt-image-1"
+      ],
+      "cachedThumbnailPath": "/prompt-catalog/thumbnails/openai-cookbook-generate-images-6-d2edb47846.webp",
+      "promptHash": "d2edb478463f8bf8d96693ebdb47acc447205ea15c5da2888a2a9d162eb1c522",
+      "importedAt": "2026-07-15T00:00:00.000Z",
+      "sourceReferences": [
+        {
+          "sourceId": "openai-cookbook",
+          "sourceKey": "generate-images-6",
+          "sourceUrl": "https://github.com/openai/openai-cookbook/blob/main/examples/Generate_Images_With_GPT_Image.ipynb",
+          "license": "MIT",
+          "attribution": "OpenAI Cookbook"
+        }
+      ]
+    }
+  ]
+}

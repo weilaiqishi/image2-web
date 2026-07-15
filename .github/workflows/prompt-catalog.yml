@@ -1,0 +1,37 @@
+name: Prompt catalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prompt-catalog
+  cancel-in-progress: false
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run prompts:aggregate -- --limit=12
+      - run: npx vitest run scripts/prompt-sources/adapters.test.ts
+      - name: Commit catalog snapshot
+        run: |
+          if git diff --quiet -- public/prompt-catalog src/data/prompt-catalog-v2.json; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/prompt-catalog src/data/prompt-catalog-v2.json
+          git commit -m "chore: refresh prompt catalog"
+          git push

@@ -1,0 +1,15 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "prompt1 = \"\"\"A grey tabby cat rendered as a detailed pixel-art portrait on a dark background.\"\"\"\n",
+        "client.images.generate(prompt=prompt1)\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": ["prompt = 'This is documentation, not executable.'"]
+    }
+  ]
+}

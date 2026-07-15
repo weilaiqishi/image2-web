@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "source": "https://zhuanlan.zhihu.com/p/2060433719106834734",
+  "auditedAt": "2026-07-15",
+  "minimumPaidRegression": [
+    "MVP-EDIT-01",
+    "MVP-EDIT-03",
+    "MVP-EDIT-04",
+    "MVP-REF-04",
+    "MVP-REF-06",
+    "MVP-DESIGN-04",
+    "MVP-PORTRAIT-04",
+    "MVP-LOCALIZE-01"
+  ],
+  "cases": [
+    { "id": "MVP-UI-01", "title": "从附件悬停进入 Draw", "type": "UI", "blocking": true, "steps": ["hover attachment", "open Draw"], "assertions": ["context preserved", "focus restored"] },
+    { "id": "MVP-UI-02", "title": "画布移动、缩放与适配", "type": "UI", "blocking": true, "steps": ["pan", "wheel zoom", "fit"], "assertions": ["normalized geometry unchanged"] },
+    { "id": "MVP-UI-03", "title": "点选创建 Mark", "type": "UI", "blocking": true, "steps": ["create and delete marks"], "assertions": ["stable non-reused numbering"] },
+    { "id": "MVP-UI-04", "title": "框选创建 Region", "type": "UI", "blocking": true, "steps": ["drag two regions"], "assertions": ["coordinates survive reopen"] },
+    { "id": "MVP-UI-05", "title": "画笔创建不规则 Mask", "type": "UI", "blocking": true, "steps": ["draw two masks"], "assertions": ["stroke undo is atomic"] },
+    { "id": "MVP-UI-06", "title": "箭头表达移动关系", "type": "UI", "blocking": true, "steps": ["draw source-to-target arrow"], "assertions": ["direction compiled"] },
+    { "id": "MVP-UI-07", "title": "Region/Mark 与提示词双向引用", "type": "UI", "blocking": true, "steps": ["insert and click tokens"], "assertions": ["canvas and token focus each other"] },
+    { "id": "MVP-UI-08", "title": "标注草稿与合成图", "type": "UI", "blocking": true, "steps": ["close", "restore", "attach"], "assertions": ["original-size overlay stored outside workspace"] },
+    { "id": "MVP-UI-09", "title": "多附件稳定编号、排序与参考角色", "type": "UI", "blocking": true, "steps": ["assign roles and priorities"], "assertions": ["Image labels are stable"] },
+    { "id": "MVP-UI-10", "title": "发送前编译预览与计费边界", "type": "UI", "blocking": true, "steps": ["inspect compiled request"], "assertions": ["preview does not call image API"] },
+    { "id": "MVP-UI-11", "title": "基于结果继续、同父多方案与前后对比", "type": "UI", "blocking": true, "steps": ["branch twice", "compare"], "assertions": ["lineage preserved"] },
+    { "id": "MVP-UI-12", "title": "失败重试、任务恢复与引用冻结", "type": "UI", "blocking": true, "steps": ["fail", "retry", "restart"], "assertions": ["task snapshot cannot drift"] },
+
+    { "id": "MVP-EDIT-01", "title": "两个 Region 修改背景与地毯", "type": "REAL", "blocking": true, "steps": ["edit two regions"], "assertions": ["both targets hit", "subject preserved"] },
+    { "id": "MVP-EDIT-02", "title": "多 Mark/Region 映射材质球", "type": "REAL", "blocking": false, "steps": ["map material references"], "assertions": ["tokens do not cross-map"] },
+    { "id": "MVP-EDIT-03", "title": "Hex 品牌色精准替换", "type": "REAL", "blocking": true, "steps": ["apply #C59A3A"], "assertions": ["target color recorded"] },
+    { "id": "MVP-EDIT-04", "title": "色卡迁移到灰阶线稿", "type": "REAL", "blocking": true, "steps": ["assign base and palette"], "assertions": ["line art preserved"] },
+    { "id": "MVP-EDIT-05", "title": "画笔涂鸦局部修改", "type": "REAL", "blocking": true, "steps": ["edit mask only"], "assertions": ["unmasked area preserved"] },
+    { "id": "MVP-EDIT-06", "title": "模型在原图上生成知识标注", "type": "REAL", "blocking": false, "steps": ["annotate cat diagram"], "assertions": ["facts require human review"] },
+    { "id": "MVP-EDIT-07", "title": "人像背景色修改与身份保持", "type": "REAL", "blocking": true, "steps": ["darken background only"], "assertions": ["identity preserved"] },
+
+    { "id": "MVP-REF-01", "title": "两只猫融入插画", "type": "REAL", "blocking": true, "steps": ["fuse two identities"], "assertions": ["both cats remain distinct"] },
+    { "id": "MVP-REF-02", "title": "未抠图素材融入新空间并校正透视", "type": "REAL", "blocking": false, "steps": ["place product in room"], "assertions": ["perspective and shadow align"] },
+    { "id": "MVP-REF-03", "title": "草图加菜品生成宣传海报", "type": "REAL", "blocking": false, "steps": ["compose sketch and dishes"], "assertions": ["all dishes remain separate"] },
+    { "id": "MVP-REF-04", "title": "简笔画转魔幻现实主义旅行影像", "type": "REAL", "blocking": true, "steps": ["transform composition sketch"], "assertions": ["composition follows sketch"] },
+    { "id": "MVP-REF-05", "title": "标注构图、人物保真和服装替换", "type": "REAL", "blocking": false, "steps": ["combine identity, clothing and annotations"], "assertions": ["identity priority wins"] },
+    { "id": "MVP-REF-06", "title": "动作线稿迁移", "type": "REAL", "blocking": true, "steps": ["apply pose reference"], "assertions": ["identity and product preserved"] },
+
+    { "id": "MVP-DESIGN-01", "title": "运动节文生图主视觉", "type": "REAL", "blocking": false, "steps": ["generate key visual"], "assertions": ["required title and groups present"] },
+    { "id": "MVP-DESIGN-02", "title": "白底台灯转复古家居海报", "type": "REAL", "blocking": true, "steps": ["stage product poster"], "assertions": ["single product structure preserved"] },
+    { "id": "MVP-DESIGN-03", "title": "单椅暗场发布海报", "type": "REAL", "blocking": false, "steps": ["stage dark poster"], "assertions": ["materials and layout preserved"] },
+    { "id": "MVP-DESIGN-04", "title": "产品与风格参考冲突优先级", "type": "REAL", "blocking": true, "steps": ["assign product over style"], "assertions": ["product structure wins conflict"] },
+    { "id": "MVP-DESIGN-05", "title": "包袋骨架保持与材质方案批量变化", "type": "REAL", "blocking": false, "steps": ["create three sibling variants"], "assertions": ["same skeleton and parent"] },
+    { "id": "MVP-DESIGN-06", "title": "品牌插画与 Logo 延展到标注样机", "type": "REAL", "blocking": false, "steps": ["generate all annotated mockups"], "assertions": ["brand identity remains"] },
+    { "id": "MVP-DESIGN-07", "title": "实验性牛奶品牌拼贴海报", "type": "REAL", "blocking": false, "steps": ["generate flat collage"], "assertions": ["selection handles are design content"] },
+    { "id": "MVP-DESIGN-08", "title": "九格品牌故事漫画", "type": "REAL", "blocking": false, "steps": ["generate nine panels"], "assertions": ["character and sequence consistent"] },
+
+    { "id": "MVP-INFO-01", "title": "从可可豆到巧克力流程图", "type": "REAL", "blocking": false, "steps": ["generate eight-stage flow"], "assertions": ["prompt sent once"] },
+    { "id": "MVP-INFO-02", "title": "客户旅程地图", "type": "REAL", "blocking": false, "steps": ["generate five-stage map"], "assertions": ["four dimensions per stage"] },
+    { "id": "MVP-INFO-03", "title": "珊瑚白化与海洋酸化科普图", "type": "REAL", "blocking": false, "steps": ["generate scientific diagram"], "assertions": ["facts require human review"] },
+    { "id": "MVP-INFO-04", "title": "情绪急救包长图", "type": "REAL", "blocking": false, "steps": ["generate five modules"], "assertions": ["health advice requires review"] },
+
+    { "id": "MVP-PORTRAIT-01", "title": "月夜花园电影人像", "type": "REAL", "blocking": false, "steps": ["generate cinematic portrait"], "assertions": ["materials remain distinct"] },
+    { "id": "MVP-PORTRAIT-02", "title": "模特抱猫童趣时尚人像", "type": "REAL", "blocking": false, "steps": ["generate model and cat"], "assertions": ["both subjects complete"] },
+    { "id": "MVP-PORTRAIT-03", "title": "复古电视室内电影人像", "type": "REAL", "blocking": false, "steps": ["generate prop portrait"], "assertions": ["spatial relationships correct"] },
+    { "id": "MVP-PORTRAIT-04", "title": "上传人像转真实棚拍头像", "type": "REAL", "blocking": true, "steps": ["restage identity portrait"], "assertions": ["identity beats style"] },
+    { "id": "MVP-LOCALIZE-01", "title": "中文护肤海报本地化为英文", "type": "REAL", "blocking": true, "steps": ["replace person and text only"], "assertions": ["layout preserved", "no Chinese remains"] },
+
+    { "id": "MVP-DEFERRED-01", "title": "真实图层分离", "type": "DEFERRED", "blocking": false, "steps": ["wait for provider layer protocol"], "assertions": ["never fake native layers"] },
+    { "id": "MVP-DEFERRED-02", "title": "1:8 超长图", "type": "DEFERRED", "blocking": false, "steps": ["wait for provider ratio capability"], "assertions": ["never silently map to 16:9"] },
+    { "id": "MVP-NEGATIVE-01", "title": "非法与失效引用", "type": "NEGATIVE", "blocking": true, "steps": ["submit stale IDs and invalid color"], "assertions": ["no task or charge"] },
+    { "id": "MVP-NEGATIVE-02", "title": "参考角色冲突", "type": "NEGATIVE", "blocking": true, "steps": ["assign equal product priority"], "assertions": ["explicit resolution required"] }
+  ]
+}

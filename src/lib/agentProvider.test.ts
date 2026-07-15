@@ -29,6 +29,7 @@ describe("Agent protocol adapters", () => {
     expect(request.model).toBe("gpt-5.6");
     expect(request.tools[0].name).toBe("create_image_tasks");
     expect(request.tools[0].strict).toBe(true);
+    expect(request.tools[0].parameters.properties.tasks.items.required).toContain("annotationDocumentId");
     expect(request.input.at(-1).content).toContainEqual(expect.objectContaining({ type: "input_image" }));
   });
 
@@ -42,6 +43,20 @@ describe("Agent protocol adapters", () => {
   it("rejects task overflow and references outside the current turn", () => {
     expect(() => validateImagePlan({ summary: "too many", tasks: Array.from({ length: 9 }, (_, index) => ({ title: `${index}`, prompt: "x", operation: "generate", referenceIds: [] })) }, [])).toThrow("最多创建 8 个");
     expect(() => validateImagePlan(plan, [])).toThrow("当前消息之外");
+  });
+
+  it("validates edit tasks against their base asset, document and object IDs", () => {
+    const attachment = { id: "annotation-1", kind: "annotation" as const, sourceAssetId: "asset-1", documentId: "document-1", objectIds: ["object-1"], instruction: "修改", tokens: [], createdAt: "now" };
+    const document = {
+      id: "document-1", sourceAssetId: "asset-1", conversationId: "c", sourceWidth: 100, sourceHeight: 100, fabricJson: "{}",
+      objects: [{ id: "object-1", documentId: "document-1", kind: "rect" as const, displayName: "Region01", sequence: 1, geometry: { kind: "rect" as const, x: 0, y: 0, width: 0.5, height: 0.5 }, color: "#D64536", createdAt: "now", updatedAt: "now" }],
+      promptText: "@Region01", promptTokens: [], status: "attached" as const, overlayAssetId: "document-1", legacy: false,
+      nextSequence: { point: 1, rect: 2, mask: 2, arrow: 1, note: 1 }, createdAt: "now", updatedAt: "now",
+    };
+    const edit = { summary: "edit", tasks: [{ title: "局部编辑", prompt: "修改 @Region01", operation: "edit", referenceIds: [], annotationId: "annotation-1", annotationDocumentId: "document-1", annotationObjectIds: ["object-1"], baseAssetId: "asset-1", preserve: ["未标注区域"], variantGroupId: null }] };
+    expect(validateImagePlan(edit, ["annotation-1"], { attachments: [attachment], annotationDocuments: { "document-1": document } })).toEqual(edit);
+    expect(() => validateImagePlan({ ...edit, tasks: [{ ...edit.tasks[0], baseAssetId: "asset-other" }] }, ["annotation-1"], { attachments: [attachment], annotationDocuments: { "document-1": document } })).toThrow("baseAssetId");
+    expect(() => validateImagePlan({ ...edit, tasks: [{ ...edit.tasks[0], annotationObjectIds: ["object-other"] }] }, ["annotation-1"], { attachments: [attachment], annotationDocuments: { "document-1": document } })).toThrow("不属于标注文档");
   });
 
   it("builds and parses reference-based setting recommendations for both protocols", () => {

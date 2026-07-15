@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "20260715134634",
+  "generatedAt": "2026-07-15T13:46:34.897Z",
+  "sources": [
+    {
+      "id": "image2-net",
+      "name": "image-2.net",
+      "url": "https://image-2.net/gpt-image-2-prompts/",
+      "license": "Source terms",
+      "attribution": "image-2.net",
+      "enabledByDefault": true,
+      "status": "success",
+      "itemCount": 12,
+      "fetchedAt": "2026-07-15T13:46:34.897Z"
+    },
+    {
+      "id": "awesome-gpt4o-images",
+      "name": "Awesome GPT-4o Images",
+      "url": "https://github.com/jamez-bondos/awesome-gpt4o-images",
+      "license": "CC BY 4.0",
+      "attribution": "Awesome GPT-4o Images contributors",
+      "enabledByDefault": true,
+      "status": "success",
+      "itemCount": 12,
+      "fetchedAt": "2026-07-15T13:46:34.897Z"
+    },
+    {
+      "id": "awesome-prompts",
+      "name": "Awesome Prompts",
+      "url": "https://github.com/songtianlun/awesome-prompts",
+      "license": "MIT",
+      "attribution": "songtianlun/awesome-prompts",
+      "enabledByDefault": true,
+      "status": "success",
+      "itemCount": 12,
+      "fetchedAt": "2026-07-15T13:46:34.897Z"
+    },
+    {
+      "id": "openai-cookbook",
+      "name": "OpenAI Cookbook",
+      "url": "https://github.com/openai/openai-cookbook",
+      "license": "MIT",
+      "attribution": "OpenAI Cookbook",
+      "enabledByDefault": true,
+      "status": "success",
+      "itemCount": 6,
+      "fetchedAt": "2026-07-15T13:46:34.897Z"
+    }
+  ],
+  "shards": [
+    {
+      "id": "catalog-0001",
+      "url": "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/catalog-0001.json",
+      "checksum": "fdf70cbfa5aa33cfcb6d315eade3a04cc7c3bc7b5cd5b50e9960dcafc07a9922",
+      "itemCount": 30
+    }
+  ],
+  "checksum": "09c10f458642cbccc3bd4c87971296f81be07178715421eaa3ad1f88cf3173ef"
+}

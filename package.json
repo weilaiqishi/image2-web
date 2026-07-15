@@ -10,7 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:mvp": "node scripts/mvp-real-api.mjs",
-    "prompts:import": "node scripts/import-prompts.mjs",
+    "test:mvp:plan2": "node scripts/plan2-real-regression.mjs",
+    "prompts:import": "node scripts/aggregate-prompts.mjs",
+    "prompts:import:legacy": "node scripts/import-prompts.mjs",
+    "prompts:aggregate": "node scripts/aggregate-prompts.mjs",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
@@ -20,6 +23,7 @@
     "@fontsource-variable/newsreader": "^5.2.8",
     "@tauri-apps/api": "^2.11.1",
     "fabric": "^7.4.0",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.548.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -37,6 +41,7 @@
     "sharp": "^0.34.4",
     "typescript": "~5.9.3",
     "vite": "^8.1.4",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "yaml": "^2.9.0"
   }
 }

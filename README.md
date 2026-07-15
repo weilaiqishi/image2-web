@@ -109,11 +109,15 @@ GitHub 工作流 `.github/workflows/desktop-build.yml` 会在推送到 `main`、
 
 Actions Artifacts 默认保留 14 天。当前安装包未签名，正式分发前仍需配置 macOS 和 Windows 代码签名。
 
-## 提示词目录
+## 本地灵感库
 
-仓库仍保留 [image-2.net](https://image-2.net/gpt-image-2-prompts/) 公开模板的本地快照和导入脚本，但灵感库不再占据 Agent 主导航。
+灵感库聚合 image-2.net、Awesome GPT-4o Images、Awesome Prompts 和 OpenAI Cookbook。桌面端不会直接抓取第三方网站，只从仓库固定白名单地址下载带校验值的 Manifest、分片和 WebP 缩略图。
+
+收藏、置顶、隐藏、备注、本地改写和使用记录保存在独立 IndexedDB Store，不会上传，也不会被远程目录更新覆盖。来源下架的模板采用归档标记；已经收藏、改写或使用过的内容仍可访问。
 
 ```bash
 npm run prompts:import
-npm run prompts:import -- --all
+npm run prompts:aggregate -- --limit=12
 ```
+
+聚合器为四个来源提供独立 Adapter 和固定 Fixture，输出到 `public/prompt-catalog/` 及 `src/data/prompt-catalog-v2.json`。`.github/workflows/prompt-catalog.yml` 每周检查并发布新快照。应用内支持全部或单来源检查、自动更新频率、更新策略、缩略图策略，以及本地资料 JSON/ZIP 导入导出。

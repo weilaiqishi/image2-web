@@ -1,20 +1,25 @@
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import type { AnnotationAttachment, AssetRecord } from "../types";
+import type { AnnotationAttachment, AnnotationDocumentV2, AssetRecord } from "../types";
 import type { AnnotationSubmission } from "./AnnotationEditor";
 
 const AnnotationEditor = lazy(() => import("./AnnotationEditor").then((module) => ({ default: module.AnnotationEditor })));
 
 interface AnnotationDialogProps {
   asset: AssetRecord;
+  conversationId: string;
+  initialDocument?: AnnotationDocumentV2;
   onClose: () => void;
   onExport: () => void;
   onSubmit: (attachment: AnnotationAttachment) => void;
+  onDocumentChange?: (document: AnnotationDocumentV2) => void;
 }
 
-export function AnnotationDialog({ asset, onClose, onExport, onSubmit }: AnnotationDialogProps) {
+export function AnnotationDialog({ asset, conversationId, initialDocument, onClose, onExport, onSubmit, onDocumentChange }: AnnotationDialogProps) {
   const [dirty, setDirty] = useState(false);
+  const [documentId] = useState(() => initialDocument?.id ?? crypto.randomUUID());
+  const [startingDocument] = useState(initialDocument);
   const dirtyRef = useRef(false);
   const closeButton = useRef<HTMLButtonElement>(null);
 
@@ -44,9 +49,11 @@ export function AnnotationDialog({ asset, onClose, onExport, onSubmit }: Annotat
       id: crypto.randomUUID(),
       kind: "annotation",
       sourceAssetId: asset.id,
-      documentJson: input.documentJson,
-      annotatedDataUrl: input.annotatedDataUrl,
-      instruction: input.instruction,
+      documentId: input.document.id,
+      objectIds: input.document.objects.map((object) => object.id),
+      compiledOverlayAssetId: input.document.overlayAssetId,
+      tokens: input.document.promptTokens,
+      instruction: input.document.promptText,
       createdAt: new Date().toISOString(),
     });
     setDirty(false);
@@ -61,7 +68,7 @@ export function AnnotationDialog({ asset, onClose, onExport, onSubmit }: Annotat
           <button ref={closeButton} className="icon-button" type="button" onClick={close} aria-label="关闭标注"><X size={18} /></button>
         </header>
         <Suspense fallback={<div className="annotation-loading"><span />正在载入标注工具</div>}>
-          <AnnotationEditor asset={asset} onSubmit={submit} onExport={onExport} onDirty={() => setDirty(true)} />
+          <AnnotationEditor asset={asset} conversationId={conversationId} documentId={documentId} initialDocument={startingDocument} onSubmit={submit} onExport={onExport} onDirty={() => setDirty(true)} onDocumentChange={onDocumentChange} />
         </Suspense>
       </div>
     </div>,
