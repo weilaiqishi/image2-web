@@ -12,6 +12,8 @@ Image2 Studio is a local-first Windows/macOS client for GPT Image generation and
 
 The renderer cannot read the stored API key or make arbitrary network requests. Image requests run in Rust, so custom OpenAI-compatible endpoints are not affected by browser CORS.
 
+The built-in inspiration catalog keeps a balanced local snapshot of public prompt templates from [image-2.net](https://image-2.net/gpt-image-2-prompts/). Each template includes its source URL, prompt, category, aspect ratio, recommended resolution, and a local thumbnail. "Generate same style" copies the prompt and maps unsupported source ratios to the nearest supported generation size.
+
 ## Development
 
 Prerequisites: Node.js 20+, Rust stable, and the native Tauri prerequisites for your operating system.
@@ -28,6 +30,14 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:1420/?demo=1` to inspect the included mooncake generation and revision demo without calling an API.
+
+Refresh the local prompt catalog (three templates per source category by default):
+
+```bash
+npm run prompts:import
+```
+
+Use `npm run prompts:import -- --all` to import the complete public catalog. The importer follows the source site's public catalog and detail links, limits concurrency, and bundles optimized thumbnails so the desktop app does not scrape at runtime.
 
 ## Verification
 

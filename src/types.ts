@@ -1,4 +1,4 @@
-export type WorkspaceMode = "generate" | "annotate";
+export type WorkspaceMode = "generate" | "inspire" | "annotate";
 export type Quality = "low" | "medium" | "high";
 export type OutputFormat = "png" | "jpeg" | "webp";
 export type AspectRatio = "1:1" | "4:3" | "16:9" | "3:4" | "9:16";
@@ -51,6 +51,31 @@ export interface AnnotationDocument {
   assetId: string;
   json: string;
   updatedAt: string;
+}
+
+export interface PromptTemplate {
+  slug: string;
+  title: string;
+  description: string;
+  prompt: string;
+  category: string;
+  tags: string[];
+  aspectRatio: string;
+  resolution: string;
+  model: string;
+  bestFor: string;
+  publishedAt: string;
+  previewUrl: string;
+  thumbnail: string;
+  sourceUrl: string;
+  phrases: string[];
+}
+
+export interface PromptCatalogSource {
+  name: string;
+  url: string;
+  discovered: number;
+  imported: number;
 }
 
 export interface AppError {

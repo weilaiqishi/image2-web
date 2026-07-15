@@ -1,15 +1,18 @@
-import { History, Image as ImageIcon, PenTool, Settings as SettingsIcon } from "lucide-react";
+import { History, Image as ImageIcon, Lightbulb, PenTool, Settings as SettingsIcon } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { GenerationPanel } from "./components/GenerationPanel";
 import { HistoryRail } from "./components/HistoryRail";
 import { PreviewStage } from "./components/PreviewStage";
+import { PromptLibrary } from "./components/PromptLibrary";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { bridge, errorMessage, filesToDataUrls } from "./lib/bridge";
+import { normalizeAspectRatio, normalizeResolution, promptCatalog, promptCatalogSource } from "./lib/promptCatalog";
 import {
   SIZE_PRESETS,
   type AssetRecord,
   type EditInput,
   type GenerationParams,
+  type PromptTemplate,
   type SaveSettingsInput,
   type Settings,
   type WorkspaceMode,
@@ -125,6 +128,15 @@ export default function App() {
     setReferences((current) => [...current, ...urls].slice(0, 4));
   };
 
+  const usePromptTemplate = (template: PromptTemplate) => {
+    const aspectRatio = normalizeAspectRatio(template.aspectRatio);
+    const resolution = normalizeResolution(template.resolution);
+    updateParams({ ...params, prompt: template.prompt, aspectRatio, resolution });
+    setMode("generate");
+    const ratioNote = aspectRatio === template.aspectRatio ? aspectRatio : `${template.aspectRatio} → ${aspectRatio}`;
+    setNotice({ type: "success", text: `已套用“${template.title}”：${ratioNote} · ${resolution}` });
+  };
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -135,6 +147,9 @@ export default function App() {
         <nav className="mode-switch" aria-label="工作模式">
           <button className={mode === "generate" ? "active" : ""} type="button" onClick={() => setMode("generate")}>
             <ImageIcon size={16} />生成
+          </button>
+          <button className={mode === "inspire" ? "active" : ""} type="button" onClick={() => setMode("inspire")}>
+            <Lightbulb size={16} />灵感
           </button>
           <button className={mode === "annotate" ? "active" : ""} type="button" disabled={!selectedAsset} onClick={() => setMode("annotate")}>
             <PenTool size={16} />标注修改
@@ -169,6 +184,8 @@ export default function App() {
             onDelete={(asset) => void removeAsset(asset)}
           />
         </div>
+      ) : mode === "inspire" ? (
+        <PromptLibrary templates={promptCatalog} source={promptCatalogSource} onUse={usePromptTemplate} />
       ) : selectedAsset ? (
         <Suspense fallback={<div className="annotation-loading"><span />正在载入标注工具</div>}>
           <AnnotationEditor asset={selectedAsset} params={params} busy={busy} onSubmit={edit} onExport={() => void bridge.exportAsset(selectedAsset.id)} />
