@@ -11,14 +11,18 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, settings, onClose, onSave }: SettingsDialogProps) {
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl);
-  const [model, setModel] = useState(settings.model);
+  const [agentProtocol, setAgentProtocol] = useState(settings.agentProtocol);
+  const [agentModel, setAgentModel] = useState(settings.agentModel);
+  const [imageModel, setImageModel] = useState(settings.imageModel);
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setBaseUrl(settings.baseUrl);
-    setModel(settings.model);
+    setAgentProtocol(settings.agentProtocol);
+    setAgentModel(settings.agentModel);
+    setImageModel(settings.imageModel);
   }, [settings]);
 
   if (!open) return null;
@@ -27,7 +31,7 @@ export function SettingsDialog({ open, settings, onClose, onSave }: SettingsDial
     event.preventDefault();
     setSaving(true);
     try {
-      await onSave({ baseUrl, model, apiKey: apiKey || undefined });
+      await onSave({ baseUrl, agentProtocol, agentModel, imageModel, apiKey: apiKey || undefined });
       setApiKey("");
       onClose();
     } finally {
@@ -58,12 +62,28 @@ export function SettingsDialog({ open, settings, onClose, onSave }: SettingsDial
           required
         />
 
-        <label className="field-label" htmlFor="model">图片模型</label>
+        <label className="field-label" htmlFor="agent-protocol">Agent 协议</label>
+        <select id="agent-protocol" className="text-input mono" value={agentProtocol} onChange={(event) => setAgentProtocol(event.target.value as typeof agentProtocol)}>
+          <option value="responses">Responses API</option>
+          <option value="chat_completions">Chat Completions</option>
+        </select>
+
+        <label className="field-label" htmlFor="agent-model">Agent 模型</label>
         <input
-          id="model"
+          id="agent-model"
           className="text-input mono"
-          value={model}
-          onChange={(event) => setModel(event.target.value)}
+          value={agentModel}
+          onChange={(event) => setAgentModel(event.target.value)}
+          placeholder="gpt-5.6"
+          required
+        />
+
+        <label className="field-label" htmlFor="image-model">图片模型</label>
+        <input
+          id="image-model"
+          className="text-input mono"
+          value={imageModel}
+          onChange={(event) => setImageModel(event.target.value)}
           placeholder="gpt-image-2"
           required
         />

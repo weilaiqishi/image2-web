@@ -1,7 +1,9 @@
 import {
+  AlertCircle,
   ArrowUpRight,
   Circle,
   Download,
+  LoaderCircle,
   Maximize2,
   MousePointer2,
   Redo2,
@@ -23,15 +25,20 @@ import {
   type TPointerEvent,
 } from "fabric";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { assetSrc, bridge, errorMessage } from "../lib/bridge";
-import type { AssetRecord, EditInput, GenerationParams } from "../types";
+import { bridge, errorMessage } from "../lib/bridge";
+import type { AssetRecord } from "../types";
+
+export interface AnnotationSubmission {
+  documentJson: string;
+  annotatedDataUrl: string;
+  instruction: string;
+}
 
 interface AnnotationEditorProps {
   asset: AssetRecord;
-  params: GenerationParams;
-  busy: boolean;
-  onSubmit: (input: EditInput) => Promise<void>;
+  onSubmit: (input: AnnotationSubmission) => Promise<void> | void;
   onExport: () => void;
+  onDirty?: () => void;
 }
 
 type Tool = "select" | "ellipse" | "arrow" | "text";
@@ -47,7 +54,7 @@ type DrawingGesture = {
 
 const annotationColors = ["#d64536", "#2455c3", "#181a18", "#ffffff"];
 
-export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: AnnotationEditorProps) {
+export function AnnotationEditor({ asset, onSubmit, onExport, onDirty }: AnnotationEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasElementRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<FabricCanvas | null>(null);
@@ -65,9 +72,21 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   const [zoom, setZoom] = useState(1);
   const [annotationPrompt, setAnnotationPrompt] = useState("按箭头和文字标注修改画面");
   const [editorError, setEditorError] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageError, setImageError] = useState("");
   const [, setHistoryVersion] = useState(0);
 
-  const imageUrl = assetSrc(asset);
+  useEffect(() => {
+    let cancelled = false;
+    setImageUrl("");
+    setImageError("");
+    void bridge.readAssetDataUrl(asset.id).then((dataUrl) => {
+      if (!cancelled) setImageUrl(dataUrl);
+    }).catch((error) => {
+      if (!cancelled) setImageError(errorMessage(error));
+    });
+    return () => { cancelled = true; };
+  }, [asset.id]);
 
   useEffect(() => {
     toolRef.current = tool;
@@ -83,6 +102,7 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
   }, [color, tool]);
 
   useEffect(() => {
+    if (!imageUrl) return;
     let cancelled = false;
     const image = new Image();
     image.onload = () => {
@@ -116,11 +136,12 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
     historyIndexRef.current = historyRef.current.length - 1;
     setHistoryVersion((version) => version + 1);
     persist(canvas);
-  }, [persist]);
+    onDirty?.();
+  }, [onDirty, persist]);
 
   useLayoutEffect(() => {
     const element = canvasElementRef.current;
-    if (!element) return;
+    if (!element || !imageUrl) return;
     const startsInDrawingMode = toolRef.current === "ellipse" || toolRef.current === "arrow";
     const canvas = new FabricCanvas(element, {
       width: stageSize.width,
@@ -243,7 +264,9 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
       if (disposed) return;
       if (saved?.json) {
         restoringRef.current = true;
-        await canvas.loadFromJSON(saved.json);
+        const document = JSON.parse(saved.json) as { objects?: Array<Record<string, unknown>> };
+        if (document.objects?.[0]) document.objects[0].src = imageUrl;
+        await canvas.loadFromJSON(document);
         const objects = canvas.getObjects();
         const background = objects[0];
         if (background) {
@@ -279,7 +302,7 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
         }
         restoringRef.current = false;
       } else {
-        const image = await FabricImage.fromURL(imageUrl, { crossOrigin: "anonymous" });
+        const image = await FabricImage.fromURL(imageUrl);
         if (disposed) return;
         const source = image.getElement() as HTMLImageElement;
         const sourceWidth = source.naturalWidth || image.width || stageSize.width;
@@ -411,11 +434,11 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
     canvas.requestRenderAll();
     const multiplier = Math.max(1, naturalSizeRef.current.width / stageSize.width);
     const annotatedDataUrl = canvas.toDataURL({ format: "png", multiplier });
+    const documentJson = JSON.stringify(canvas.toJSON());
     await onSubmit({
-      ...params,
-      originalAssetId: asset.id,
+      documentJson,
       annotatedDataUrl,
-      annotationPrompt,
+      instruction: annotationPrompt,
     });
   };
 
@@ -435,7 +458,8 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
 
       <main className="annotation-stage" ref={hostRef}>
         <div className="annotation-topline"><span>固定图片标注</span><code>{Math.round(zoom * 100)}%</code></div>
-        <div className="fabric-viewport" style={{ transform: `scale(${zoom})`, width: stageSize.width, height: stageSize.height }}>
+        {!imageUrl && <div className={`annotation-image-state ${imageError ? "error" : ""}`}>{imageError ? <><AlertCircle size={22} /><strong>图片载入失败</strong><span>{imageError}</span></> : <><LoaderCircle className="spin" size={22} /><span>正在载入原图</span></>}</div>}
+        <div className="fabric-viewport" hidden={!imageUrl} style={{ transform: `scale(${zoom})`, width: stageSize.width, height: stageSize.height }}>
           <canvas ref={canvasElementRef} />
         </div>
         <div className="zoom-controls">
@@ -467,8 +491,8 @@ export function AnnotationEditor({ asset, params, busy, onSubmit, onExport }: An
         {editorError && <p className="inline-error">{editorError}</p>}
         <div className="annotation-actions">
           <button className="button secondary" type="button" onClick={onExport}><Download size={16} />导出原图</button>
-          <button className="generate-button" type="button" disabled={busy || !annotationPrompt.trim()} onClick={() => void submit()}>
-            <Sparkles size={18} />{busy ? "正在生成修订…" : "按标注修改"}
+          <button className="generate-button" type="button" disabled={!annotationPrompt.trim()} onClick={() => void submit()}>
+            <Sparkles size={18} />添加到对话
           </button>
         </div>
       </aside>

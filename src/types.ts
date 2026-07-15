@@ -1,4 +1,5 @@
 export type WorkspaceMode = "generate" | "inspire" | "annotate";
+export type AgentProtocol = "responses" | "chat_completions";
 export type Quality = "low" | "medium" | "high";
 export type OutputFormat = "png" | "jpeg" | "webp";
 export type AspectRatio = "1:1" | "4:3" | "16:9" | "3:4" | "9:16";
@@ -6,13 +7,17 @@ export type Resolution = "1K" | "2K" | "4K";
 
 export interface Settings {
   baseUrl: string;
-  model: string;
+  agentProtocol: AgentProtocol;
+  agentModel: string;
+  imageModel: string;
   hasApiKey: boolean;
 }
 
 export interface SaveSettingsInput {
   baseUrl: string;
-  model: string;
+  agentProtocol: AgentProtocol;
+  agentModel: string;
+  imageModel: string;
   apiKey?: string;
 }
 
@@ -27,6 +32,7 @@ export interface GenerationParams {
 
 export interface GenerateInput extends GenerationParams {
   referenceDataUrls?: string[];
+  referenceAssetIds?: string[];
 }
 
 export interface EditInput extends GenerationParams {
@@ -51,6 +57,119 @@ export interface AnnotationDocument {
   assetId: string;
   json: string;
   updatedAt: string;
+}
+
+export type Attachment = ReferenceAttachment | AssetAttachment | AnnotationAttachment;
+
+export interface ReferenceAttachment {
+  id: string;
+  kind: "reference";
+  name: string;
+  dataUrl: string;
+}
+
+export interface AssetAttachment {
+  id: string;
+  kind: "asset";
+  assetId: string;
+  name: string;
+}
+
+export interface AnnotationAttachment {
+  id: string;
+  kind: "annotation";
+  sourceAssetId: string;
+  documentJson: string;
+  annotatedDataUrl: string;
+  instruction: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  role: "user" | "assistant";
+  content: string;
+  attachments: Attachment[];
+  batchId?: string;
+  createdAt: string;
+}
+
+export type BatchStatus = "queued" | "running" | "completed" | "partial" | "cancelled" | "interrupted";
+export type TaskStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled" | "interrupted";
+
+export interface GenerationBatch {
+  id: string;
+  conversationId: string;
+  status: BatchStatus;
+  params: GenerationParams;
+  taskIds: string[];
+  createdAt: string;
+}
+
+export interface GenerationTask {
+  id: string;
+  batchId: string;
+  position: number;
+  title: string;
+  prompt: string;
+  operation: "generate" | "edit";
+  status: TaskStatus;
+  referenceIds: string[];
+  attachments: Attachment[];
+  annotationId?: string;
+  resultAssetId?: string;
+  error?: string;
+  attempt: number;
+}
+
+export interface ComposerDraft {
+  text: string;
+  attachments: Attachment[];
+  params: GenerationParams;
+  recommendation?: GenerationRecommendation;
+}
+
+export interface GenerationRecommendation {
+  aspectRatio: AspectRatio;
+  quality: Quality;
+  reason: string;
+  status: "loading" | "ready" | "applied" | "dismissed" | "error";
+}
+
+export interface WorkspaceState {
+  version: 1;
+  selectedConversationId: string;
+  conversations: Conversation[];
+  messages: ChatMessage[];
+  batches: GenerationBatch[];
+  tasks: GenerationTask[];
+  drafts: Record<string, ComposerDraft>;
+}
+
+export interface PlannedImageTask {
+  title: string;
+  prompt: string;
+  operation: "generate" | "edit";
+  referenceIds: string[];
+  annotationId?: string;
+}
+
+export interface CreateImageTasksInput {
+  summary: string;
+  tasks: PlannedImageTask[];
+}
+
+export interface AgentTurnResult {
+  text: string;
+  plan?: CreateImageTasksInput;
 }
 
 export interface PromptTemplate {

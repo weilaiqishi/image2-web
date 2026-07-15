@@ -1,200 +1,143 @@
-import { History, Image as ImageIcon, Lightbulb, PenTool, Settings as SettingsIcon } from "lucide-react";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { GenerationPanel } from "./components/GenerationPanel";
-import { HistoryRail } from "./components/HistoryRail";
-import { PreviewStage } from "./components/PreviewStage";
-import { PromptLibrary } from "./components/PromptLibrary";
+import { useEffect, useRef, useState } from "react";
+import { AgentWorkspace } from "./components/AgentWorkspace";
+import { AnnotationDialog } from "./components/AnnotationDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
-import { bridge, errorMessage, filesToDataUrls } from "./lib/bridge";
-import { normalizeAspectRatio, normalizeResolution, promptCatalog, promptCatalogSource } from "./lib/promptCatalog";
-import {
-  SIZE_PRESETS,
-  type AssetRecord,
-  type EditInput,
-  type GenerationParams,
-  type PromptTemplate,
-  type SaveSettingsInput,
-  type Settings,
-  type WorkspaceMode,
-} from "./types";
-
-const AnnotationEditor = lazy(() =>
-  import("./components/AnnotationEditor").then((module) => ({ default: module.AnnotationEditor })),
-);
+import { AgentRuntime } from "./lib/agentRuntime";
+import { bridge, errorMessage } from "./lib/bridge";
+import { normalizeAspectRatio, normalizeResolution } from "./lib/promptCatalog";
+import { SIZE_PRESETS, type AnnotationAttachment, type AssetRecord, type Attachment, type PromptTemplate, type SaveSettingsInput, type Settings, type WorkspaceState } from "./types";
 
 const initialSettings: Settings = {
   baseUrl: "https://api.openai.com/v1",
-  model: "gpt-image-2",
+  agentProtocol: "responses",
+  agentModel: "gpt-5.6",
+  imageModel: "gpt-image-2",
   hasApiKey: false,
 };
 
-const initialParams: GenerationParams = {
-  prompt: "",
-  aspectRatio: "1:1",
-  resolution: "1K",
-  size: "1024x1024",
-  quality: "medium",
-  outputFormat: "png",
-};
-
 export default function App() {
-  const [mode, setMode] = useState<WorkspaceMode>("generate");
+  const [runtime, setRuntime] = useState<AgentRuntime>();
+  const [workspace, setWorkspace] = useState<WorkspaceState>();
   const [settings, setSettings] = useState(initialSettings);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [params, setParams] = useState(initialParams);
-  const [references, setReferences] = useState<string[]>([]);
   const [assets, setAssets] = useState<AssetRecord[]>([]);
-  const [selectedId, setSelectedId] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [view, setView] = useState<"chat" | "inspire">("chat");
+  const [annotationAsset, setAnnotationAsset] = useState<AssetRecord>();
   const [notice, setNotice] = useState<{ type: "error" | "success"; text: string }>();
-
-  const selectedAsset = useMemo(
-    () => assets.find((asset) => asset.id === selectedId) ?? assets[0],
-    [assets, selectedId],
-  );
+  const annotationTrigger = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    void Promise.all([bridge.getSettings(), bridge.listAssets()])
-      .then(([nextSettings, nextAssets]) => {
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+    void Promise.all([AgentRuntime.create(), bridge.getSettings(), bridge.listAssets()])
+      .then(([nextRuntime, nextSettings, nextAssets]) => {
+        if (cancelled) return;
+        setRuntime(nextRuntime);
+        setWorkspace(nextRuntime.snapshot());
+        unsubscribe = nextRuntime.subscribe(setWorkspace);
         setSettings(nextSettings);
         setAssets(nextAssets);
-        setSelectedId(nextAssets[0]?.id);
         if (!nextSettings.hasApiKey) setSettingsOpen(true);
       })
       .catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
+    return () => { cancelled = true; unsubscribe?.(); };
   }, []);
 
-  const updateParams = (next: GenerationParams) => {
-    const size = SIZE_PRESETS[next.resolution][next.aspectRatio];
-    setParams({ ...next, size });
-  };
+  const succeeded = workspace?.tasks.filter((task) => task.status === "succeeded").length ?? 0;
+  useEffect(() => {
+    if (!runtime || !succeeded) return;
+    void bridge.listAssets().then(setAssets).catch(() => undefined);
+  }, [runtime, succeeded]);
 
+  const selectedConversationId = workspace?.selectedConversationId;
+  const selectedDraft = selectedConversationId ? workspace?.drafts[selectedConversationId] : undefined;
   const saveSettings = async (input: SaveSettingsInput) => {
     const next = await bridge.saveSettings(input);
     setSettings(next);
     setNotice({ type: "success", text: "连接设置已保存" });
   };
 
-  const generate = async () => {
+  const send = async () => {
+    if (!runtime || !selectedConversationId) return;
     if (!settings.hasApiKey) {
       setSettingsOpen(true);
       setNotice({ type: "error", text: "请先配置 API Key" });
       return;
     }
-    setBusy(true);
+    setAnalyzing(true);
     setNotice(undefined);
     try {
-      const asset = await bridge.generate({ ...params, referenceDataUrls: references });
-      setAssets((current) => [asset, ...current]);
-      setSelectedId(asset.id);
-      setNotice({ type: "success", text: "新校样已生成并保存在本机" });
-    } catch (error) {
-      setNotice({ type: "error", text: errorMessage(error) });
+      await runtime.submit(selectedConversationId, settings);
     } finally {
-      setBusy(false);
+      setAnalyzing(false);
     }
   };
 
-  const edit = async (input: EditInput) => {
-    setBusy(true);
-    setNotice(undefined);
-    try {
-      const asset = await bridge.edit(input);
-      setAssets((current) => [asset, ...current]);
-      setSelectedId(asset.id);
-      setMode("generate");
-      setNotice({ type: "success", text: "修订版已生成，原图和标注均已保留" });
-    } catch (error) {
-      setNotice({ type: "error", text: errorMessage(error) });
-    } finally {
-      setBusy(false);
-    }
+  const openAnnotation = (asset: AssetRecord) => {
+    annotationTrigger.current = document.activeElement as HTMLElement | null;
+    setAnnotationAsset(asset);
   };
 
-  const annotate = (asset: AssetRecord) => {
-    setSelectedId(asset.id);
-    setMode("annotate");
+  const closeAnnotation = () => {
+    setAnnotationAsset(undefined);
+    window.setTimeout(() => annotationTrigger.current?.focus(), 0);
   };
 
-  const removeAsset = async (asset: AssetRecord) => {
-    await bridge.deleteAsset(asset.id);
-    setAssets((current) => current.filter((item) => item.id !== asset.id));
-    if (selectedId === asset.id) setSelectedId(undefined);
+  const addAnnotation = (attachment: AnnotationAttachment) => {
+    if (!runtime || !selectedConversationId || !selectedDraft) return;
+    void runtime.updateDraft(selectedConversationId, { attachments: [...selectedDraft.attachments, attachment].slice(0, 6) });
   };
 
-  const addReferences = async (files: File[]) => {
-    const valid = files.filter((file) => file.size <= 20 * 1024 * 1024).slice(0, 4 - references.length);
-    const urls = await filesToDataUrls(valid);
-    setReferences((current) => [...current, ...urls].slice(0, 4));
+  const addAttachments = (attachments: Attachment[]) => {
+    if (!runtime || !selectedConversationId) return;
+    void runtime.addAttachmentsAndRecommend(selectedConversationId, attachments, settings);
   };
 
-  const usePromptTemplate = (template: PromptTemplate) => {
+  const useTemplate = (template: PromptTemplate) => {
+    if (!runtime || !selectedConversationId || !selectedDraft) return;
     const aspectRatio = normalizeAspectRatio(template.aspectRatio);
     const resolution = normalizeResolution(template.resolution);
-    updateParams({ ...params, prompt: template.prompt, aspectRatio, resolution });
-    setMode("generate");
-    const ratioNote = aspectRatio === template.aspectRatio ? aspectRatio : `${template.aspectRatio} → ${aspectRatio}`;
-    setNotice({ type: "success", text: `已套用“${template.title}”：${ratioNote} · ${resolution}` });
+    void runtime.updateDraft(selectedConversationId, {
+      text: template.prompt,
+      params: { ...selectedDraft.params, aspectRatio, resolution, size: SIZE_PRESETS[resolution][aspectRatio] },
+    });
+    setView("chat");
+    setNotice({ type: "success", text: `已将“${template.title}”加入当前对话` });
   };
 
+  if (!runtime || !workspace || !selectedConversationId || !selectedDraft) {
+    return <div className="app-loading"><span className="brand-mark working" aria-hidden="true">I²</span><p>正在载入本地工作区</p></div>;
+  }
+
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="brand-lockup">
-          <span className="brand-mark">I²</span>
-          <div><strong>Image2</strong><span>Studio</span></div>
-        </div>
-        <nav className="mode-switch" aria-label="工作模式">
-          <button className={mode === "generate" ? "active" : ""} type="button" onClick={() => setMode("generate")}>
-            <ImageIcon size={16} />生成
-          </button>
-          <button className={mode === "annotate" ? "active" : ""} type="button" disabled={!selectedAsset} onClick={() => setMode("annotate")}>
-            <PenTool size={16} />标注修改
-          </button>
-          <button className={mode === "inspire" ? "active" : ""} type="button" onClick={() => setMode("inspire")}>
-            <Lightbulb size={16} />灵感
-          </button>
-        </nav>
-        <div className="header-actions">
-          <span className={`connection-status ${settings.hasApiKey ? "ready" : ""}`}><i />{settings.hasApiKey ? settings.model : "未连接"}</span>
-          <button className="icon-button" type="button" onClick={() => setSettingsOpen(true)} aria-label="打开设置" title="设置"><SettingsIcon size={18} /></button>
-        </div>
-      </header>
-
+    <>
+      <AgentWorkspace
+        workspace={workspace}
+        assets={assets}
+        settings={settings}
+        analyzing={analyzing}
+        view={view}
+        onNewConversation={() => { setView("chat"); void runtime.createConversation(); }}
+        onSelectConversation={(id) => { setView("chat"); void runtime.selectConversation(id); }}
+        onRenameConversation={(id, title) => void runtime.renameConversation(id, title)}
+        onDeleteConversation={(id) => { if (window.confirm("删除这个对话？生成图片仍会保留在历史素材中。")) void runtime.deleteConversation(id); }}
+        onDraftChange={(draft) => void runtime.updateDraft(selectedConversationId, draft)}
+        onAddAttachments={addAttachments}
+        onAnswerRecommendation={(apply) => void runtime.answerRecommendation(selectedConversationId, apply)}
+        onViewChange={setView}
+        onUseTemplate={useTemplate}
+        onSend={() => void send()}
+        onSettings={() => setSettingsOpen(true)}
+        onAnnotate={openAnnotation}
+        onExport={(asset) => void bridge.exportAsset(asset.id)}
+        onCancelBatch={(id) => void runtime.cancelBatch(id)}
+        onResumeBatch={(id) => void runtime.resumeBatch(id)}
+        onRetryTask={(id) => void runtime.retryTask(id)}
+      />
       {notice && <div className={`notice ${notice.type}`} role="status">{notice.text}<button type="button" onClick={() => setNotice(undefined)} aria-label="关闭提示">×</button></div>}
-
-      {mode === "generate" ? (
-        <div className="generate-workspace">
-          <GenerationPanel
-            params={params}
-            references={references}
-            busy={busy}
-            onChange={updateParams}
-            onReferences={(files) => void addReferences(files)}
-            onRemoveReference={(index) => setReferences((current) => current.filter((_, itemIndex) => itemIndex !== index))}
-            onGenerate={() => void generate()}
-          />
-          <PreviewStage asset={selectedAsset} busy={busy} onAnnotate={() => selectedAsset && annotate(selectedAsset)} onExport={() => selectedAsset && void bridge.exportAsset(selectedAsset.id)} />
-          <HistoryRail
-            assets={assets}
-            selectedId={selectedAsset?.id}
-            onSelect={(asset) => setSelectedId(asset.id)}
-            onAnnotate={annotate}
-            onExport={(asset) => void bridge.exportAsset(asset.id)}
-            onDelete={(asset) => void removeAsset(asset)}
-          />
-        </div>
-      ) : mode === "inspire" ? (
-        <PromptLibrary templates={promptCatalog} source={promptCatalogSource} onUse={usePromptTemplate} />
-      ) : selectedAsset ? (
-        <Suspense fallback={<div className="annotation-loading"><span />正在载入标注工具</div>}>
-          <AnnotationEditor asset={selectedAsset} params={params} busy={busy} onSubmit={edit} onExport={() => void bridge.exportAsset(selectedAsset.id)} />
-        </Suspense>
-      ) : (
-        <div className="missing-selection"><History size={24} /><p>请先生成或选择一张图片。</p></div>
-      )}
-
       <SettingsDialog open={settingsOpen} settings={settings} onClose={() => setSettingsOpen(false)} onSave={saveSettings} />
-    </div>
+      {annotationAsset && <AnnotationDialog asset={annotationAsset} onClose={closeAnnotation} onExport={() => void bridge.exportAsset(annotationAsset.id)} onSubmit={addAnnotation} />}
+    </>
   );
 }

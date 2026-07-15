@@ -48,16 +48,21 @@ struct AppState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 struct SettingsFile {
     base_url: String,
-    model: String,
+    agent_protocol: String,
+    agent_model: String,
+    image_model: String,
 }
 
 impl Default for SettingsFile {
     fn default() -> Self {
         Self {
             base_url: "https://api.openai.com/v1".into(),
-            model: "gpt-image-2".into(),
+            agent_protocol: "responses".into(),
+            agent_model: "gpt-5.6".into(),
+            image_model: "gpt-image-2".into(),
         }
     }
 }
@@ -66,7 +71,9 @@ impl Default for SettingsFile {
 #[serde(rename_all = "camelCase")]
 struct SettingsPublic {
     base_url: String,
-    model: String,
+    agent_protocol: String,
+    agent_model: String,
+    image_model: String,
     has_api_key: bool,
 }
 
@@ -74,7 +81,9 @@ struct SettingsPublic {
 #[serde(rename_all = "camelCase")]
 struct SaveSettingsInput {
     base_url: String,
-    model: String,
+    agent_protocol: String,
+    agent_model: String,
+    image_model: String,
     api_key: Option<String>,
 }
 
@@ -100,6 +109,22 @@ struct GenerateInput {
     quality: String,
     output_format: String,
     reference_data_urls: Option<Vec<String>>,
+    reference_asset_ids: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ProxyAgentInput {
+    protocol: String,
+    body: serde_json::Value,
+}
+
+fn agent_endpoint(protocol: &str) -> Result<&'static str> {
+    match protocol {
+        "responses" => Ok("responses"),
+        "chat_completions" => Ok("chat/completions"),
+        _ => Err(StudioError::Message("Agent 协议不受支持".into())),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -198,7 +223,9 @@ async fn get_settings(state: State<'_, AppState>) -> Result<SettingsPublic> {
     let settings = load_settings(&state)?;
     Ok(SettingsPublic {
         base_url: settings.base_url,
-        model: settings.model,
+        agent_protocol: settings.agent_protocol,
+        agent_model: settings.agent_model,
+        image_model: settings.image_model,
         has_api_key: has_api_key(),
     })
 }
@@ -210,10 +237,15 @@ async fn save_settings(
 ) -> Result<SettingsPublic> {
     let settings = SettingsFile {
         base_url: validate_base_url(&input.base_url)?,
-        model: input.model.trim().to_string(),
+        agent_protocol: input.agent_protocol.trim().to_string(),
+        agent_model: input.agent_model.trim().to_string(),
+        image_model: input.image_model.trim().to_string(),
     };
-    if settings.model.is_empty() {
-        return Err(StudioError::Message("模型名称不能为空".into()));
+    if !matches!(settings.agent_protocol.as_str(), "responses" | "chat_completions") {
+        return Err(StudioError::Message("Agent 协议不受支持".into()));
+    }
+    if settings.agent_model.is_empty() || settings.image_model.is_empty() {
+        return Err(StudioError::Message("Agent 与图片模型名称不能为空".into()));
     }
     if let Some(api_key) = input.api_key.filter(|key| !key.trim().is_empty()) {
         keyring_entry()?
@@ -223,9 +255,37 @@ async fn save_settings(
     atomic_json(&settings_path(&state), &settings)?;
     Ok(SettingsPublic {
         base_url: settings.base_url,
-        model: settings.model,
+        agent_protocol: settings.agent_protocol,
+        agent_model: settings.agent_model,
+        image_model: settings.image_model,
         has_api_key: has_api_key(),
     })
+}
+
+#[tauri::command]
+async fn proxy_agent(input: ProxyAgentInput, state: State<'_, AppState>) -> Result<serde_json::Value> {
+    let endpoint = agent_endpoint(&input.protocol)?;
+    let settings = load_settings(&state)?;
+    let response = state.client
+        .post(format!("{}/{endpoint}", settings.base_url))
+        .bearer_auth(read_api_key()?)
+        .json(&input.body)
+        .send()
+        .await?;
+    let status = response.status();
+    let request_id = response.headers().get("x-request-id").and_then(|value| value.to_str().ok()).unwrap_or_default().to_string();
+    let body: serde_json::Value = response.json().await.unwrap_or_default();
+    if !status.is_success() {
+        let message = body.pointer("/error/message").and_then(|value| value.as_str()).unwrap_or("Agent 服务返回错误");
+        let prefix = match status {
+            StatusCode::UNAUTHORIZED => "API Key 无效",
+            StatusCode::TOO_MANY_REQUESTS => "请求过于频繁或额度不足",
+            status if status.is_server_error() => "Agent 服务暂时不可用",
+            _ => message,
+        };
+        return Err(StudioError::Message(if request_id.is_empty() { prefix.into() } else { format!("{prefix}（请求 {request_id}）") }));
+    }
+    Ok(body)
 }
 
 fn decode_data_url(value: &str) -> Result<(Vec<u8>, String)> {
@@ -347,13 +407,14 @@ async fn send_generation_request(
     input: &GenerateInput,
 ) -> Result<(Vec<u8>, String)> {
     let references = input.reference_data_urls.as_deref().unwrap_or_default();
-    if references.is_empty() {
+    let asset_ids = input.reference_asset_ids.as_deref().unwrap_or_default();
+    if references.is_empty() && asset_ids.is_empty() {
         let response = state
             .client
             .post(format!("{}/images/generations", settings.base_url))
             .bearer_auth(api_key)
             .json(&serde_json::json!({
-                "model": settings.model,
+                "model": settings.image_model,
                 "prompt": input.prompt,
                 "size": input.size,
                 "quality": input.quality,
@@ -366,7 +427,7 @@ async fn send_generation_request(
     }
 
     let mut form = multipart::Form::new()
-        .text("model", settings.model.clone())
+        .text("model", settings.image_model.clone())
         .text("prompt", input.prompt.clone())
         .text("size", input.size.clone())
         .text("quality", input.quality.clone())
@@ -378,6 +439,17 @@ async fn send_generation_request(
             .mime_str(&mime)
             .map_err(|error| StudioError::Message(error.to_string()))?;
         form = form.part("image[]", part);
+    }
+    if !asset_ids.is_empty() {
+        let history = state.history.lock().await;
+        for (index, asset_id) in asset_ids.iter().enumerate() {
+            let asset = history.iter().find(|asset| &asset.id == asset_id).ok_or_else(|| StudioError::Message("找不到参考图片".into()))?;
+            let part = multipart::Part::bytes(fs::read(&asset.file_path)?)
+                .file_name(format!("asset-reference-{index}.png"))
+                .mime_str(&asset.mime_type)
+                .map_err(|error| StudioError::Message(error.to_string()))?;
+            form = form.part("image[]", part);
+        }
     }
     let response = state
         .client
@@ -437,7 +509,7 @@ async fn edit_image(input: EditInput, state: State<'_, AppState>) -> Result<Asse
         .mime_str(&annotated_mime)
         .map_err(|error| StudioError::Message(error.to_string()))?;
     let form = multipart::Form::new()
-        .text("model", settings.model)
+        .text("model", settings.image_model)
         .text("prompt", combined_prompt)
         .text("size", input.size.clone())
         .text("quality", input.quality.clone())
@@ -467,6 +539,13 @@ async fn edit_image(input: EditInput, state: State<'_, AppState>) -> Result<Asse
 #[tauri::command]
 async fn list_assets(state: State<'_, AppState>) -> Result<Vec<AssetRecord>> {
     Ok(state.history.lock().await.clone())
+}
+
+#[tauri::command]
+async fn read_asset_data_url(asset_id: String, state: State<'_, AppState>) -> Result<String> {
+    let history = state.history.lock().await;
+    let asset = history.iter().find(|asset| asset.id == asset_id).ok_or_else(|| StudioError::Message("找不到图片".into()))?;
+    Ok(format!("data:{};base64,{}", asset.mime_type, BASE64.encode(fs::read(&asset.file_path)?)))
 }
 
 #[tauri::command]
@@ -559,9 +638,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_settings,
             save_settings,
+            proxy_agent,
             generate_image,
             edit_image,
             list_assets,
+            read_asset_data_url,
             delete_asset,
             export_asset,
             save_annotation,
@@ -587,5 +668,13 @@ mod tests {
         let (bytes, mime) = decode_data_url("data:image/png;base64,aGVsbG8=").unwrap();
         assert_eq!(bytes, b"hello");
         assert_eq!(mime, "image/png");
+    }
+
+    #[test]
+    fn restricts_agent_proxy_endpoints() {
+        assert_eq!(agent_endpoint("responses").unwrap(), "responses");
+        assert_eq!(agent_endpoint("chat_completions").unwrap(), "chat/completions");
+        assert!(agent_endpoint("images/generations").is_err());
+        assert!(agent_endpoint("https://example.com").is_err());
     }
 }

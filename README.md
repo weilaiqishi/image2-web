@@ -1,55 +1,55 @@
 # Image2 Studio
 
-Image2 Studio 是一款本地优先的 Windows / macOS 图片生成与可视化修订客户端。它通过 OpenAI 兼容的图片接口完成生成和编辑，并使用固定画布承载圈选、箭头和文字标注，让修改意图与原图位置直接对应。
+Image2 Studio 是一款本地优先的 Windows / macOS 图片任务 Agent。用户通过多轮对话提交目标和参考图，Agent 将目标拆成独立生图任务，再由桌面端严格串行执行。
 
-## 项目状态
+典型流程：上传一张化妆参考图并输入“保持妆容一致，生成三视图”，Agent 会根据对象和用途决定三个有价值的视角，创建三个不同提示词的任务，并逐张生成结果。
 
-当前版本为 `0.1.0`，桌面端 MVP 的核心工作流已经打通：
+## 已完成功能
 
-- [x] 文生图，支持 5 种画面比例、1K / 2K / 4K、3 档质量和 PNG / JPEG / WebP
-- [x] 参考图生成，最多添加 4 张图片，支持文件选择和从剪贴板粘贴
-- [x] OpenAI 兼容服务配置，可自定义 Base URL 和图片模型
+- [x] Codex 式多会话工作区、聊天时间线和任务轨道
+- [x] Responses API 与 Chat Completions 双协议 Agent Provider
+- [x] `create_image_tasks` 结构化工具调用，单批最多 8 项
+- [x] 全局 FIFO 图片队列，最大生成并发固定为 1
+- [x] 任务停止、中断恢复、失败继续和单项重试
+- [x] IndexedDB 本地保存会话、消息、草稿、批次和任务
+- [x] 参考图、历史素材和标注修改附件
+- [x] 1K / 2K / 4K、5 种比例、3 档质量和 PNG / JPEG / WebP 参数标签
+- [x] 同一 WebView 内的 Fabric.js 标注 Dialog
+- [x] 本地图片历史、导出和删除
+- [x] 自定义 OpenAI 兼容 Base URL、Agent 模型和图片模型
 - [x] API Key 写入 macOS Keychain 或 Windows Credential Manager
-- [x] 本地灵感库，支持搜索、分类筛选、查看详情、复制提示词和生成同款
-- [x] 固定画布标注，可拖动绘制椭圆和箭头，并添加、编辑文字
-- [x] 标注对象的选择、移动、缩放、颜色切换、删除、撤销与重做
-- [x] 标注文档自动保存，再次打开同一图片时恢复
-- [x] 将原图、标注图和修改说明提交给图片编辑接口生成修订版
-- [x] 本地版本历史，保留生成图与修订图的父子关系
-- [x] 图片预览、导出和删除
-- [x] 浏览器演示模式，无需 API Key 即可查看内置月饼案例
-- [x] 前端单元测试、Rust 单元测试和真实 API 验证脚本
-- [x] Tauri 桌面构建配置及 macOS / Windows 应用图标
+- [x] macOS Apple Silicon、macOS Intel 和 Windows 10 x64 GitHub Actions 打包
 
-尚未包含发行签名、公证和自动更新；当前版本需在目标平台本地构建。
+MVP 不包含自动审图、自治循环、并行生图、多套网关凭证、云同步、节点画布、发行签名和自动更新。
 
-## 使用流程
+## 架构边界
 
-1. 在设置中填写 OpenAI Base URL、图片模型和 API Key。
-2. 在“生成”页输入画面描述，可选添加参考图，再设置比例、分辨率、质量和格式。
-3. 生成完成后，从右侧历史列表选择版本，或直接进入“标注修改”。
-4. 在画布上拖绘圈选或箭头、添加文字，并填写整体修改说明。
-5. 提交修改后，新结果会作为修订版保存，原图和标注文档保持不变。
-6. 在预览区或历史列表中导出最终图片。
+Agent Runtime 全部运行在 Tauri WebView 的 TypeScript 中，包括：
 
-“灵感”页提供随应用打包的公开提示词快照。选择模板后点击“生成同款”，应用会复制提示词，并把来源站不受支持的比例映射到最接近的生成规格。
+- 多轮上下文和工具定义
+- Responses / Chat Completions 请求适配
+- 任务校验、串行调度和状态机
+- 会话与任务持久化
 
-## 技术栈
+Rust 后端不参与任务拆解或 Agent 决策，只负责系统能力：
 
-- Tauri 2 与 Rust 后端
-- React 19、TypeScript、Vite
-- Fabric.js 7 标注编辑器
-- `reqwest` 图片接口客户端
-- 系统凭证库 `keyring`
-- Vitest 与 Testing Library
+- 从凭证库读取 API Key
+- 转发白名单内的 `/responses`、`/chat/completions`、`/images/generations` 和 `/images/edits`
+- 构建 multipart 图片请求并标准化服务错误
+- 保存、读取和导出本地图片与标注文档
 
-渲染进程无法读取已保存的 API Key，也不能通过 Tauri 权限发起任意网络请求。图片请求统一由 Rust 后端发送，因此自定义 OpenAI 兼容地址不受浏览器 CORS 限制。远程 Base URL 必须使用 HTTPS，仅 `localhost`、`127.0.0.1` 和 `::1` 允许 HTTP。
+渲染进程无法读取 API Key，也不能指定任意代理路径、HTTP 方法或认证头。远程 Base URL 必须使用 HTTPS，只有 `localhost`、`127.0.0.1` 和 `::1` 允许 HTTP。
 
-## 本地数据
+## 代理网关要求
 
-桌面端会把生成图片、历史索引、连接设置和标注文档保存在 Tauri 应用数据目录中；API Key 单独保存在操作系统凭证库中。删除历史版本时，对应图片文件也会从本地删除。
+Agent 与图片模型共用同一个 Base URL 和 API Key。网关至少需要实现所选 Agent 协议以及 OpenAI 兼容 Images API：
 
-浏览器模式只用于 UI 开发和演示，不能调用图片生成或编辑接口。演示模式中的标注文档保存在浏览器 `localStorage`。
+- Responses 模式：`POST /responses`
+- Chat Completions 模式：`POST /chat/completions`
+- 文生图：`POST /images/generations`
+- 参考图生成和编辑：`POST /images/edits`
+
+默认 Agent 模型为 `gpt-5.6`，图片模型为 `gpt-image-2`，均可在设置中修改。多轮上下文由应用本地维护，不要求网关保存 `previous_response_id`。
 
 ## 开发
 
@@ -66,25 +66,7 @@ npm run tauri:dev
 npm run dev
 ```
 
-浏览器访问 `http://127.0.0.1:1420/?demo=1`，可在不调用 API 的情况下查看内置的月饼生成与修订案例。
-
-## 提示词目录
-
-内置灵感目录是 [image-2.net](https://image-2.net/gpt-image-2-prompts/) 公开提示词模板的本地快照。每项包含来源链接、提示词、分类、画面比例、推荐分辨率和本地缩略图，应用运行时不会抓取来源网站。
-
-刷新本地目录，默认每个来源分类导入 3 项：
-
-```bash
-npm run prompts:import
-```
-
-导入完整公开目录：
-
-```bash
-npm run prompts:import -- --all
-```
-
-导入脚本会限制并发并优化缩略图。更新后的目录数据位于 `src/data/prompt-catalog.json`，图片位于 `public/prompt-thumbnails/`。
+浏览器模式会使用本地模拟 Agent 展示三视图任务拆解，但不会发送真实图片请求。桌面端才会通过 Rust 安全网关调用 API。
 
 ## 验证
 
@@ -93,6 +75,8 @@ npm test
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
+
+测试覆盖双协议工具解析、任务上限、非法附件引用、严格串行执行、失败后继续、尺寸约束、UI 工作流和 Rust 代理端点白名单。
 
 真实 API MVP 测试会产生费用，只有显式传入测试密钥时才应运行：
 
@@ -103,24 +87,33 @@ OPENAI_IMAGE_MODEL=gpt-image-2 \
 npm run test:mvp
 ```
 
-该脚本先生成月饼产品图，再附加红色箭头和圈选标注，请求在底部加入商店地址，最后验证修订结果是有效且发生变化的图片。产物写入已忽略的 `artifacts/mvp-test/` 目录。
+## 本地数据
 
-## 构建桌面应用
+- IndexedDB：会话、消息、Composer 草稿、任务批次和队列状态
+- Tauri 应用数据目录：生成图片、历史索引、连接设置和 Fabric 标注文档
+- 系统凭证库：API Key
+
+应用重启时，尚未完成的排队或运行任务会标记为“已中断”，必须由用户手动恢复，避免意外产生新的付费请求。
+
+## 桌面构建
 
 ```bash
 npm run tauri:build
 ```
 
-Tauri 会为当前操作系统生成原生安装包。macOS 与 Windows 需要分别在对应平台构建；当前 MVP 未配置发行签名和公证。
+GitHub 工作流 `.github/workflows/desktop-build.yml` 会在推送到 `main`、推送 `v*` 标签或手动触发时生成：
 
-## GitHub Actions 打包
+- `image2-studio-macos-arm64`
+- `image2-studio-macos-x64`
+- `image2-studio-windows10-x64`
 
-`.github/workflows/desktop-build.yml` 会在推送到 `main`、推送 `v*` 版本标签或手动触发时执行测试和桌面打包，生成以下 Actions Artifacts：
+Actions Artifacts 默认保留 14 天。当前安装包未签名，正式分发前仍需配置 macOS 和 Windows 代码签名。
 
-- `image2-studio-macos-arm64`：Apple Silicon 的 `.dmg` 和 `.app`
-- `image2-studio-macos-x64`：Intel Mac 的 `.dmg` 和 `.app`
-- `image2-studio-windows10-x64`：兼容 Windows 10 x64 的 NSIS `.exe` 和 MSI 安装包
+## 提示词目录
 
-在 GitHub 仓库的 **Actions → Desktop packages → Run workflow** 中可手动启动。任务完成后，安装包可从该次运行页面底部的 **Artifacts** 区域下载，默认保留 14 天。
+仓库仍保留 [image-2.net](https://image-2.net/gpt-image-2-prompts/) 公开模板的本地快照和导入脚本，但灵感库不再占据 Agent 主导航。
 
-这些产物当前未签名。macOS 首次打开时可能出现 Gatekeeper 提示，Windows 也可能显示 SmartScreen 警告；正式分发前仍需配置平台证书和签名流程。
+```bash
+npm run prompts:import
+npm run prompts:import -- --all
+```

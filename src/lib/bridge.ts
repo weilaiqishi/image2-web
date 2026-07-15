@@ -3,6 +3,7 @@ import type {
   AnnotationDocument,
   AssetRecord,
   EditInput,
+  AgentProtocol,
   GenerateInput,
   SaveSettingsInput,
   Settings,
@@ -13,7 +14,9 @@ const isDemo = () => new URLSearchParams(window.location.search).get("demo") ===
 
 const browserSettings: Settings = {
   baseUrl: "https://api.openai.com/v1",
-  model: "gpt-image-2",
+  agentProtocol: "responses",
+  agentModel: "gpt-5.6",
+  imageModel: "gpt-image-2",
   hasApiKey: isDemo(),
 };
 
@@ -35,6 +38,16 @@ const demoAssets: AssetRecord[] = [
     createdAt: new Date(Date.now() - 60_000).toISOString(),
     kind: "generated",
   },
+  {
+    id: "demo-wide-result-v1",
+    filePath: "/prompt-thumbnails/deep-ocean-underwater.webp",
+    mimeType: "image/webp",
+    prompt: "深海水下世界宽幅样片",
+    createdAt: new Date(Date.now() - 120_000).toISOString(),
+    width: 640,
+    height: 360,
+    kind: "generated",
+  },
 ];
 
 const desktopOnly = (): never => {
@@ -49,7 +62,9 @@ export const bridge = {
     if (!isTauri()) {
       Object.assign(browserSettings, {
         baseUrl: input.baseUrl,
-        model: input.model,
+        agentProtocol: input.agentProtocol,
+        agentModel: input.agentModel,
+        imageModel: input.imageModel,
         hasApiKey: Boolean(input.apiKey) || browserSettings.hasApiKey,
       });
       return { ...browserSettings };
@@ -57,8 +72,34 @@ export const bridge = {
     return invoke("save_settings", { input });
   },
   async generate(input: GenerateInput): Promise<AssetRecord> {
-    if (!isTauri()) desktopOnly();
+    if (!isTauri()) {
+      if (isDemo()) return { ...demoAssets[2], prompt: input.prompt };
+      desktopOnly();
+    }
     return invoke("generate_image", { input });
+  },
+  async proxyAgent(protocol: AgentProtocol, body: unknown): Promise<unknown> {
+    if (!isTauri()) {
+      const serialized = JSON.stringify(body);
+      if (serialized.includes("recommend_generation_settings")) {
+        const args = JSON.stringify({ aspectRatio: "3:4", quality: "high", reason: "参考图以人物为主体且为竖向构图，精细质量更适合保留妆容细节。" });
+        return protocol === "responses"
+          ? { output: [{ type: "function_call", name: "recommend_generation_settings", arguments: args }] }
+          : { choices: [{ message: { tool_calls: [{ function: { name: "recommend_generation_settings", arguments: args } }] } }] };
+      }
+      const references = [...serialized.matchAll(/附件 ([\w-]+)，类型/g)].map((match) => match[1]);
+      const tasks = serialized.includes("三视图") ? ["正面视图", "左侧视图", "右侧视图"].map((title, index) => ({
+        title,
+        prompt: `保持参考图人物、妆容与光线一致，生成${title}，干净背景，高细节。`,
+        operation: "generate",
+        referenceIds: references.slice(0, 1),
+      })) : [{ title: "生成校样", prompt: "根据用户要求和参考图生成高质量图片。", operation: "generate", referenceIds: references.slice(0, 1) }];
+      const args = JSON.stringify({ summary: `已拆分为 ${tasks.length} 个串行任务。`, tasks });
+      return protocol === "responses"
+        ? { output: [{ type: "function_call", name: "create_image_tasks", arguments: args }] }
+        : { choices: [{ message: { content: "", tool_calls: [{ function: { name: "create_image_tasks", arguments: args } }] } }] };
+    }
+    return invoke("proxy_agent", { input: { protocol, body } });
   },
   async edit(input: EditInput): Promise<AssetRecord> {
     if (!isTauri()) desktopOnly();
@@ -66,6 +107,16 @@ export const bridge = {
   },
   async listAssets(): Promise<AssetRecord[]> {
     return isTauri() ? invoke("list_assets") : isDemo() ? demoAssets : [];
+  },
+  async readAssetDataUrl(assetId: string): Promise<string> {
+    if (!isTauri()) {
+      const asset = demoAssets.find((item) => item.id === assetId);
+      if (!asset) throw new Error("找不到图片");
+      const response = await fetch(asset.filePath);
+      const blob = await response.blob();
+      return filesToDataUrls([new File([blob], "asset", { type: blob.type })]).then((values) => values[0]);
+    }
+    return invoke("read_asset_data_url", { assetId });
   },
   async deleteAsset(assetId: string): Promise<void> {
     if (!isTauri()) return;
