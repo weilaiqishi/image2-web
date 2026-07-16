@@ -1,0 +1,2 @@
+/public/prompt-catalog/*.json text eol=lf
+/src/data/prompt-catalog-v2.json text eol=lf
