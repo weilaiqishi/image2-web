@@ -11,6 +11,7 @@ import type {
   PromptUsage,
 } from "../types";
 import { bridge } from "./bridge";
+import { translate } from "../i18n";
 
 const DB_NAME = "image2-prompt-catalog";
 const DB_VERSION = 1;
@@ -288,7 +289,7 @@ export async function importPromptCatalogData(input: unknown) {
     || !Array.isArray(data.usage)
     || !Array.isArray(data.sync)
     || !data.meta
-  ) throw new Error("灵感库文件格式不受支持");
+  ) throw new Error(translate("errors.catalogUnsupported"));
 
   if (typeof indexedDB === "undefined") {
     memory.templates.clear();
@@ -318,7 +319,7 @@ export async function importPromptCatalogData(input: unknown) {
     transaction.objectStore(STORES.meta).put(data.meta);
     transaction.oncomplete = () => { database.close(); resolve(); };
     transaction.onerror = () => { database.close(); reject(transaction.error); };
-    transaction.onabort = () => { database.close(); reject(transaction.error ?? new Error("灵感库导入已回滚")); };
+    transaction.onabort = () => { database.close(); reject(transaction.error ?? new Error(translate("errors.catalogRollback"))); };
   });
   return loadPromptCatalog();
 }

@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { AnnotationAttachment, AnnotationDocumentV2, AssetRecord } from "../types";
 import type { AnnotationSubmission } from "./AnnotationEditor";
+import { useI18n } from "../i18n";
 
 const AnnotationEditor = lazy(() => import("./AnnotationEditor").then((module) => ({ default: module.AnnotationEditor })));
 
@@ -17,6 +18,7 @@ interface AnnotationDialogProps {
 }
 
 export function AnnotationDialog({ asset, conversationId, initialDocument, onClose, onExport, onSubmit, onDocumentChange }: AnnotationDialogProps) {
+  const { t } = useI18n();
   const [dirty, setDirty] = useState(false);
   const [documentId] = useState(() => initialDocument?.id ?? crypto.randomUUID());
   const [startingDocument] = useState(initialDocument);
@@ -24,7 +26,7 @@ export function AnnotationDialog({ asset, conversationId, initialDocument, onClo
   const closeButton = useRef<HTMLButtonElement>(null);
 
   const close = () => {
-    if (dirtyRef.current && !window.confirm("放弃尚未提交的标注？")) return;
+    if (dirtyRef.current && !window.confirm(t("annotation.discardConfirm"))) return;
     onClose();
   };
 
@@ -62,12 +64,12 @@ export function AnnotationDialog({ asset, conversationId, initialDocument, onClo
 
   return createPortal(
     <div className="annotation-dialog-backdrop">
-      <div className="annotation-dialog" role="dialog" aria-modal="true" aria-label="标注修改">
+      <div className="annotation-dialog" role="dialog" aria-modal="true" aria-label={t("annotation.dialog")}>
         <header className="annotation-dialog-header">
-          <div><span>标注修改</span><strong>{asset.prompt || "生成图片"}</strong></div>
-          <button ref={closeButton} className="icon-button" type="button" onClick={close} aria-label="关闭标注"><X size={18} /></button>
+          <div><span>{t("annotation.dialog")}</span><strong>{asset.prompt || t("workspace.generatedImage")}</strong></div>
+          <button ref={closeButton} className="icon-button" type="button" onClick={close} aria-label={t("annotation.close")}><X size={18} /></button>
         </header>
-        <Suspense fallback={<div className="annotation-loading"><span />正在载入标注工具</div>}>
+        <Suspense fallback={<div className="annotation-loading"><span />{t("annotation.loading")}</div>}>
           <AnnotationEditor asset={asset} conversationId={conversationId} documentId={documentId} initialDocument={startingDocument} onSubmit={submit} onExport={onExport} onDirty={() => setDirty(true)} onDocumentChange={onDocumentChange} />
         </Suspense>
       </div>

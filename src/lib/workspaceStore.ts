@@ -7,6 +7,7 @@ import type {
   ReferenceDescriptor,
   WorkspaceState,
 } from "../types";
+import { translate } from "../i18n";
 
 const DB_NAME = "image2-agent";
 const STORE_NAME = "workspace";
@@ -31,7 +32,7 @@ export function createInitialWorkspace(): WorkspaceState {
   return {
     version: 2,
     selectedConversationId: conversationId,
-    conversations: [{ id: conversationId, title: "新对话", createdAt: now, updatedAt: now }],
+    conversations: [{ id: conversationId, title: translate("workspace.newConversation"), createdAt: now, updatedAt: now }],
     messages: [],
     batches: [],
     tasks: [],
@@ -62,7 +63,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function migrateWorkspace(input: unknown): WorkspaceState {
-  if (!isRecord(input)) return { ...createInitialWorkspace(), migrationWarning: "旧 Workspace 无法读取，已保留迁移备份。" };
+  if (!isRecord(input)) return { ...createInitialWorkspace(), migrationWarning: translate("errors.migrationUnreadable") };
 
   const source = input as Record<string, any>;
   const conversations = Array.isArray(source.conversations) ? source.conversations : [];
@@ -70,7 +71,7 @@ export function migrateWorkspace(input: unknown): WorkspaceState {
     ? source.selectedConversationId
     : conversations[0]?.id;
   if (!selectedConversationId || !conversations.length) {
-    return { ...createInitialWorkspace(), migrationWarning: "旧 Workspace 缺少对话索引，已保留迁移备份。" };
+    return { ...createInitialWorkspace(), migrationWarning: translate("errors.migrationIndexMissing") };
   }
 
   const documents: Record<string, AnnotationDocumentV2> = isRecord(source.annotationDocuments)
@@ -82,14 +83,14 @@ export function migrateWorkspace(input: unknown): WorkspaceState {
   const normalizeAttachment = (value: unknown): Attachment => {
     const attachment = structuredClone(value) as Attachment & Record<string, any>;
     if (!isRecord(attachment) || typeof attachment.id !== "string" || typeof attachment.kind !== "string") {
-      throw new Error("Workspace 包含无效附件");
+      throw new Error(translate("errors.workspaceInvalidAttachment"));
     }
     if (attachment.kind === "annotation") {
       const documentId = typeof attachment.documentId === "string" && attachment.documentId
         ? attachment.documentId
         : `legacy-${safeId(attachment.id)}`;
       const sourceAssetId = String(attachment.sourceAssetId || "");
-      if (!sourceAssetId) throw new Error("旧标注缺少源资产");
+      if (!sourceAssetId) throw new Error(translate("errors.legacyMissingAsset"));
       if (!documents[documentId]) {
         const createdAt = typeof attachment.createdAt === "string" ? attachment.createdAt : new Date().toISOString();
         documents[documentId] = {
@@ -166,7 +167,7 @@ export function migrateWorkspace(input: unknown): WorkspaceState {
   } catch (error) {
     return {
       ...createInitialWorkspace(),
-      migrationWarning: `Workspace 迁移失败，原始数据已保留：${error instanceof Error ? error.message : "未知错误"}`,
+      migrationWarning: translate("errors.migrationFailed", { message: error instanceof Error ? error.message : translate("common.unknownError") }),
     };
   }
 }

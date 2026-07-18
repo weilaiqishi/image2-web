@@ -55,8 +55,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .conversation-row.active { background: #f1f4f2; box-shadow: inset 2px 0 var(--proof); }
 .conversation-menu { display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--muted); cursor: pointer; opacity: 0; }
 .conversation-row:hover .conversation-menu, .conversation-menu:focus-visible { opacity: 1; }
-.sidebar-footer { padding-top: 10px; border-top: 1px solid var(--line); }
-.sidebar-footer button { display: grid; grid-template-columns: 18px 1fr 8px; align-items: center; gap: 7px; width: 100%; height: 38px; padding: 0 8px; border: 0; background: transparent; color: var(--muted); text-align: left; cursor: pointer; }
+.sidebar-footer { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sidebar-footer > button { display: grid; grid-template-columns: 18px 1fr 8px; align-items: center; gap: 7px; width: 100%; height: 38px; padding: 0 8px; border: 0; background: transparent; color: var(--muted); text-align: left; cursor: pointer; }
+.language-switcher { display: grid; grid-template-columns: 18px 1fr 1fr; align-items: center; gap: 3px; min-height: 34px; padding: 3px 5px 3px 8px; color: var(--muted); }
+.language-switcher button { display: grid; place-items: center; min-width: 0; height: 25px; padding: 0 4px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--muted); font-size: 8px; font-weight: 750; cursor: pointer; }
+.language-switcher button:hover { background: var(--surface-soft); color: var(--ink); }
+.language-switcher button.active { border-color: var(--line); background: var(--surface-soft); color: var(--ink); }
+.settings-language-row { display: grid; grid-template-columns: 1fr auto; align-items: center; min-height: 42px; margin-bottom: 10px; padding: 4px 4px 4px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-soft); }
+.settings-language-row .field-label { margin: 0; }
+.settings-language-row .language-switcher { grid-template-columns: 18px 54px 54px; padding: 0; }
 .sidebar-footer i, .model-readout i { width: 7px; height: 7px; border-radius: 50%; background: #a7adaa; }
 .sidebar-footer i.online, .model-readout i.online { background: var(--success); box-shadow: 0 0 0 3px rgba(35,117,83,.12); }
 
@@ -482,8 +489,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .conversation-row > button:first-child { grid-template-columns: 1fr; padding: 0 4px; text-align: center; }
   .conversation-row span { font-size: 9px; }
   .conversation-row time, .conversation-menu, .sidebar-footer span { display: none; }
-  .sidebar-footer button { grid-template-columns: 1fr; justify-items: center; }
+  .sidebar-footer > button { grid-template-columns: 1fr; justify-items: center; }
   .sidebar-footer i { display: none; }
+  .language-switcher { grid-template-columns: 1fr; justify-items: center; padding: 3px 0; }
+  .language-switcher > svg { display: none; }
+  .language-switcher button { width: 32px; }
   .batch-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 

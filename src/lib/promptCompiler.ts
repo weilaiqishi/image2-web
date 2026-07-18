@@ -7,6 +7,7 @@ import type {
   ReferenceAttachment,
   ReferenceDescriptor,
 } from "../types";
+import { getLocale, translate, type TranslationKey } from "../i18n";
 
 export interface PromptDiagnostic {
   code: "missing-object" | "missing-reference" | "invalid-color" | "reference-conflict" | "overlay-required";
@@ -48,18 +49,18 @@ export function providerCapabilitiesForModel(model: string): ImageProviderCapabi
   return BASIC_IMAGE_CAPABILITIES;
 }
 
-const roleLabels: Record<ReferenceDescriptor["roles"][number], string> = {
-  base: "原图",
-  identity: "人物身份",
-  product: "产品结构",
-  pose: "动作姿势",
-  composition: "构图",
-  material: "材质",
-  palette: "色卡",
-  style: "视觉风格",
-  layout: "版式",
-  logo: "Logo",
-  other: "其他参考",
+const roleLabelKeys: Record<ReferenceDescriptor["roles"][number], TranslationKey> = {
+  base: "role.base",
+  identity: "role.identityDetailed",
+  product: "role.productDetailed",
+  pose: "role.poseDetailed",
+  composition: "role.composition",
+  material: "role.material",
+  palette: "role.palette",
+  style: "role.styleDetailed",
+  layout: "role.layout",
+  logo: "role.logo",
+  other: "role.otherDetailed",
 };
 
 function fixed(value: number) {
@@ -68,14 +69,14 @@ function fixed(value: number) {
 
 function geometryText(object: AnnotationObjectRecord, objectsById: Map<string, AnnotationObjectRecord>) {
   const geometry = object.geometry;
-  if (geometry.kind === "point") return `点 x=${fixed(geometry.x)}, y=${fixed(geometry.y)}, r=${fixed(geometry.radius)}`;
-  if (geometry.kind === "rect") return `矩形 x=${fixed(geometry.x)}, y=${fixed(geometry.y)}, w=${fixed(geometry.width)}, h=${fixed(geometry.height)}`;
-  if (geometry.kind === "mask") return `不规则蒙版，共 ${geometry.points.length} 个采样点，相对笔宽 ${fixed(geometry.brushWidth)}`;
+  if (geometry.kind === "point") return translate("compiler.point", { x: fixed(geometry.x), y: fixed(geometry.y), r: fixed(geometry.radius) });
+  if (geometry.kind === "rect") return translate("compiler.rect", { x: fixed(geometry.x), y: fixed(geometry.y), width: fixed(geometry.width), height: fixed(geometry.height) });
+  if (geometry.kind === "mask") return translate("compiler.mask", { count: geometry.points.length, width: fixed(geometry.brushWidth) });
   if (geometry.kind === "arrow") {
     const source = object.sourceObjectId ? objectsById.get(object.sourceObjectId) : undefined;
-    return `方向从 (${fixed(geometry.from.x)}, ${fixed(geometry.from.y)}) 到 (${fixed(geometry.to.x)}, ${fixed(geometry.to.y)})${source ? `，起点关联 ${source.displayName}` : ""}`;
+    return translate("compiler.arrow", { fromX: fixed(geometry.from.x), fromY: fixed(geometry.from.y), toX: fixed(geometry.to.x), toY: fixed(geometry.to.y), source: source ? translate("compiler.arrowSource", { name: source.displayName }) : "" });
   }
-  return `备注位置 x=${fixed(geometry.x)}, y=${fixed(geometry.y)}, w=${fixed(geometry.width)}, h=${fixed(geometry.height)}`;
+  return translate("compiler.note", { x: fixed(geometry.x), y: fixed(geometry.y), width: fixed(geometry.width), height: fixed(geometry.height) });
 }
 
 function referenceDescriptor(attachment: Exclude<Attachment, { kind: "annotation" }>, index: number): ReferenceDescriptor {
@@ -85,7 +86,7 @@ function referenceDescriptor(attachment: Exclude<Attachment, { kind: "annotation
 function invalidColorDiagnostics(text: string): PromptDiagnostic[] {
   return [...text.matchAll(/#[0-9A-Za-z]{6}\b/g)]
     .filter((match) => !/^#[0-9A-Fa-f]{6}$/.test(match[0]))
-    .map((match) => ({ code: "invalid-color", severity: "error", message: `非法 Hex 色值 ${match[0]}`, targetId: match[0] }));
+    .map((match) => ({ code: "invalid-color", severity: "error", message: translate("errors.invalidColor", { color: match[0] }), targetId: match[0] }));
 }
 
 export function referenceConflictDiagnostics(attachments: Attachment[]): PromptDiagnostic[] {
@@ -100,7 +101,7 @@ export function referenceConflictDiagnostics(attachments: Attachment[]): PromptD
       diagnostics.push({
         code: "reference-conflict",
         severity: "error",
-        message: `${highest.map((entry) => entry.descriptor.label).join("、")} 同时声明为最高优先级${roleLabels[role]}参考`,
+        message: translate("errors.referenceConflict", { labels: highest.map((entry) => entry.descriptor.label).join(getLocale() === "zh-CN" ? "、" : ", "), role: translate(roleLabelKeys[role]) }),
       });
     }
   }
@@ -123,43 +124,44 @@ export function compileEditRequest(
 
   for (const token of document.promptTokens) {
     if (token.kind === "annotation" && !objectsById.has(token.targetId)) {
-      diagnostics.push({ code: "missing-object", severity: "error", message: `${token.displayText} 指向已删除或其他文档中的标注对象`, targetId: token.targetId });
+      diagnostics.push({ code: "missing-object", severity: "error", message: translate("errors.deletedObject", { token: token.displayText }), targetId: token.targetId });
     }
     if (token.kind === "reference" && !referenceEntries.some((entry) => entry.attachment.id === token.targetId)) {
-      diagnostics.push({ code: "missing-reference", severity: "error", message: `${token.displayText} 指向已删除的参考图`, targetId: token.targetId });
+      diagnostics.push({ code: "missing-reference", severity: "error", message: translate("errors.deletedReference", { token: token.displayText }), targetId: token.targetId });
     }
   }
 
   for (const match of document.promptText.matchAll(/@(Mark\d+|Region\d+|Move\d+|Note\d+)/g)) {
-    if (!objectsByName.has(match[1])) diagnostics.push({ code: "missing-object", severity: "error", message: `提示词引用了不存在的 @${match[1]}`, targetId: match[1] });
+    if (!objectsByName.has(match[1])) diagnostics.push({ code: "missing-object", severity: "error", message: translate("errors.invalidReference", { name: match[1] }), targetId: match[1] });
   }
   for (const match of document.promptText.matchAll(/@(Image\d+)/g)) {
-    if (!referencesByLabel.has(match[1])) diagnostics.push({ code: "missing-reference", severity: "error", message: `提示词引用了不存在的 @${match[1]}`, targetId: match[1] });
+    if (!referencesByLabel.has(match[1])) diagnostics.push({ code: "missing-reference", severity: "error", message: translate("errors.invalidReference", { name: match[1] }), targetId: match[1] });
   }
 
   diagnostics.push(...referenceConflictDiagnostics(attachments));
 
   if (!capabilities.supportsStructuredRegions && !document.overlayAssetId && !document.legacyAnnotatedDataUrl) {
-    diagnostics.push({ code: "overlay-required", severity: "error", message: "当前 Provider 不支持结构化区域，发送前必须生成标注 overlay" });
+    diagnostics.push({ code: "overlay-required", severity: "error", message: translate("errors.overlayRequired") });
   }
 
-  const objectLines = document.objects.map((object) => `- ${object.displayName}：${geometryText(object, objectsById)}${object.note ? `；${object.note}` : ""}`);
+  const punctuation = getLocale() === "zh-CN" ? { colon: "：", separator: "；", list: "、" } : { colon: ": ", separator: "; ", list: ", " };
+  const objectLines = document.objects.map((object) => `- ${object.displayName}${punctuation.colon}${geometryText(object, objectsById)}${object.note ? `${punctuation.separator}${object.note}` : ""}`);
   const referenceRoleSummary = referenceEntries.map(({ descriptor }) => {
     const [primaryRole, ...secondaryRoles] = descriptor.roles;
-    const roles = `主角色 ${roleLabels[primaryRole ?? "other"]}${secondaryRoles.length ? `；辅助角色 ${secondaryRoles.map((role) => roleLabels[role]).join("、")}` : ""}`;
-    const preserve = descriptor.preserve.length ? `；必须保持：${descriptor.preserve.join("、")}` : "";
-    return `${descriptor.label}：${roles}，优先级 ${descriptor.priority}${preserve}`;
+    const roles = `${translate("compiler.primaryRole", { role: translate(roleLabelKeys[primaryRole ?? "other"]) })}${secondaryRoles.length ? translate("compiler.secondaryRoles", { roles: secondaryRoles.map((role) => translate(roleLabelKeys[role])).join(punctuation.list) }) : ""}`;
+    const preserve = descriptor.preserve.length ? translate("compiler.mustPreserve", { items: descriptor.preserve.join(punctuation.list) }) : "";
+    return translate("compiler.referenceLine", { label: descriptor.label, roles, priority: descriptor.priority, preserve });
   });
-  const preservation = [...new Set(["未标注区域", "原图主体身份", "产品结构", "整体构图", ...preserve.map((item) => item.trim()).filter(Boolean)])];
+  const preservation = [...new Set([translate("compiler.defaultPreserveUnmarked"), translate("compiler.defaultPreserveIdentity"), translate("compiler.defaultPreserveProduct"), translate("compiler.defaultPreserveComposition"), ...preserve.map((item) => item.trim()).filter(Boolean)])];
   const expandedPrompt = [
-    "根据原图和标注示意进行精准修改。标注颜色、边框和编号仅用于定位，不得出现在最终画面。",
-    objectLines.length ? "标注对象：" : "",
+    translate("compiler.intro"),
+    objectLines.length ? translate("compiler.objects") : "",
     ...objectLines,
-    referenceRoleSummary.length ? "参考图分工：" : "",
+    referenceRoleSummary.length ? translate("compiler.references") : "",
     ...referenceRoleSummary.map((line) => `- ${line}`),
-    `用户要求：${document.promptText.trim() || "按标注对象修改画面"}`,
-    `必须保持：${preservation.join("、")}。`,
-    `输出比例 ${params.aspectRatio}，分辨率 ${params.resolution}，质量 ${params.quality}。`,
+    translate("compiler.userRequirement", { requirement: document.promptText.trim() || translate("compiler.defaultRequirement") }),
+    translate("compiler.preserve", { items: preservation.join(punctuation.list) }),
+    translate("compiler.output", { aspectRatio: params.aspectRatio, resolution: params.resolution, quality: params.quality }),
   ].filter(Boolean).join("\n");
 
   return {
@@ -179,7 +181,7 @@ export function compileEditRequest(
 
 export function assertCompilable(request: CompiledEditRequest) {
   const errors = request.diagnostics.filter((diagnostic) => diagnostic.severity === "error");
-  if (errors.length) throw new Error(errors.map((diagnostic) => diagnostic.message).join("；"));
+  if (errors.length) throw new Error(errors.map((diagnostic) => diagnostic.message).join(getLocale() === "zh-CN" ? "；" : "; "));
 }
 
 export function renderMaskDataUrl(document: AnnotationDocumentV2): string | undefined {

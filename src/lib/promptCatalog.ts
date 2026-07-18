@@ -1,6 +1,7 @@
 import catalogJson from "../data/prompt-catalog-v2.json";
 import type { AspectRatio, PromptCatalogSource, PromptTemplate, PromptTemplateView, Resolution } from "../types";
 import { createDefaultLocalState, mergePromptView } from "./promptCatalogStore";
+import { translate, type TranslationKey } from "../i18n";
 
 interface PromptCatalogData {
   sources: PromptCatalogSource[];
@@ -12,30 +13,31 @@ const data = catalogJson as unknown as PromptCatalogData;
 export const promptCatalog = data.items.map((item) => mergePromptView(item, createDefaultLocalState(item.id, item.importedAt)));
 export const promptCatalogSources = data.sources;
 
-export const categoryLabels: Record<string, string> = {
-  character: "角色",
-  cityscape: "城市",
-  creative: "创意",
-  documentary: "纪实",
-  experimental: "实验",
-  infographic: "信息图",
-  interior: "空间",
-  landscape: "风景",
-  lifestyle: "生活方式",
-  marketing: "营销",
-  nature: "自然",
-  panorama: "全景",
-  portrait: "人像",
-  poster: "海报",
-  product: "产品",
-  rednote: "小红书",
-  storyboard: "分镜",
-  ui: "界面",
-  wildlife: "野生动物",
+export const categoryKeys: Record<string, TranslationKey> = {
+  character: "category.character",
+  cityscape: "category.cityscape",
+  creative: "category.creative",
+  documentary: "category.documentary",
+  experimental: "category.experimental",
+  infographic: "category.infographic",
+  interior: "category.interior",
+  landscape: "category.landscape",
+  lifestyle: "category.lifestyle",
+  marketing: "category.marketing",
+  nature: "category.nature",
+  panorama: "category.panorama",
+  portrait: "category.portrait",
+  poster: "category.poster",
+  product: "category.product",
+  rednote: "category.rednote",
+  storyboard: "category.storyboard",
+  ui: "category.ui",
+  wildlife: "category.wildlife",
 };
 
 export function localizedCategory(category: string): string {
-  return categoryLabels[category.toLowerCase()] ?? category;
+  const key = categoryKeys[category.toLowerCase()];
+  return key ? translate(key) : category;
 }
 
 export interface PromptFilters {

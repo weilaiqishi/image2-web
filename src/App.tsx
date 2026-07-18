@@ -7,6 +7,7 @@ import { AgentRuntime } from "./lib/agentRuntime";
 import { bridge, errorMessage } from "./lib/bridge";
 import { normalizeAspectRatio, normalizeResolution } from "./lib/promptCatalog";
 import { replaceSourceAttachmentWithAnnotation } from "./lib/annotationModel";
+import { useI18n } from "./i18n";
 import {
   exportPromptCatalogData,
   importPromptCatalogData,
@@ -29,6 +30,7 @@ const initialSettings: Settings = {
 };
 
 export default function App() {
+  const { t } = useI18n();
   const [runtime, setRuntime] = useState<AgentRuntime>();
   const [workspace, setWorkspace] = useState<WorkspaceState>();
   const [settings, setSettings] = useState(initialSettings);
@@ -80,14 +82,14 @@ export default function App() {
   const saveSettings = async (input: SaveSettingsInput) => {
     const next = await bridge.saveSettings(input);
     setSettings(next);
-    setNotice({ type: "success", text: "连接设置已保存" });
+    setNotice({ type: "success", text: t("settings.saved") });
   };
 
   const send = async () => {
     if (!runtime || !selectedConversationId) return;
     if (!settings.hasApiKey) {
       setSettingsOpen(true);
-      setNotice({ type: "error", text: "请先配置 API Key" });
+      setNotice({ type: "error", text: t("app.configureApiKey") });
       return;
     }
     setAnalyzing(true);
@@ -105,7 +107,7 @@ export default function App() {
   const cancelSend = async () => {
     if (!runtime || !selectedConversationId) return;
     if (await runtime.cancelPendingSubmission(selectedConversationId)) {
-      setNotice({ type: "success", text: "已取消发送，未创建图片任务" });
+      setNotice({ type: "success", text: t("app.sendCancelled") });
     }
     setAnalyzing(false);
   };
@@ -141,14 +143,14 @@ export default function App() {
       id: crypto.randomUUID(),
       kind: "asset",
       assetId: asset.id,
-      name: asset.prompt || "历史图片",
-      descriptor: { label: `Image${String(selectedDraft.nextImageSequence).padStart(3, "0")}`, roles: ["base"], priority: 5, preserve: ["未标注区域", "主体身份", "整体构图"] },
+      name: asset.prompt || t("workspace.historyImage"),
+      descriptor: { label: `Image${String(selectedDraft.nextImageSequence).padStart(3, "0")}`, roles: ["base"], priority: 5, preserve: [t("compiler.defaultPreserveUnmarked"), t("role.identityDetailed"), t("compiler.defaultPreserveComposition")] },
     };
     void (async () => {
-      if (!selectedDraft.text.trim()) await runtime.updateDraft(selectedConversationId, { text: "基于这张图继续，只修改我接下来说明的内容。" });
+      if (!selectedDraft.text.trim()) await runtime.updateDraft(selectedConversationId, { text: t("app.continueDefaultPrompt") });
       await runtime.addAttachmentsAndRecommend(selectedConversationId, [attachment], settings);
     })();
-    setNotice({ type: "success", text: "已将该版本作为下一步参考图" });
+    setNotice({ type: "success", text: t("app.continueAttached") });
   };
 
   const regenerateTask = (task: GenerationTask) => {
@@ -163,23 +165,23 @@ export default function App() {
       attachments,
       nextImageSequence: Math.max(selectedDraft.nextImageSequence, maxSequence + 1),
     });
-    setNotice({ type: "success", text: "已将原任务恢复到输入区，发送后重新生成" });
+    setNotice({ type: "success", text: t("app.regenerateReady") });
   };
 
   const renameVersion = (asset: AssetRecord, label: string) => {
     void bridge.updateAssetMetadata(asset.id, { branchLabel: label }).then((updated) => {
       setAssets((current) => current.map((item) => item.id === updated.id ? updated : item));
-      setNotice({ type: "success", text: "版本名称已更新" });
+      setNotice({ type: "success", text: t("app.versionRenamed") });
     }).catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
   };
 
   const hideVersion = (asset: AssetRecord) => {
     const childCount = assets.filter((item) => item.parentId === asset.id).length;
-    const message = childCount ? `该版本有 ${childCount} 个子版本。隐藏不会删除任何文件或子版本，继续吗？` : "隐藏该版本？文件和版本关系仍会保留。";
+    const message = childCount ? t("app.hideVersionChildrenConfirm", { count: childCount }) : t("app.hideVersionConfirm");
     if (!window.confirm(message)) return;
     void bridge.updateAssetMetadata(asset.id, { hidden: true }).then((updated) => {
       setAssets((current) => current.map((item) => item.id === updated.id ? updated : item));
-      setNotice({ type: "success", text: "版本已从素材选择器隐藏" });
+      setNotice({ type: "success", text: t("app.versionHidden") });
     }).catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
   };
 
@@ -193,7 +195,7 @@ export default function App() {
     });
     setView("chat");
     void recordPromptUsage(template.id, selectedConversationId).then(setPromptCatalog);
-    setNotice({ type: "success", text: `已将“${template.title}”加入当前对话` });
+    setNotice({ type: "success", text: t("app.templateAdded", { title: template.title }) });
   };
 
   const changePromptLocal = (templateId: string, patch: Partial<PromptLocalState>) => {
@@ -208,7 +210,7 @@ export default function App() {
     setPromptCatalogSyncing(true);
     setNotice(undefined);
     void syncPromptCatalog(sourceId ? [sourceId] : undefined)
-      .then((next) => { setPromptCatalog(next); const run = next.syncRuns[0]; setNotice({ type: "success", text: `灵感库已检查：新增 ${run?.added ?? 0}，修改 ${run?.updated ?? 0}，归档 ${run?.archived ?? 0}` }); })
+      .then((next) => { setPromptCatalog(next); const run = next.syncRuns[0]; setNotice({ type: "success", text: t("app.catalogChecked", { added: run?.added ?? 0, updated: run?.updated ?? 0, archived: run?.archived ?? 0 }) }); })
       .catch((error) => setNotice({ type: "error", text: errorMessage(error) }))
       .finally(() => setPromptCatalogSyncing(false));
   };
@@ -242,12 +244,12 @@ export default function App() {
         : JSON.parse(await file.text());
       const next = await importPromptCatalogData(data);
       setPromptCatalog(next);
-      setNotice({ type: "success", text: "本地灵感资料已导入" });
+      setNotice({ type: "success", text: t("app.catalogImported") });
     })().catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
   };
 
   if (!runtime || !workspace || !selectedConversationId || !selectedDraft || !promptCatalog) {
-    return <div className="app-loading"><span className="brand-mark working" aria-hidden="true">I²</span><p>正在载入本地工作区</p></div>;
+    return <div className="app-loading"><span className="brand-mark working" aria-hidden="true">I²</span><p>{t("app.loadingWorkspace")}</p></div>;
   }
 
   return (
@@ -263,7 +265,7 @@ export default function App() {
         onNewConversation={() => { setView("chat"); void runtime.createConversation(); }}
         onSelectConversation={(id) => { setView("chat"); void runtime.selectConversation(id); }}
         onRenameConversation={(id, title) => void runtime.renameConversation(id, title)}
-        onDeleteConversation={(id) => { if (window.confirm("删除这个对话？生成图片仍会保留在历史素材中。")) void runtime.deleteConversation(id); }}
+        onDeleteConversation={(id) => { if (window.confirm(t("app.deleteConversationConfirm"))) void runtime.deleteConversation(id); }}
         onDraftChange={(draft) => void runtime.updateDraft(selectedConversationId, draft)}
         onAddAttachments={addAttachments}
         onAnswerRecommendation={(apply) => void runtime.answerRecommendation(selectedConversationId, apply)}
@@ -288,7 +290,7 @@ export default function App() {
         onRetryTask={(id) => void runtime.retryTask(id)}
         onRegenerate={regenerateTask}
       />
-      {notice && !annotationTarget && <div className={`notice ${notice.type}`} role="status">{notice.text}<button type="button" onClick={() => setNotice(undefined)} aria-label="关闭提示">×</button></div>}
+      {notice && !annotationTarget && <div className={`notice ${notice.type}`} role="status">{notice.text}<button type="button" onClick={() => setNotice(undefined)} aria-label={t("app.closeNotice")}>×</button></div>}
       <SettingsDialog open={settingsOpen} settings={settings} onClose={() => setSettingsOpen(false)} onSave={saveSettings} />
       {annotationTarget && <AnnotationDialog asset={annotationTarget.asset} conversationId={selectedConversationId} initialDocument={annotationTarget.documentId ? workspace.annotationDocuments[annotationTarget.documentId] : undefined} onClose={closeAnnotation} onExport={() => void bridge.exportAsset(annotationTarget.asset.id)} onSubmit={addAnnotation} onDocumentChange={(document) => void runtime.upsertAnnotationDocument(document)} />}
     </>

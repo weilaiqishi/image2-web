@@ -35,8 +35,13 @@ import { annotationTokensForPrompt, appendAnnotationObject, createAnnotationDocu
 import { bridge, errorMessage } from "../lib/bridge";
 import type { AnnotationDocumentV2, AnnotationObjectKind, AnnotationObjectRecord, AssetRecord, NormalizedGeometry } from "../types";
 import { StructuredComposer } from "./StructuredComposer";
+import { useI18n, type TranslationKey } from "../i18n";
 
 FabricObject.customProperties = ["annotationId", "annotationKind", "displayName"];
+
+const annotationKindKeys: Record<AnnotationObjectKind, TranslationKey> = {
+  point: "annotation.kind.point", rect: "annotation.kind.rect", mask: "annotation.kind.mask", arrow: "annotation.kind.arrow", note: "annotation.kind.note",
+};
 
 export interface AnnotationSubmission {
   document: AnnotationDocumentV2;
@@ -151,6 +156,7 @@ function recordGeometry(record: AnnotationObjectRecord, object: FabricObject, wi
 }
 
 export function AnnotationEditor({ asset, conversationId, documentId, initialDocument, onSubmit, onExport, onDirty, onDocumentChange }: AnnotationEditorProps) {
+  const { locale, t } = useI18n();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasElementRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<FabricCanvas | null>(null);
@@ -242,7 +248,7 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
       const next = { ...documentRef.current, sourceWidth: image.naturalWidth, sourceHeight: image.naturalHeight };
       setCurrentDocument(next);
     };
-    image.onerror = () => setEditorError("无法载入待标注图片");
+    image.onerror = () => setEditorError(t("annotation.cannotLoad"));
     image.src = imageUrl;
     return () => { cancelled = true; };
   }, [imageUrl, setCurrentDocument]);
@@ -392,7 +398,7 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
           .map((object) => ({ object, distance: Math.hypot(object.geometry.kind === "point" ? object.geometry.x - geometry.from.x : 1, object.geometry.kind === "point" ? object.geometry.y - geometry.from.y : 1) }))
           .filter((entry) => entry.distance <= 0.06)
           .sort((left, right) => left.distance - right.distance)[0]?.object;
-        const appended = appendAnnotationObject(documentRef.current, "arrow", geometry, colorRef.current, "移动到箭头终点", sourceObject?.id);
+        const appended = appendAnnotationObject(documentRef.current, "arrow", geometry, colorRef.current, t("annotation.moveNote"), sourceObject?.id);
         documentRef.current = appended.document;
         const localLine = new Line([0, 0, scene.x - gesture.startX, scene.y - gesture.startY], { stroke: colorRef.current, strokeWidth: 4 });
         const angle = Math.atan2(scene.y - gesture.startY, scene.x - gesture.startX) * 180 / Math.PI;
@@ -498,9 +504,9 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
     const canvas = fabricRef.current;
     if (!canvas) return;
     const geometry: NormalizedGeometry = { kind: "note", x: 0.3, y: 0.72, width: 0.3, height: 0.08 };
-    const appended = appendAnnotationObject(documentRef.current, "note", geometry, color, "修改说明");
+    const appended = appendAnnotationObject(documentRef.current, "note", geometry, color, t("annotation.noteDefault"));
     documentRef.current = appended.document;
-    const text = new IText(`${appended.object.displayName} 修改说明`, {
+    const text = new IText(t("annotation.noteLabel", { name: appended.object.displayName }), {
       left: stageSize.width * 0.3,
       top: stageSize.height * 0.72,
       fontFamily: "Instrument Sans",
@@ -597,18 +603,18 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
   const submit = async () => {
     const canvas = fabricRef.current;
     if (!canvas || !documentRef.current.objects.length) {
-      setEditorError("请先添加 Mark、Region、Mask、箭头或备注");
+      setEditorError(t("annotation.requireObject"));
       return;
     }
     if (missingReferences.length) {
-      setEditorError(`提示词引用了已删除的 ${missingReferences.map((name) => `@${name}`).join("、")}`);
+      setEditorError(t("annotation.deletedReferences", { references: missingReferences.map((name) => `@${name}`).join(locale === "zh-CN" ? "、" : ", ") }));
       return;
     }
     setEditorError("");
     canvas.discardActiveObject();
     canvas.requestRenderAll();
     const legendBackground = new Rect({ width: Math.min(stageSize.width - 16, 300), height: 28, fill: "rgba(18,22,20,.82)", rx: 3, ry: 3 });
-    const legendText = new IText("编辑标注 · 编号与颜色不进入最终画面", { left: 8, top: 7, fontFamily: "Instrument Sans", fontSize: 10, fill: "#FFFFFF", selectable: false, evented: false });
+    const legendText = new IText(t("annotation.legend"), { left: 8, top: 7, fontFamily: "Instrument Sans", fontSize: 10, fill: "#FFFFFF", selectable: false, evented: false });
     const legend = new Group([legendBackground, legendText], { left: 8, top: Math.max(8, stageSize.height - 36), selectable: false, evented: false });
     canvas.add(legend);
     canvas.requestRenderAll();
@@ -632,51 +638,51 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
   };
 
   return <div className="annotation-workspace">
-    <aside className="annotation-toolbar" aria-label="标注工具">
-      <ToolButton active={tool === "select"} label="选择" onClick={() => setTool("select")}><MousePointer2 size={18} /></ToolButton>
-      <ToolButton active={tool === "pan"} label="移动画布" onClick={() => setTool("pan")}><Hand size={18} /></ToolButton>
+    <aside className="annotation-toolbar" aria-label={t("annotation.dialog")}>
+      <ToolButton active={tool === "select"} label={t("annotation.select")} onClick={() => setTool("select")}><MousePointer2 size={18} /></ToolButton>
+      <ToolButton active={tool === "pan"} label={t("annotation.pan")} onClick={() => setTool("pan")}><Hand size={18} /></ToolButton>
       <span className="tool-divider" />
-      <ToolButton active={tool === "point"} drawing label="点选 Mark" onClick={() => setTool("point")}><MapPin size={18} /></ToolButton>
-      <ToolButton active={tool === "rect"} drawing label="框选 Region" onClick={() => setTool("rect")}><SquareDashed size={18} /></ToolButton>
-      <ToolButton active={tool === "mask"} drawing label="画笔 Mask" onClick={() => setTool("mask")}><Brush size={18} /></ToolButton>
-      <ToolButton active={tool === "arrow"} drawing label="方向箭头" onClick={() => setTool("arrow")}><ArrowUpRight size={18} /></ToolButton>
-      <ToolButton label="文字备注" onClick={() => setTool("note")}><Type size={18} /></ToolButton>
+      <ToolButton active={tool === "point"} drawing label={t("annotation.mark")} onClick={() => setTool("point")}><MapPin size={18} /></ToolButton>
+      <ToolButton active={tool === "rect"} drawing label={t("annotation.region")} onClick={() => setTool("rect")}><SquareDashed size={18} /></ToolButton>
+      <ToolButton active={tool === "mask"} drawing label={t("annotation.mask")} onClick={() => setTool("mask")}><Brush size={18} /></ToolButton>
+      <ToolButton active={tool === "arrow"} drawing label={t("annotation.arrow")} onClick={() => setTool("arrow")}><ArrowUpRight size={18} /></ToolButton>
+      <ToolButton label={t("annotation.note")} onClick={() => setTool("note")}><Type size={18} /></ToolButton>
       <span className="tool-divider" />
-      <ToolButton label="撤销" disabled={historyIndexRef.current <= 0} onClick={() => void restoreAt(historyIndexRef.current - 1)}><Undo2 size={18} /></ToolButton>
-      <ToolButton label="重做" disabled={historyIndexRef.current >= historyRef.current.length - 1} onClick={() => void restoreAt(historyIndexRef.current + 1)}><Redo2 size={18} /></ToolButton>
-      <ToolButton label="删除" onClick={deleteSelection}><Trash2 size={18} /></ToolButton>
+      <ToolButton label={t("annotation.undo")} disabled={historyIndexRef.current <= 0} onClick={() => void restoreAt(historyIndexRef.current - 1)}><Undo2 size={18} /></ToolButton>
+      <ToolButton label={t("annotation.redo")} disabled={historyIndexRef.current >= historyRef.current.length - 1} onClick={() => void restoreAt(historyIndexRef.current + 1)}><Redo2 size={18} /></ToolButton>
+      <ToolButton label={t("annotation.delete")} onClick={deleteSelection}><Trash2 size={18} /></ToolButton>
     </aside>
 
     <main className="annotation-stage" ref={hostRef} onWheel={(event) => { event.preventDefault(); setZoom((value) => Math.min(2.5, Math.max(0.35, value + (event.deltaY < 0 ? 0.1 : -0.1)))); }}>
-      <div className="annotation-topline"><span>原图坐标标注 · {document.objects.length} 对象</span><code>{Math.round(zoom * 100)}%</code></div>
-      {!imageUrl && <div className={`annotation-image-state ${imageError ? "error" : ""}`}>{imageError ? <><AlertCircle size={22} /><strong>图片载入失败</strong><span>{imageError}</span></> : <><LoaderCircle className="spin" size={22} /><span>正在载入原图</span></>}</div>}
+      <div className="annotation-topline"><span>{t("annotation.coordinateSummary", { count: document.objects.length })}</span><code>{Math.round(zoom * 100)}%</code></div>
+      {!imageUrl && <div className={`annotation-image-state ${imageError ? "error" : ""}`}>{imageError ? <><AlertCircle size={22} /><strong>{t("annotation.imageLoadFailed")}</strong><span>{imageError}</span></> : <><LoaderCircle className="spin" size={22} /><span>{t("annotation.loadingImage")}</span></>}</div>}
       <div className="fabric-viewport" hidden={!imageUrl} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, width: stageSize.width, height: stageSize.height }}><canvas ref={canvasElementRef} /></div>
       <div className="zoom-controls">
-        <button type="button" onClick={() => setZoom((value) => Math.max(0.35, value - 0.1))} aria-label="缩小" title="缩小"><ZoomOut size={16} /></button>
-        <button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} aria-label="适应窗口" title="适应窗口"><Maximize2 size={16} /></button>
-        <button type="button" onClick={() => setZoom((value) => Math.min(2.5, value + 0.1))} aria-label="放大" title="放大"><ZoomIn size={16} /></button>
+        <button type="button" onClick={() => setZoom((value) => Math.max(0.35, value - 0.1))} aria-label={t("annotation.zoomOut")} title={t("annotation.zoomOut")}><ZoomOut size={16} /></button>
+        <button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} aria-label={t("annotation.fit")} title={t("annotation.fit")}><Maximize2 size={16} /></button>
+        <button type="button" onClick={() => setZoom((value) => Math.min(2.5, value + 0.1))} aria-label={t("annotation.zoomIn")} title={t("annotation.zoomIn")}><ZoomIn size={16} /></button>
       </div>
     </main>
 
     <aside className="annotation-inspector">
-      <div><span className="eyebrow">Structured Edit</span><h2>标注与指令</h2></div>
-      <div className="annotation-object-list" aria-label="标注对象">
-        {document.objects.map((record) => <button className={record.id === selectedObjectId ? "selected" : ""} type="button" key={record.id} onClick={() => focusObject(record.id)}><span style={{ background: record.color }} /><strong>{record.displayName}</strong><small>{record.kind}</small></button>)}
+      <div><span className="eyebrow">Structured Edit</span><h2>{t("annotation.title")}</h2></div>
+      <div className="annotation-object-list" aria-label={t("annotation.objectList")}>
+        {document.objects.map((record) => <button className={record.id === selectedObjectId ? "selected" : ""} type="button" key={record.id} onClick={() => focusObject(record.id)}><span style={{ background: record.color }} /><strong>{record.displayName}</strong><small>{t(annotationKindKeys[record.kind])}</small></button>)}
       </div>
-      <label className="field-label">标注颜色</label>
-      <div className="color-swatches">{annotationColors.map((value) => <button key={value} type="button" className={color === value ? "selected" : ""} style={{ "--swatch": value } as React.CSSProperties} onClick={() => setColor(value)} aria-label={`选择颜色 ${value}`} title={value} />)}</div>
-      {tool === "mask" && <label className="annotation-brush-size"><span>画笔宽度</span><input type="range" min="0.5" max="5" step="0.1" value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} aria-label="画笔宽度" /><output>{brushSize.toFixed(1)}%</output></label>}
-      <span className="field-label">修改要求</span>
+      <label className="field-label">{t("annotation.color")}</label>
+      <div className="color-swatches">{annotationColors.map((value) => <button key={value} type="button" className={color === value ? "selected" : ""} style={{ "--swatch": value } as React.CSSProperties} onClick={() => setColor(value)} aria-label={t("annotation.selectColor", { color: value })} title={value} />)}</div>
+      {tool === "mask" && <label className="annotation-brush-size"><span>{t("annotation.brushSize")}</span><input type="range" min="0.5" max="5" step="0.1" value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} aria-label={t("annotation.brushSize")} /><output>{brushSize.toFixed(1)}%</output></label>}
+      <span className="field-label">{t("annotation.requirement")}</span>
       <div className="annotation-composer">
-        <StructuredComposer className="annotation-prompt" value={document.promptText} knownTokens={document.objects.map((record) => `@${record.displayName}`)} activeTokens={selectedObjectId ? document.objects.filter((record) => record.id === selectedObjectId).map((record) => `@${record.displayName}`) : []} focusRequest={composerFocusRequest} onChange={updatePrompt} onTokenClick={(token) => { const record = document.objects.find((item) => `@${item.displayName}` === token); if (record) focusObject(record.id); }} placeholder="输入 @ 引用 Mark、Region 或 Move" ariaLabel="修改要求" />
-        {mentionOpen && document.objects.length > 0 && <div className="mention-menu" role="listbox" aria-label="插入标注引用">{document.objects.map((record) => <button role="option" aria-selected="false" type="button" key={record.id} onClick={() => insertMention(record)}><strong>@{record.displayName}</strong><span>{record.kind}</span></button>)}</div>}
+        <StructuredComposer className="annotation-prompt" value={document.promptText} knownTokens={document.objects.map((record) => `@${record.displayName}`)} activeTokens={selectedObjectId ? document.objects.filter((record) => record.id === selectedObjectId).map((record) => `@${record.displayName}`) : []} focusRequest={composerFocusRequest} onChange={updatePrompt} onTokenClick={(token) => { const record = document.objects.find((item) => `@${item.displayName}` === token); if (record) focusObject(record.id); }} placeholder={t("annotation.promptPlaceholder")} ariaLabel={t("annotation.requirement")} />
+        {mentionOpen && document.objects.length > 0 && <div className="mention-menu" role="listbox" aria-label={t("annotation.insertReference")}>{document.objects.map((record) => <button role="option" aria-selected="false" type="button" key={record.id} onClick={() => insertMention(record)}><strong>@{record.displayName}</strong><span>{t(annotationKindKeys[record.kind])}</span></button>)}</div>}
       </div>
       {compiledColors.length > 0 && <div className="annotation-color-tokens">{compiledColors.map((value) => <span key={value}><i style={{ background: value }} />{value}</span>)}</div>}
-      {missingReferences.length > 0 && <button className="button secondary" type="button" onClick={() => updatePrompt(missingReferences.reduce((text, name) => text.replaceAll(`@${name}`, ""), document.promptText).replace(/ {2,}/g, " ").trim())}>删除失效引用</button>}
+      {missingReferences.length > 0 && <button className="button secondary" type="button" onClick={() => updatePrompt(missingReferences.reduce((text, name) => text.replaceAll(`@${name}`, ""), document.promptText).replace(/ {2,}/g, " ").trim())}>{t("annotation.removeInvalidReferences")}</button>}
       {editorError && <p className="inline-error">{editorError}</p>}
       <div className="annotation-actions">
-        <button className="button secondary" type="button" onClick={onExport}><Download size={16} />导出原图</button>
-        <button className="generate-button" type="button" disabled={!document.promptText.trim() || !document.objects.length} onClick={() => void submit()}><Sparkles size={18} />添加到对话</button>
+        <button className="button secondary" type="button" onClick={onExport}><Download size={16} />{t("annotation.exportOriginal")}</button>
+        <button className="generate-button" type="button" disabled={!document.promptText.trim() || !document.objects.length} onClick={() => void submit()}><Sparkles size={18} />{t("annotation.addToConversation")}</button>
       </div>
     </aside>
   </div>;

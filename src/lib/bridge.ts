@@ -10,6 +10,7 @@ import type {
   Settings,
   PromptCatalogDownload,
 } from "../types";
+import { localizedErrorMessage, translate } from "../i18n";
 
 const isTauri = () => "__TAURI_INTERNALS__" in window;
 const isDemo = () => new URLSearchParams(window.location.search).get("demo") === "1";
@@ -27,7 +28,7 @@ const demoAssets: AssetRecord[] = [
     id: "demo-edited-address-v2",
     filePath: "/demo/mooncake-edited.jpg",
     mimeType: "image/jpeg",
-    prompt: "月饼产品图，底部加入商店地址",
+    prompt: translate("mock.mooncakeEdit"),
     createdAt: new Date().toISOString(),
     parentId: "demo-original-mooncake-v2",
     kind: "edited",
@@ -36,7 +37,7 @@ const demoAssets: AssetRecord[] = [
     id: "demo-original-mooncake-v2",
     filePath: "/demo/mooncake-original.jpg",
     mimeType: "image/jpeg",
-    prompt: "高端中秋月饼礼盒商业产品摄影",
+    prompt: translate("mock.mooncakeProduct"),
     createdAt: new Date(Date.now() - 60_000).toISOString(),
     kind: "generated",
   },
@@ -44,7 +45,7 @@ const demoAssets: AssetRecord[] = [
     id: "demo-wide-result-v1",
     filePath: "/prompt-thumbnails/deep-ocean-underwater.webp",
     mimeType: "image/webp",
-    prompt: "深海水下世界宽幅样片",
+    prompt: translate("mock.oceanSample"),
     createdAt: new Date(Date.now() - 120_000).toISOString(),
     width: 640,
     height: 360,
@@ -74,8 +75,34 @@ function browserLineage(parentId: string | undefined, input: { branchLabel?: str
 }
 
 const desktopOnly = (): never => {
-  throw new Error("图片请求需要在 Image2 Studio 桌面客户端中运行");
+  throw new Error(translate("errors.desktopRequired"));
 };
+
+interface AgentAttachmentMetadata {
+  attachmentId: string;
+  kind: string;
+  documentId?: string;
+  baseAssetId?: string;
+  objects?: Array<{ id: string }>;
+}
+
+function attachmentMetadata(body: unknown): AgentAttachmentMetadata[] {
+  const result: AgentAttachmentMetadata[] = [];
+  const visit = (value: unknown) => {
+    if (Array.isArray(value)) { value.forEach(visit); return; }
+    if (!value || typeof value !== "object") return;
+    const record = value as Record<string, unknown>;
+    if (typeof record.text === "string" && record.text.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(record.text) as AgentAttachmentMetadata;
+        if (parsed.attachmentId && parsed.kind) result.push(parsed);
+      } catch { /* User text may also be JSON. */ }
+    }
+    Object.values(record).forEach(visit);
+  };
+  visit(body);
+  return result;
+}
 
 export function currentUserText(protocol: AgentProtocol, body: unknown): string {
   const request = body as Record<string, any>;
@@ -136,29 +163,30 @@ export const bridge = {
     if (!isTauri()) {
       const serialized = JSON.stringify(body);
       if (serialized.includes("recommend_generation_settings")) {
-        const args = JSON.stringify({ aspectRatio: "3:4", quality: "high", reason: "参考图以人物为主体且为竖向构图，精细质量更适合保留妆容细节。" });
+        const args = JSON.stringify({ aspectRatio: "3:4", quality: "high", reason: translate("mock.recommendationReason") });
         return protocol === "responses"
           ? { output: [{ type: "function_call", name: "recommend_generation_settings", arguments: args }] }
           : { choices: [{ message: { tool_calls: [{ function: { name: "recommend_generation_settings", arguments: args } }] } }] };
       }
-      const references = [...serialized.matchAll(/附件 ([\w-]+)，类型/g)].map((match) => match[1]);
-      const annotation = serialized.match(/附件 ([\w-]+)，类型 annotation，documentId=([\w-]+)，baseAssetId=([\w-]+)，对象=([^"\\]*)/);
-      const annotationObjectIds = annotation ? [...annotation[4].matchAll(/:[\w-]+:(?:point|rect|mask|arrow|note)/g)].map((match) => match[0].split(":")[1]) : [];
+      const metadata = attachmentMetadata(body);
+      const references = metadata.map((item) => item.attachmentId);
+      const annotation = metadata.find((item) => item.kind === "annotation");
+      const annotationObjectIds = annotation?.objects?.map((object) => object.id) ?? [];
       const userText = currentUserText(protocol, body);
       const tasks = annotation ? [{
-        title: "精准编辑校样",
-        prompt: "严格按照标注对象和用户要求修改原图，保持未标注区域不变。",
+        title: translate("mock.editTitle"),
+        prompt: translate("mock.editPrompt"),
         operation: "edit",
         referenceIds: references,
-        annotationId: annotation[1],
-        annotationDocumentId: annotation[2],
+        annotationId: annotation.attachmentId,
+        annotationDocumentId: annotation.documentId,
         annotationObjectIds,
-        baseAssetId: annotation[3],
-        preserve: ["未标注区域", "主体身份", "整体构图"],
+        baseAssetId: annotation.baseAssetId,
+        preserve: [translate("compiler.defaultPreserveUnmarked"), translate("role.identityDetailed"), translate("compiler.defaultPreserveComposition")],
         variantGroupId: null,
-      }] : userText.includes("三视图") ? ["正面视图", "左侧视图", "右侧视图"].map((title) => ({
+      }] : /(三视图|three[ -]?views?)/i.test(userText) ? [translate("mock.frontView"), translate("mock.leftView"), translate("mock.rightView")].map((title) => ({
         title,
-        prompt: `保持参考图人物、妆容与光线一致，生成${title}，干净背景，高细节。`,
+        prompt: translate("mock.viewPrompt", { view: title }),
         operation: "generate",
         referenceIds: references.slice(0, 1),
         annotationId: null,
@@ -167,8 +195,8 @@ export const bridge = {
         baseAssetId: null,
         preserve: [],
         variantGroupId: null,
-      })) : [{ title: "生成校样", prompt: "根据用户要求和参考图生成高质量图片。", operation: "generate", referenceIds: references.slice(0, 1), annotationId: null, annotationDocumentId: null, annotationObjectIds: [], baseAssetId: null, preserve: [], variantGroupId: null }];
-      const args = JSON.stringify({ summary: `已拆分为 ${tasks.length} 个串行任务。`, tasks });
+      })) : [{ title: translate("mock.generateTitle"), prompt: translate("mock.generatePrompt"), operation: "generate", referenceIds: references.slice(0, 1), annotationId: null, annotationDocumentId: null, annotationObjectIds: [], baseAssetId: null, preserve: [], variantGroupId: null }];
+      const args = JSON.stringify({ summary: translate("runtime.mockSummary", { count: tasks.length }), tasks });
       return protocol === "responses"
         ? { output: [{ type: "function_call", name: "create_image_tasks", arguments: args }] }
         : { choices: [{ message: { content: "", tool_calls: [{ function: { name: "create_image_tasks", arguments: args } }] } }] };
@@ -192,7 +220,7 @@ export const bridge = {
   async readAssetDataUrl(assetId: string): Promise<string> {
     if (!isTauri()) {
       const asset = browserAssets.find((item) => item.id === assetId);
-      if (!asset) throw new Error("找不到图片");
+      if (!asset) throw new Error(translate("errors.imageNotFound"));
       const response = await fetch(asset.filePath);
       const blob = await response.blob();
       return filesToDataUrls([new File([blob], "asset", { type: blob.type })]).then((values) => values[0]);
@@ -206,7 +234,7 @@ export const bridge = {
   async updateAssetMetadata(assetId: string, input: { branchLabel?: string; hidden?: boolean }): Promise<AssetRecord> {
     if (!isTauri()) {
       const asset = browserAssets.find((item) => item.id === assetId);
-      if (!asset) throw new Error("找不到图片");
+      if (!asset) throw new Error(translate("errors.imageNotFound"));
       if (input.branchLabel) asset.lineage = { ...(asset.lineage ?? { parentId: asset.parentId, rootId: asset.parentId ?? asset.id, revision: asset.parentId ? 1 : 0 }), branchLabel: input.branchLabel };
       if (input.hidden !== undefined) asset.hiddenAt = input.hidden ? new Date().toISOString() : undefined;
       return { ...asset };
@@ -260,7 +288,7 @@ export const bridge = {
   async readAnnotationOverlayDataUrl(documentId: string): Promise<string> {
     if (!isTauri()) {
       const value = localStorage.getItem(`image2-annotation-overlay:${documentId}`);
-      if (!value) throw new Error("找不到标注合成图");
+      if (!value) throw new Error(translate("errors.overlayNotFound"));
       return value;
     }
     return invoke("read_annotation_overlay_data_url", { documentId });
@@ -308,9 +336,9 @@ export function promptThumbnailSrc(path?: string): string {
 }
 
 export function errorMessage(error: unknown): string {
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message;
-  return "操作未完成，请检查设置后重试";
+  if (typeof error === "string") return localizedErrorMessage(error);
+  if (error instanceof Error) return localizedErrorMessage(error.message);
+  return translate("errors.generic");
 }
 
 export async function filesToDataUrls(files: File[]): Promise<string[]> {
