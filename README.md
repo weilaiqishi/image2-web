@@ -6,6 +6,15 @@ Image2 Studio 是一款本地优先的 Windows / macOS 图片任务 Agent。用�
 
 使用说明：[Image2 Studio 操作手册](USER_GUIDE.md)（含界面截图、精准标注和真实编辑案例）。
 
+产品宣传站提供独立的中文与英文静态页面、SEO 元数据、真实界面示例和在线模拟演示。它与 Tauri 桌面产物分开构建：
+
+```bash
+npm run build:site
+npm run preview:site
+```
+
+Cloudflare Pages 部署说明见 [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md)，同类生图站调研与设计取舍见 [docs/MARKETING_RESEARCH.md](docs/MARKETING_RESEARCH.md)。公开演示不会接受真实 API Key，也不会发送真实图片请求。
+
 ## 已完成功能
 
 - [x] Codex 式多会话工作区、聊天时间线和任务轨道

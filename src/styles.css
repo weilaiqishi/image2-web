@@ -500,6 +500,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 @media (max-width: 680px) {
   html, body, #root { overflow: auto; }
   .agent-shell { min-height: 100vh; height: auto; grid-template-columns: 52px minmax(0, 1fr); }
+  .agent-brand > div { display: none; }
   .task-sidebar { display: none; }
   .agent-shell.inspiration-view { grid-template-columns: 52px minmax(0, 1fr); }
   .conversation-list { width: 36px; max-width: 36px; }

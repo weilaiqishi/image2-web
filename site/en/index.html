@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#142019" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="description" content="Image2 Studio is a local-first AI image workspace for families using an OpenAI-compatible relay. Configure the Base URL, models, and key once; family members can create and edit images in everyday language without learning APIs or prompt engineering." />
+    <meta name="keywords" content="AI image generator, OpenAI relay, GPT Image, family AI tool, local-first image studio, Image2 Studio" />
+    <link rel="canonical" href="__SITE_ORIGIN__/en/" />
+    <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/" />
+    <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_ORIGIN__/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Image2 Studio" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:title" content="Image2 Studio — You handle the relay. Your family makes the picture." />
+    <meta property="og:description" content="Configure your OpenAI-compatible relay once and give the family an image studio that needs no API lessons or prompt engineering." />
+    <meta property="og:url" content="__SITE_ORIGIN__/en/" />
+    <meta property="og:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Image2 Studio family AI image workspace" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Image2 Studio — A family-friendly AI image workspace" />
+    <meta name="twitter:description" content="You handle the relay. Your family gets straight to creating." />
+    <meta name="twitter:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="preload" as="image" href="/images/studio-workspace.jpg" />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <title>Image2 Studio — Family-friendly AI image workspace</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "Image2 Studio",
+            "url": "__SITE_ORIGIN__/en/",
+            "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Windows, macOS",
+            "inLanguage": ["zh-CN", "en"],
+            "description": "A local-first AI image generation, reference editing, and task orchestration workspace for people who use an OpenAI-compatible relay and their families.",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "downloadUrl": "https://github.com/weilaiqishi/image2-web",
+            "featureList": [
+              "OpenAI compatible relay configuration",
+              "Chinese and English interface",
+              "Reference image generation and precise annotation",
+              "Local-first conversations and image history",
+              "Strict serial image task queue"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Image2 Studio?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Image2 Studio is a local-first AI image task workspace. It turns natural-language goals, references, and precise annotations into independent tasks, then generates them serially through your OpenAI-compatible relay."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I use a ChatGPT or OpenAI-compatible relay?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. The desktop app supports a custom HTTPS Base URL, Responses API or Chat Completions, and configurable agent and image model names."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does my family need to understand APIs or prompt engineering?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. A technical family member completes the connection settings once on the computer they will use. After that, the user only describes a goal, chooses an idea, or adds a reference image."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Why does real image generation run in the desktop app?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The desktop app keeps the API key in macOS Keychain or Windows Credential Manager and stores conversations, tasks, and image history locally. The public web demo sends no real API requests."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body data-locale="en">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header" aria-label="Main navigation">
+      <a class="brand-lockup" href="#top" aria-label="Image2 Studio home">
+        <span class="brand-symbol" aria-hidden="true">I²</span>
+        <span><strong>Image2</strong><small>FAMILY STUDIO</small></span>
+      </a>
+      <nav class="primary-nav" aria-label="Page navigation">
+        <a href="#product">Real product</a>
+        <a href="#workflow">Family workflow</a>
+        <a href="#deploy">Cloudflare</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a class="language-link" href="/" lang="zh-CN" hreflang="zh-CN" aria-label="切换到中文">中文</a>
+        <a class="nav-cta" href="/app/?demo=1">Live demo</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <img class="hero-media" src="/images/studio-workspace.jpg" width="1920" height="847" alt="Image2 Studio workspace with conversation, parameters, and a serial task queue" fetchpriority="high" />
+        <div class="hero-wash" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="hero-kicker">For homes that already have a relay</p>
+          <h1 id="hero-title">Image2 Studio</h1>
+          <p class="hero-promise">You handle the relay. Your family just asks for the picture.</p>
+          <p class="hero-summary">Configure the Base URL, models, and key once on their computer. From then on, they chat, choose an idea, or drop in a reference.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#workflow">See the family workflow</a>
+            <a class="button button-ghost" href="/app/?demo=1">Open the live demo</a>
+          </div>
+          <p class="demo-note">The online demo uses local mock data and sends no real requests.</p>
+        </div>
+
+        <ol class="relay-ribbon" aria-label="Four states from relay to family creation">
+          <li><span class="relay-code">RELAY</span><strong>Compatible relay</strong><small>HTTPS Base URL</small></li>
+          <li><span class="relay-code">VAULT</span><strong>Key protected</strong><small>System credential vault</small></li>
+          <li><span class="relay-code">FAMILY</span><strong>Ask naturally</strong><small>中文 or English</small></li>
+          <li><span class="relay-code">IMAGE</span><strong>Tasks in order</strong><small>Serial and resumable</small></li>
+        </ol>
+      </section>
+
+      <section class="intro-band" aria-labelledby="intro-title">
+        <div class="section-shell intro-layout">
+          <p class="section-index">Why it exists</p>
+          <div>
+            <h2 id="intro-title">Do not hand the family an API key.<br />Hand them a canvas that listens.</h2>
+            <p>No more remote support for where to paste a key, which model name to enter, or where the aspect ratio lives. Once the connection is set, complexity stays underneath and creation stays on screen.</p>
+          </div>
+          <blockquote>“Turn this mooncake box into a poster, then put the shop address at the bottom.”</blockquote>
+        </div>
+      </section>
+
+      <section class="product-section" id="product" aria-labelledby="product-title">
+        <div class="section-shell">
+          <header class="section-heading">
+            <p class="section-index">A real product, not concept art</p>
+            <h2 id="product-title">One request in. Clear tasks out.</h2>
+            <p>Conversation in the middle, history and inspiration on the left, and a strictly serial image queue on the right. Family members never need to know the agent protocol, and one click cannot accidentally launch a wall of expensive requests.</p>
+          </header>
+
+          <figure class="product-figure">
+            <img src="/images/studio-workspace.jpg" width="1920" height="847" alt="The Chinese Image2 Studio workspace with conversations, composer, and serial task rail" loading="lazy" />
+            <figcaption><span>Workspace</span> Conversation, references, parameters, and task state share one screen.</figcaption>
+          </figure>
+
+          <div class="feature-ledger" aria-label="Image2 Studio core capabilities">
+            <article class="feature-row">
+              <p class="feature-audience">For the technical one</p>
+              <h3>Set the connection once</h3>
+              <p>Choose an OpenAI-compatible Base URL, agent protocol, and models. The desktop credential vault holds the key.</p>
+            </article>
+            <article class="feature-row">
+              <p class="feature-audience">For the person using it</p>
+              <h3>Start in everyday language</h3>
+              <p>Switch between Chinese and English instantly. Pick from the inspiration library when a blank prompt feels like work.</p>
+            </article>
+            <article class="feature-row">
+              <p class="feature-audience">For every generation</p>
+              <h3>Clear tasks, controlled spend</h3>
+              <p>Different views become separate jobs that always run one at a time, with stop, resume, continue-on-failure, and retry.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
+        <div class="section-shell">
+          <header class="section-heading compact-heading">
+            <p class="section-index">The family handoff</p>
+            <h2 id="workflow-title">Configure once. Remove a few steps for everyone after.</h2>
+          </header>
+          <ol class="workflow-steps">
+            <li>
+              <span class="step-number">01</span>
+              <div>
+                <p class="step-owner">You handle this</p>
+                <h3>Connect the relay</h3>
+                <p>Enter the HTTPS Base URL, models, and key on the Windows or macOS computer the family will use. You do not need to teach the API details afterward.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-number">02</span>
+              <div>
+                <p class="step-owner">They handle this</p>
+                <h3>Say the goal, add a reference</h3>
+                <p>Write one ordinary request or upload product, person, pose, and style references. A proven inspiration can move straight into the conversation.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-number">03</span>
+              <div>
+                <p class="step-owner">Image2 handles this</p>
+                <h3>Split the work, generate in order</h3>
+                <p>The agent turns the goal into independent image jobs and executes them serially. Results stay in local history, ready for another edit or branch.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="case-section" aria-labelledby="case-title">
+        <div class="section-shell case-layout">
+          <header class="section-heading case-heading">
+            <p class="section-index">Real editing example</p>
+            <h2 id="case-title">Do not rebuild the image. Change the part you named.</h2>
+            <p>Use a rectangle, arrow, brush, or note to identify the change. Image2 compiles those marks into a structured edit request and tells the model to preserve everything outside them.</p>
+            <ul class="plain-checks">
+              <li>Original identity and composition take priority</li>
+              <li>Markup colors and numbers never enter the final image</li>
+              <li>Version relationships remain available for the next branch</li>
+            </ul>
+          </header>
+
+          <div class="case-compare" data-compare data-before-src="/images/mooncake-original.jpg" data-after-src="/images/mooncake-edited.jpg" data-before-alt="Original mooncake gift box without an address" data-after-alt="Mooncake poster with the requested Shanghai address precisely added at the bottom" data-before-caption="Original: keep the product, lighting, and composition" data-after-caption="Edited: add only the requested address at the bottom">
+            <div class="compare-toolbar">
+              <span>Mooncake product · Precise edit</span>
+              <div class="segmented-control" role="group" aria-label="Switch between original and edited result">
+                <button type="button" data-view="before" aria-pressed="true">Original</button>
+                <button type="button" data-view="after" aria-pressed="false">Edited</button>
+              </div>
+            </div>
+            <figure>
+              <img data-compare-image src="/images/mooncake-original.jpg" width="768" height="768" alt="Original mooncake gift box without an address" loading="lazy" />
+              <figcaption data-compare-caption>Original: keep the product, lighting, and composition</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="library-section" aria-labelledby="library-title">
+        <div class="section-shell">
+          <header class="section-heading split-heading">
+            <div>
+              <p class="section-index">Inspiration beats a blank box</p>
+              <h2 id="library-title">See it first. Describe it better.</h2>
+            </div>
+            <p>The local inspiration library keeps public examples, thumbnails, prompts, and sources together. Start from a close visual, then replace the subject, scene, or words.</p>
+          </header>
+          <figure class="library-figure">
+            <img src="/images/prompt-library.jpg" width="1920" height="847" alt="Image2 Studio inspiration library with image examples, filters, and prompt details" loading="lazy" />
+            <figcaption>30+ local templates from a fixed allowlist; favorites, notes, and local rewrites never upload.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="deploy-section" id="deploy" aria-labelledby="deploy-title">
+        <div class="section-shell deploy-layout">
+          <div class="deploy-copy">
+            <p class="section-index light-index">The frugal indie stack</p>
+            <h2 id="deploy-title">Put the site and demo on Cloudflare. Keep real keys on the desktop.</h2>
+            <p>The bilingual SEO site and mock demo are static files, so the Cloudflare Pages free tier is usually enough to start. Real image requests go directly from the desktop app to your relay; no key is baked into the web bundle.</p>
+            <a class="button button-mint" href="https://github.com/weilaiqishi/image2-web/blob/main/CLOUDFLARE_DEPLOY.md">Read the deployment guide</a>
+          </div>
+          <div class="deploy-terminal" aria-label="Cloudflare Pages build command">
+            <div class="terminal-bar"><span>image2-studio / deploy</span><span>STATIC</span></div>
+            <pre><code><span class="terminal-muted">$</span> npm run build:site
+
+<span class="terminal-ok">✓</span> zh-CN + English SEO pages
+<span class="terminal-ok">✓</span> social preview + sitemap
+<span class="terminal-ok">✓</span> browser demo at /app/
+
+<span class="terminal-muted">output</span>  dist-site/</code></pre>
+            <dl class="cost-ledger">
+              <div><dt>Pages</dt><dd>Starts at $0</dd></div>
+              <div><dt>Database</dt><dd>Not needed</dd></div>
+              <div><dt>Web keys</dt><dd>Zero</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="privacy-section" aria-labelledby="privacy-title">
+        <div class="section-shell privacy-layout">
+          <div>
+            <p class="section-index">Local-first means specific things</p>
+            <h2 id="privacy-title">Know where the key lives. Know where the pictures go.</h2>
+          </div>
+          <dl class="privacy-ledger">
+            <div><dt>API key</dt><dd>macOS Keychain or Windows Credential Manager</dd></div>
+            <div><dt>Conversations and tasks</dt><dd>Local IndexedDB</dd></div>
+            <div><dt>Images and annotations</dt><dd>Local app data directory</dd></div>
+            <div><dt>Public marketing site</dt><dd>Receives and stores no real keys</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="faq-section" id="faq" aria-labelledby="faq-title">
+        <div class="section-shell faq-layout">
+          <header>
+            <p class="section-index">Frequently asked</p>
+            <h2 id="faq-title">Clear answers before setup.</h2>
+          </header>
+          <div class="faq-list">
+            <details>
+              <summary>How is Image2 Studio different from a regular AI image site?</summary>
+              <p>It does not sell another monthly pool of model credits. It turns the OpenAI-compatible relay you already have into a local workspace built around natural-language task planning, reference roles, precise annotations, and a resumable serial queue.</p>
+            </details>
+            <details>
+              <summary>Which relays and models are supported?</summary>
+              <p>The relay needs an HTTPS Base URL and must support Responses API or Chat Completions plus the OpenAI Images generations and edits endpoints. Both agent and image model names are configurable.</p>
+            </details>
+            <details>
+              <summary>Does the family ever need to handle the API key?</summary>
+              <p>You still complete the first connection setup on the computer they will use. Once saved, the desktop app only shows that the key is in the system credential vault, so normal generation does not require seeing or pasting it again.</p>
+            </details>
+            <details>
+              <summary>Can the Cloudflare demo spend relay credit?</summary>
+              <p>No. The public demo uses a local mock agent and bundled example assets. It never calls the real image endpoints. Real requests only leave the desktop app for the relay you configured.</p>
+            </details>
+            <details>
+              <summary>Is the Cloudflare Pages free tier enough?</summary>
+              <p>It is usually enough for a personal static marketing site and mock demo, with no database or Worker required. Limits and terms can change, so check the current official Cloudflare documentation before launch.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta" aria-labelledby="cta-title">
+        <div class="section-shell final-cta-inner">
+          <p class="section-index">Leave complexity with the person who understands it</p>
+          <h2 id="cta-title">Let the next family poster<br />start with one ordinary sentence.</h2>
+          <div class="final-actions">
+            <a class="button button-dark" href="https://github.com/weilaiqishi/image2-web">Get the project on GitHub</a>
+            <a class="button button-outline-dark" href="/app/?demo=1">Try the online demo first</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main">
+        <a class="brand-lockup footer-brand" href="#top">
+          <span class="brand-symbol" aria-hidden="true">I²</span>
+          <span><strong>Image2</strong><small>FAMILY STUDIO</small></span>
+        </a>
+        <p>A practical AI image workspace for families who already have a relay.</p>
+        <nav aria-label="Footer navigation">
+          <a href="https://github.com/weilaiqishi/image2-web">GitHub</a>
+          <a href="https://github.com/weilaiqishi/image2-web/blob/main/USER_GUIDE.md">User guide</a>
+          <a href="/" lang="zh-CN">中文</a>
+        </nav>
+      </div>
+      <div class="footer-meta">
+        <span>© <span data-current-year>2026</span> Image2 Studio</span>
+        <span>Local-first · OpenAI-compatible · Self-hostable</span>
+      </div>
+    </footer>
+
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>
