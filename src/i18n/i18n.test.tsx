@@ -17,11 +17,11 @@ const settings: Settings = {
 describe("bilingual internationalization", () => {
   it("switches the rendered UI immediately and persists the locale", () => {
     render(<SettingsDialog open settings={settings} onClose={vi.fn()} onSave={vi.fn()} />);
-    expect(screen.getByRole("heading", { name: "图片服务设置" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "连接中转站" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Switch to English" }));
 
-    expect(screen.getByRole("heading", { name: "Image service settings" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Connect a gateway" })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en");
     expect(localStorage.getItem("image2.locale")).toBe("en");
   });

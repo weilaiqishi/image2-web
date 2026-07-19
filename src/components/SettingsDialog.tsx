@@ -49,6 +49,7 @@ export function SettingsDialog({ open, settings, onClose, onSave }: SettingsDial
           <div>
             <span className="eyebrow">{t("settings.eyebrow")}</span>
             <h2>{t("settings.title")}</h2>
+            <p className="dialog-description">{t("settings.description")}</p>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label={t("settings.close")} title={t("common.close")}>
             <X size={18} />
@@ -69,6 +70,24 @@ export function SettingsDialog({ open, settings, onClose, onSave }: SettingsDial
           placeholder="https://api.openai.com/v1"
           required
         />
+
+        <label className="field-label" htmlFor="api-key">
+          {t("settings.apiKey")} {settings.hasApiKey && <span className="saved-badge">{t("settings.apiKeySaved")}</span>}
+        </label>
+        <div className="key-input-wrap">
+          <KeyRound size={17} aria-hidden="true" />
+          <input
+            id="api-key"
+            value={apiKey}
+            onChange={(event) => setApiKey(event.target.value)}
+            type={showKey ? "text" : "password"}
+            placeholder={settings.hasApiKey ? t("settings.keepSavedKey") : "sk-..."}
+          />
+          <button type="button" onClick={() => setShowKey((value) => !value)} aria-label={showKey ? t("settings.hideKey") : t("settings.showKey")} title={showKey ? t("settings.hideKey") : t("settings.showKey")}>
+            {showKey ? <EyeOff size={17} /> : <Eye size={17} />}
+          </button>
+        </div>
+        <p className="field-note">{t("settings.keyNote")}</p>
 
         <label className="field-label" htmlFor="agent-protocol">{t("settings.agentProtocol")}</label>
         <select id="agent-protocol" className="text-input mono" value={agentProtocol} onChange={(event) => setAgentProtocol(event.target.value as typeof agentProtocol)}>
@@ -95,24 +114,6 @@ export function SettingsDialog({ open, settings, onClose, onSave }: SettingsDial
           placeholder="gpt-image-2"
           required
         />
-
-        <label className="field-label" htmlFor="api-key">
-          {t("settings.apiKey")} {settings.hasApiKey && <span className="saved-badge">{t("settings.apiKeySaved")}</span>}
-        </label>
-        <div className="key-input-wrap">
-          <KeyRound size={17} aria-hidden="true" />
-          <input
-            id="api-key"
-            value={apiKey}
-            onChange={(event) => setApiKey(event.target.value)}
-            type={showKey ? "text" : "password"}
-            placeholder={settings.hasApiKey ? t("settings.keepSavedKey") : "sk-..."}
-          />
-          <button type="button" onClick={() => setShowKey((value) => !value)} aria-label={showKey ? t("settings.hideKey") : t("settings.showKey")} title={showKey ? t("settings.hideKey") : t("settings.showKey")}>
-            {showKey ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
-        </div>
-        <p className="field-note">{t("settings.keyNote")}</p>
 
         <div className="dialog-actions">
           <button className="button secondary" type="button" onClick={onClose}>{t("common.cancel")}</button>

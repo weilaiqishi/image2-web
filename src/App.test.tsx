@@ -15,7 +15,7 @@ describe("Image2 Agent workspace", () => {
 
   it("opens agent connection settings on first launch", async () => {
     render(<App />);
-    expect(await screen.findByRole("form", { name: "连接设置" })).toBeInTheDocument();
+    expect(await screen.findByRole("form", { name: "网关设置" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "新对话" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "串行任务" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "给 Image2 Agent 发消息" })).toBeInTheDocument();

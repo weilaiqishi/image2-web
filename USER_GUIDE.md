@@ -4,6 +4,8 @@
 
 ## 1. 快速开始
 
+使用 Image2 Studio 最少只需准备两项连接信息：OpenAI 兼容中转站的 Base URL 和对应 API Key。网关同时支持所选 Agent 接口与 Images API 后，完成一次设置即可直接在桌面端使用 `gpt-image-2`，不需要自己拼请求或把 Key 放进网页。
+
 ### 1.1 启动应用
 
 安装版直接启动 Image2 Studio。源码开发环境可执行：
@@ -17,9 +19,9 @@ npm run tauri:dev
 
 ![Image2 Studio 主工作区](docs/images/manual-workspace-dark-v2.jpg)
 
-### 1.2 配置图片服务
+### 1.2 配置中转站网关与 Key
 
-首次使用先点击左下角的“连接设置”。
+首次使用先点击左下角的“连接设置”。如果还没有保存过 Key，应用会自动打开该窗口。
 
 ![连接设置](docs/images/manual-settings-dark.jpg)
 
@@ -27,13 +29,15 @@ npm run tauri:dev
 
 | 字段 | 填写说明 |
 | --- | --- |
-| OpenAI Base URL | OpenAI 或兼容网关地址，通常以 `/v1` 结尾。远程地址必须使用 HTTPS；仅本机地址允许 HTTP。 |
+| 中转站 Base URL | 中转站网关或 OpenAI 官方地址，通常以 `/v1` 结尾。远程地址必须使用 HTTPS；仅本机地址允许 HTTP。 |
 | Agent 协议 | 网关支持 `/responses` 时选 Responses API；只支持 `/chat/completions` 时选 Chat Completions。 |
 | Agent 模型 | 用于理解对话并拆分图片任务的模型。 |
 | 图片模型 | 用于文生图和图片编辑的模型。 |
 | API Key | 服务密钥。保存后输入框会清空，后续留空即可继续使用系统中已保存的密钥。 |
 
 点击“保存设置”完成配置。API Key 只交给桌面端 Rust 后端，并存放在 macOS Keychain 或 Windows Credential Manager 中，不会写入对话、项目文件或 IndexedDB。
+
+Agent 与图片模型共用这组 Base URL 和 API Key；图片模型默认填写 `gpt-image-2`。如果中转站只支持其中一个接口，Agent 拆任务或图片生成会在对应步骤明确报错。
 
 ## 2. 创建图片任务
 

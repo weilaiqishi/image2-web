@@ -1,6 +1,6 @@
 # Image2 Studio
 
-Image2 Studio 是一款本地优先的 Windows / macOS 图片任务 Agent。用户通过多轮对话提交目标和参考图，Agent 将目标拆成独立生图任务，再由桌面端严格串行执行。
+Image2 Studio 是一款本地优先的 Windows / macOS 图片任务 Agent，重点解决“已有 OpenAI 兼容中转站网关和 Key，如何方便使用 `gpt-image-2`”这件事。首次打开填入 Base URL、API Key、Agent 模型和图片模型，之后即可通过多轮对话提交目标和参考图；Agent 会把目标拆成独立生图任务，再由桌面端严格串行执行。
 
 典型流程：上传一张化妆参考图并输入“保持妆容一致，生成三视图”，Agent 会根据对象和用途决定三个有价值的视角，创建三个不同提示词的任务，并逐张生成结果。
 
@@ -51,7 +51,7 @@ Rust 后端不参与任务拆解或 Agent 决策，只负责系统能力：
 
 渲染进程无法读取 API Key，也不能指定任意代理路径、HTTP 方法或认证头。远程 Base URL 必须使用 HTTPS，只有 `localhost`、`127.0.0.1` 和 `::1` 允许 HTTP。
 
-## 代理网关要求
+## 中转站 / OpenAI 兼容网关要求
 
 Agent 与图片模型共用同一个 Base URL 和 API Key。网关至少需要实现所选 Agent 协议以及 OpenAI 兼容 Images API：
 

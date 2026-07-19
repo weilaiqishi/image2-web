@@ -132,6 +132,9 @@ export function AgentWorkspace(props: AgentWorkspaceProps) {
   const recommending = draft.recommendation?.status === "loading";
   const working = props.analyzing || recommending;
   const qualityLabels: Record<Quality, string> = { low: t("workspace.qualityLow"), medium: t("workspace.qualityMedium"), high: t("workspace.qualityHigh") };
+  const gatewayHost = useMemo(() => {
+    try { return new URL(props.settings.baseUrl).host; } catch { return props.settings.baseUrl; }
+  }, [props.settings.baseUrl]);
 
   const addFiles = async (files: File[]) => {
     const images = files.filter((file) => file.type.startsWith("image/") && file.size <= 20 * 1024 * 1024).slice(0, 4);
@@ -242,7 +245,7 @@ export function AgentWorkspace(props: AgentWorkspaceProps) {
       <main className="chat-workspace">
         <header className="chat-header">
           <div><span>{t("workspace.currentConversation")}</span><h1>{conversation.title === "新对话" || conversation.title === "New conversation" ? t("workspace.newConversation") : conversation.title}</h1></div>
-          <div className="model-readout"><i className={props.settings.hasApiKey ? "online" : ""} /><span>{props.settings.agentModel}</span><code>{props.settings.agentProtocol === "responses" ? "RESPONSES" : "CHAT"}</code></div>
+          <div className="model-readout" title={`${gatewayHost} / ${props.settings.agentModel} / ${props.settings.imageModel}`}><i className={props.settings.hasApiKey ? "online" : ""} /><span>{gatewayHost}</span><code>{props.settings.imageModel}</code><code>{props.settings.agentProtocol === "responses" ? "RESPONSES" : "CHAT"}</code></div>
         </header>
 
         <div className="message-scroll">

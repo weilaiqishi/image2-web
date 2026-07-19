@@ -361,6 +361,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 .dialog-heading .eyebrow { display: block; margin-bottom: 3px; color: var(--proof); font-size: 8px; font-weight: 750; text-transform: uppercase; }
 .dialog-heading h2 { margin: 0; font-size: 17px; }
+.dialog-description { max-width: 390px; margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .icon-button { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); cursor: pointer; }
 .field-label { display: block; margin: 13px 0 5px; font-size: 10px; font-weight: 700; }
 .saved-badge { margin-left: 5px; color: var(--success); font-size: 8px; }

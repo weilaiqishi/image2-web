@@ -70,7 +70,7 @@ Wrangler 登录、项目创建和生产发布会改变 Cloudflare 账户状态�
 宣传站不提供 Web 生成。如果以后要通过浏览器直接进行真实生图，不能把 Key 改成前端变量。需要单独增加同源 Worker 或 Pages Function，并至少完成：
 
 - 把中转 Base URL 与 Key 保存为 Worker Secret。
-- 用 Cloudflare Access 邮箱白名单保护家庭入口。
+- 用 Cloudflare Access 邮箱白名单保护受控入口。
 - 只允许 `/responses`、`/chat/completions`、`/images/generations` 和 `/images/edits`。
 - 增加单用户额度、速率限制、请求大小限制和审计日志。
 - 明确浏览器图片持久化、跨用户隔离和串行队列语义。
