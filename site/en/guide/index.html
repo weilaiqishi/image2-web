@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050607" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="description" content="The Image2 Studio guide: install the desktop app, connect an OpenAI-compatible gateway, configure a Base URL, API key, and gpt-image-2, then edit with references and manage a serial image queue." />
+    <link rel="canonical" href="__SITE_ORIGIN__/en/guide/" />
+    <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/guide/" />
+    <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/guide/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_ORIGIN__/guide/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Image2 Studio" />
+    <meta property="og:title" content="Image2 Studio Guide" />
+    <meta property="og:description" content="From gateway setup to reference editing, serial execution, and version history." />
+    <meta property="og:url" content="__SITE_ORIGIN__/en/guide/" />
+    <meta property="og:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
+    <meta name="google-adsense-account" content="__ADSENSE_ACCOUNT_CLIENT__" />
+    <meta name="adsense-client" content="__ADSENSE_CLIENT__" />
+    <meta name="adsense-slot" content="__ADSENSE_SLOT__" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <title>Image2 Studio Guide | Gateway and GPT Image 2 workflow</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Image2 Studio Guide",
+        "inLanguage": "en",
+        "url": "__SITE_ORIGIN__/en/guide/",
+        "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
+        "about": "Image2 Studio desktop image workflow",
+        "isPartOf": { "@type": "WebSite", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/en/" }
+      }
+    </script>
+  </head>
+  <body class="content-page" data-locale="en">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" aria-label="Main navigation">
+      <a class="brand-lockup" href="/en/" aria-label="Image2 Studio home"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+      <nav class="primary-nav" aria-label="Page navigation"><a href="/en/cases/">Cases</a><a href="/en/guide/" aria-current="page">Guide</a><a href="/en/about/">About</a></nav>
+      <div class="header-actions"><a class="language-link" href="/guide/" lang="zh-CN" hreflang="zh-CN">中文</a><a class="nav-cta" href="https://github.com/weilaiqishi/image2-web/releases">Download on GitHub</a></div>
+    </header>
+
+    <main class="content-main" id="main">
+      <article class="content-article">
+        <header class="content-header">
+          <p class="section-index">OPERATIONS GUIDE / 01-08</p>
+          <h1>Image2 Guide</h1>
+          <p>Start with an existing gateway Base URL and API key, then turn natural-language goals, references, paid calls, and generated versions into an inspectable desktop workflow.</p>
+          <nav class="content-nav" aria-label="Guide contents"><a href="#install">Install</a><a href="#connect">Connect</a><a href="#first-run">First image</a><a href="#references">References</a><a href="#annotate">Region edits</a><a href="#queue">Serial queue</a><a href="#versions">Versions</a><a href="#troubleshoot">Troubleshoot</a></nav>
+        </header>
+
+        <div class="content-body">
+          <section id="install">
+            <p class="content-step">STEP / 01</p><h2>Install the desktop build</h2>
+            <p>Download the package for your system only from GitHub Releases. Current builds are unsigned, so macOS or Windows may show a security warning. Verify the filename and <code>SHA256SUMS</code> on the release page before continuing.</p>
+            <div class="content-callout"><strong>Keep it off the website</strong><span>Never paste an API key, conversation, private reference, or generated result into the marketing site. Those belong only in the desktop app and the gateway you configure.</span></div>
+          </section>
+
+          <section id="connect">
+            <p class="content-step">STEP / 02</p><h2>Connect an OpenAI-compatible gateway</h2>
+            <p>The first launch opens Gateway settings. Enter the HTTPS Base URL, API key, agent protocol, agent model, and image model. The default image model is <code>gpt-image-2</code>; the agent and image calls use the same Base URL and key.</p>
+            <figure class="content-media"><img src="/images/guide/settings.jpg" width="1440" height="900" alt="Image2 Studio dark gateway settings screen" loading="lazy" /><figcaption>The Base URL and API key are configured together. The key field clears after saving.</figcaption></figure>
+            <dl class="content-ledger"><div><dt>BASE URL</dt><dd>Remote gateways must use HTTPS; only localhost may use HTTP.</dd></div><div><dt>API KEY</dt><dd>The Rust backend stores it in macOS Keychain or Windows Credential Manager.</dd></div><div><dt>PROTOCOL</dt><dd>Choose Responses API or Chat Completions to match the gateway.</dd></div><div><dt>MODEL</dt><dd>Use the exact model names made available by the gateway.</dd></div></dl>
+          </section>
+
+          <section id="first-run">
+            <p class="content-step">STEP / 03</p><h2>Generate the first image</h2>
+            <p>State the subject, use, aspect ratio, visual direction, and invariants. The agent proposes image tasks first. Review titles, prompts, dimensions, and reference relationships before the tasks enter the queue.</p>
+            <figure class="content-media"><img src="/images/guide/workspace.jpg" width="1920" height="1080" alt="Image2 Studio conversation, references, and serial task workspace" loading="lazy" /><figcaption>Conversation, references, queue state, and versioned results share one work surface.</figcaption></figure>
+            <pre><code>Create a square product photograph of an unbranded black desktop speaker.
+Use a mineral plinth and restrained cyan edge light. No copy, logo, or watermark.</code></pre>
+          </section>
+
+          <section id="references">
+            <p class="content-step">STEP / 04</p><h2>Give every reference one job</h2>
+            <p>Do not say only “use these references.” Identify which image controls identity, product structure, pose, composition, material, palette, or style, and state the priority when references conflict.</p>
+            <ul><li><strong>Identity:</strong> preserve facial structure, age, hair, and distinctive features.</li><li><strong>Structure:</strong> preserve product proportions, component placement, and buildable relationships.</li><li><strong>Composition:</strong> transfer position, camera direction, and negative space only.</li><li><strong>Style:</strong> transfer light, color, and medium without replacing the subject.</li></ul>
+          </section>
+
+          <aside class="ad-unit" data-ad-unit aria-hidden="true" hidden></aside>
+
+          <section id="annotate">
+            <p class="content-step">STEP / 05</p><h2>Constrain local changes with annotations</h2>
+            <p>Continue from an existing version and mark only the area that should change with points, boxes, arrows, or paint. Annotations are location instructions, not output content; everything outside them should stay stable.</p>
+            <figure class="content-media"><img src="/images/guide/annotation.webp" width="1280" height="720" alt="Region boxes, arrows, and edit instructions over a mooncake poster" loading="lazy" /><figcaption>Regions and marks compile into the edit request and must not remain in the result.</figcaption></figure>
+          </section>
+
+          <section id="queue">
+            <p class="content-step">STEP / 06</p><h2>Keep paid calls strictly serial</h2>
+            <p>Image2 runs one image task at a time. Stop prevents the next task from starting; resume continues from the waiting item. Failed tasks retain parameters and errors so you can check quota, model names, and endpoint support before retrying.</p>
+            <div class="content-callout"><strong>Cost boundary</strong><span>Agent planning and image generation can both consume gateway credit. Review the number of proposed tasks before starting the queue.</span></div>
+          </section>
+
+          <section id="versions">
+            <p class="content-step">STEP / 07</p><h2>Continue from any version</h2>
+            <p>Every result keeps its parent relationship. Rename a version, hide an unused result, branch from an older image, or place the current version back into the edit context. Hiding does not break files or lineage.</p>
+          </section>
+
+          <section id="troubleshoot">
+            <p class="content-step">STEP / 08</p><h2>Troubleshoot the failing stage</h2>
+            <dl class="content-ledger"><div><dt>401 / 403</dt><dd>Check the key, gateway permission, and model access. Never paste the key into a web page or Issue.</dd></div><div><dt>404</dt><dd>Check the Base URL, its <code>/v1</code> path, and whether the chosen protocol endpoint exists.</dd></div><div><dt>429</dt><dd>Wait for quota to recover. Keep execution serial instead of opening parallel windows.</dd></div><div><dt>INVALID JSON</dt><dd>The agent response did not match the task contract. Switch to a supported model or protocol.</dd></div></dl>
+            <p>Use <a href="https://github.com/weilaiqishi/image2-web/issues">GitHub Issues</a> for public bug reports. Include reproducible steps and redacted errors, never keys, full gateway responses, or private images.</p>
+          </section>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer"><div class="footer-main"><a class="brand-lockup footer-brand" href="/en/"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a><p>OpenAI-compatible gateway in. Controlled image workflow out.</p><nav aria-label="Footer navigation"><a href="/en/cases/">Cases</a><a href="/en/about/">About</a><a href="/en/privacy/">Privacy &amp; Cookies</a><button type="button" data-consent-reset hidden>Ad privacy choices</button><a href="/guide/" lang="zh-CN">中文</a></nav></div><div class="footer-meta"><span>© <span data-current-year>2026</span> Image2 Studio</span><span>GUIDE / LOCAL-FIRST / SERIAL BY DESIGN</span></div></footer>
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

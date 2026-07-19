@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -8,25 +8,76 @@ const sourceDir = join(root, "site");
 const outputDir = join(root, "dist-site");
 const defaultOrigin = "https://image2-studio.pages.dev";
 const siteOrigin = (process.env.SITE_ORIGIN || defaultOrigin).replace(/\/$/, "");
+const requestedAdsenseClient = (process.env.ADSENSE_CLIENT || "").trim();
+const requestedAdsenseSlot = (process.env.ADSENSE_SLOT || "").trim();
+const validAdsenseClient = /^ca-pub-\d{16}$/.test(requestedAdsenseClient);
+const validAdsenseSlot = /^\d{10}$/.test(requestedAdsenseSlot);
+const certifiedCmpConfirmed = process.env.ADSENSE_CMP_CERTIFIED === "true";
+const adsenseEnabled = validAdsenseClient && validAdsenseSlot && certifiedCmpConfirmed;
+const adsensePublisherClient = validAdsenseClient ? requestedAdsenseClient : "";
+const adsenseClient = adsenseEnabled ? requestedAdsenseClient : "";
+const adsenseSlot = adsenseEnabled ? requestedAdsenseSlot : "";
+const adsenseScriptUrl = adsenseEnabled ? "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" : "";
+const selfOnlyCsp = "Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; upgrade-insecure-requests";
 
 if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(siteOrigin)) {
   throw new Error("SITE_ORIGIN must be an HTTPS origin without a path");
 }
 
+if (requestedAdsenseClient && !validAdsenseClient) {
+  console.warn("AdSense publisher verification disabled: ADSENSE_CLIENT must match ca-pub- plus 16 digits");
+} else if (requestedAdsenseSlot && !validAdsenseSlot) {
+  console.warn("AdSense ad serving disabled: ADSENSE_SLOT must contain 10 digits");
+} else if (validAdsenseClient && validAdsenseSlot && !certifiedCmpConfirmed) {
+  console.warn("AdSense disabled: set ADSENSE_CMP_CERTIFIED=true only after a Google-certified CMP is configured for production traffic");
+}
+
+const replacements = new Map([
+  ["__SITE_ORIGIN__", siteOrigin],
+  ["__ADSENSE_CLIENT__", adsenseClient],
+  ["__ADSENSE_ACCOUNT_CLIENT__", adsensePublisherClient],
+  ["__ADSENSE_SLOT__", adsenseSlot],
+  ["__ADSENSE_SCRIPT_URL__", adsenseScriptUrl],
+  ["__ADSENSE_PUBLISHER_ID__", adsensePublisherClient.replace(/^ca-/, "")],
+  ["__ADSENSE_ADS_TXT_RECORD__", validAdsenseClient ? `google.com, ${adsensePublisherClient.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0` : ""],
+  // Google only supports nonce-based strict CSP for AdSense. A static Pages build
+  // cannot issue a fresh nonce per response, so ad-enabled builds omit CSP rather
+  // than ship a brittle domain allowlist that can silently block ad resources.
+  ["__CONTENT_SECURITY_POLICY__", adsenseEnabled ? "" : selfOnlyCsp],
+]);
+
+function renderTemplate(source) {
+  let rendered = source;
+  for (const [placeholder, value] of replacements) rendered = rendered.replaceAll(placeholder, value);
+  return rendered;
+}
+
+async function renderTextFiles(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      await renderTextFiles(path);
+      continue;
+    }
+    if (!/\.(?:css|html|js|txt|xml)$/i.test(entry.name) && !entry.name.startsWith("_")) continue;
+    const source = await readFile(path, "utf8");
+    let rendered = renderTemplate(source);
+    if (entry.name === "_headers") {
+      rendered = rendered.replace(/(Content-Security-Policy:[^\n]+)/, (line) => line.replace(/[ \t]{2,}/g, " ").replace(/\s+;/g, ";"));
+    }
+    await writeFile(path, rendered);
+  }
+}
+
+await rm(outputDir, { recursive: true, force: true });
 await mkdir(outputDir, { recursive: true });
 
-const staticEntries = ["assets", "en", "_headers", "_redirects"];
-for (const entry of staticEntries) {
-  await cp(join(sourceDir, entry), join(outputDir, entry), { recursive: true, force: true });
+for (const entry of await readdir(sourceDir, { withFileTypes: true })) {
+  if (entry.name === "images") continue;
+  await cp(join(sourceDir, entry.name), join(outputDir, entry.name), { recursive: entry.isDirectory(), force: true });
 }
 
-const templates = ["index.html", "en/index.html", "robots.txt", "sitemap.xml"];
-for (const template of templates) {
-  const source = await readFile(join(sourceDir, template), "utf8");
-  const target = join(outputDir, template);
-  await mkdir(resolve(target, ".."), { recursive: true });
-  await writeFile(target, source.replaceAll("__SITE_ORIGIN__", siteOrigin));
-}
+await renderTextFiles(outputDir);
 
 const imageDir = join(outputDir, "images");
 await rm(imageDir, { recursive: true, force: true });
@@ -36,9 +87,13 @@ await cp(join(sourceDir, "images"), imageDir, { recursive: true, force: true });
 const images = [
   ["docs/images/manual-workspace-dark-v2.jpg", "studio-workspace-dark.jpg"],
   ["src-tauri/icons/128x128.png", "favicon.png"],
+  ["docs/images/manual-settings-dark.jpg", "guide/settings.jpg"],
+  ["docs/images/manual-workspace-dark-v2.jpg", "guide/workspace.jpg"],
+  ["docs/images/manual-annotation-example.webp", "guide/annotation.webp"],
 ];
 
 for (const [source, target] of images) {
+  await mkdir(resolve(join(imageDir, target), ".."), { recursive: true });
   await cp(join(root, source), join(imageDir, target), { force: true });
 }
 
@@ -64,4 +119,4 @@ await sharp(join(sourceDir, "images/cases/case-ui.webp"))
   .jpeg({ quality: 88, progressive: true })
   .toFile(join(imageDir, "og-image2-studio.jpg"));
 
-console.log(`Marketing site assembled in dist-site for ${siteOrigin}`);
+console.log(`Marketing site assembled in dist-site for ${siteOrigin} (AdSense ${adsenseEnabled ? "configured" : "disabled"})`);

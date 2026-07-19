@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050607" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="了解 Image2 Studio 为什么围绕 OpenAI 兼容中转网关、API Key、gpt-image-2 串行任务和本地版本历史构建。" />
+    <link rel="canonical" href="__SITE_ORIGIN__/about/" />
+    <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/about/" />
+    <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/about/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_ORIGIN__/about/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Image2 Studio" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:title" content="关于 Image2 Studio" />
+    <meta property="og:description" content="把 OpenAI 兼容中转网关与 API Key 变成一套可控的 gpt-image-2 桌面工作流。" />
+    <meta property="og:url" content="__SITE_ORIGIN__/about/" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <title>关于 Image2 Studio</title>
+  </head>
+  <body class="content-page" data-locale="zh-CN" data-no-ads>
+    <a class="skip-link" href="#main">跳到正文</a>
+    <header class="site-header" aria-label="主导航">
+      <a class="brand-lockup" href="/" aria-label="Image2 Studio 首页"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+      <nav class="primary-nav" aria-label="页面导航"><a href="/cases/">案例</a><a href="/guide/">指南</a><a href="/about/" aria-current="page">关于</a></nav>
+      <div class="header-actions"><a class="language-link" href="/en/about/" lang="en" hreflang="en">English</a><a class="nav-cta" href="https://github.com/weilaiqishi/image2-web/releases">GitHub 下载</a></div>
+    </header>
+
+    <main class="content-main" id="main">
+      <article class="content-article">
+        <header class="content-header">
+          <p class="section-index">PROJECT / ABOUT</p>
+          <h1>关于 Image2</h1>
+          <p>Image2 Studio 是面向 OpenAI 兼容中转网关的本地图片任务工作台。它让 Base URL、API Key 与 gpt-image-2 不只停留在一次提示词调用，而成为可计划、可排队、可编辑、可回溯的桌面工作流。</p>
+        </header>
+
+        <div class="content-body">
+          <section aria-labelledby="why-image2">
+            <h2 id="why-image2">为什么做 Image2</h2>
+            <p>兼容 OpenAI 协议的网关让模型接入更灵活，但通用聊天客户端通常不会替你管理图片参考关系、局部编辑、付费调用顺序和父子版本。Image2 把这些图片工作所需的结构放在一个安静的桌面界面里。</p>
+          </section>
+
+          <section aria-labelledby="working-model">
+            <h2 id="working-model">从网关到图片任务</h2>
+            <p>你配置 HTTPS Base URL、API Key、Agent 协议与模型名称。Agent 理解目标并拆成独立图片任务；桌面端按严格串行队列执行调用，让停止、恢复、失败重试和额度控制保持可见。参考图可以承担身份、产品、姿势、构图、材质或风格角色，区域标注则进入结构化编辑请求。</p>
+          </section>
+
+          <section aria-labelledby="data-boundary">
+            <h2 id="data-boundary">准确的数据边界</h2>
+            <p>API Key 保存在 macOS Keychain 或 Windows Credential Manager。会话、任务、图片与标注保存在本机。生成和编辑请求会发送到你配置的网关，并受该网关及其上游服务条款约束。营销网站与桌面工作区分离，不接收 Key，也无法读取本地项目内容。</p>
+          </section>
+
+          <section aria-labelledby="open-development">
+            <h2 id="open-development">公开开发</h2>
+            <p>Image2 的源码、版本和开发记录公开在 GitHub。你可以检查实现、下载 Releases、报告可复现的问题，或通过 Pull Request 参与改进。提交问题时请提供必要的环境与复现步骤，但不要公开 API Key、访问令牌或含敏感信息的日志。</p>
+          </section>
+
+          <section aria-labelledby="contact-project">
+            <h2 id="contact-project">联系项目</h2>
+            <p>功能建议、缺陷报告和文档问题统一通过 GitHub Issues 跟踪，便于让讨论、状态和修复结果保持公开可追溯。</p>
+            <p><a class="button button-secondary" href="https://github.com/weilaiqishi/image2-web/issues">前往 GitHub Issues</a></p>
+          </section>
+        </div>
+
+        <nav class="content-nav" aria-label="相关页面"><a href="/guide/">操作指南</a><a href="/privacy/">隐私与 Cookie</a><a href="https://github.com/weilaiqishi/image2-web">查看源码</a></nav>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main">
+        <a class="brand-lockup footer-brand" href="/"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+        <p>OpenAI-compatible gateway in. Controlled image workflow out.</p>
+        <nav aria-label="页脚导航"><a href="/guide/">指南</a><a href="/about/" aria-current="page">关于</a><a href="/privacy/">隐私</a><a href="https://github.com/weilaiqishi/image2-web">GitHub</a></nav>
+      </div>
+      <div class="footer-meta"><span>© <span data-current-year>2026</span> Image2 Studio</span><span>LOCAL-FIRST / OPENAI-COMPATIBLE / SERIAL BY DESIGN</span></div>
+    </footer>
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

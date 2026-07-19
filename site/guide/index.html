@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050607" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="description" content="Image2 Studio 中文操作指南：安装桌面端，连接 OpenAI 兼容中转站，配置 Base URL、API Key 与 gpt-image-2，并完成参考图编辑、串行生成和版本管理。" />
+    <link rel="canonical" href="__SITE_ORIGIN__/guide/" />
+    <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/guide/" />
+    <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/guide/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_ORIGIN__/guide/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Image2 Studio" />
+    <meta property="og:title" content="Image2 Studio 操作指南" />
+    <meta property="og:description" content="从连接中转站到参考图编辑、串行队列与版本回溯。" />
+    <meta property="og:url" content="__SITE_ORIGIN__/guide/" />
+    <meta property="og:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
+    <meta name="google-adsense-account" content="__ADSENSE_ACCOUNT_CLIENT__" />
+    <meta name="adsense-client" content="__ADSENSE_CLIENT__" />
+    <meta name="adsense-slot" content="__ADSENSE_SLOT__" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <title>Image2 Studio 操作指南｜中转站与 GPT Image 2 工作流</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Image2 Studio 操作指南",
+        "inLanguage": "zh-CN",
+        "url": "__SITE_ORIGIN__/guide/",
+        "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
+        "about": "Image2 Studio desktop image workflow",
+        "isPartOf": { "@type": "WebSite", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/" }
+      }
+    </script>
+  </head>
+  <body class="content-page" data-locale="zh-CN">
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header" aria-label="主导航">
+      <a class="brand-lockup" href="/" aria-label="Image2 Studio 首页"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+      <nav class="primary-nav" aria-label="页面导航"><a href="/cases/">案例</a><a href="/guide/" aria-current="page">指南</a><a href="/about/">关于</a></nav>
+      <div class="header-actions"><a class="language-link" href="/en/guide/" lang="en" hreflang="en">EN</a><a class="nav-cta" href="https://github.com/weilaiqishi/image2-web/releases">GitHub 下载</a></div>
+    </header>
+
+    <main class="content-main" id="main">
+      <article class="content-article">
+        <header class="content-header">
+          <p class="section-index">OPERATIONS GUIDE / 01-08</p>
+          <h1>Image2 操作指南</h1>
+          <p>从一组已有的中转站 Base URL 与 API Key 开始，把自然语言目标、参考图、付费调用和版本结果组织成可检查的桌面工作流。</p>
+          <nav class="content-nav" aria-label="指南目录">
+            <a href="#install">安装</a><a href="#connect">连接网关</a><a href="#first-run">第一次生成</a><a href="#references">参考图</a><a href="#annotate">区域编辑</a><a href="#queue">串行队列</a><a href="#versions">版本管理</a><a href="#troubleshoot">故障排查</a>
+          </nav>
+        </header>
+
+        <div class="content-body">
+          <section id="install">
+            <p class="content-step">STEP / 01</p>
+            <h2>安装桌面端</h2>
+            <p>只从 GitHub Releases 下载与系统匹配的安装包。当前构建未签名，macOS 或 Windows 可能显示安全提示；先核对发布页中的文件名和 <code>SHA256SUMS</code>，再按系统提示继续。</p>
+            <div class="content-callout"><strong>不会进入网页的内容</strong><span>API Key、对话、参考图和生成结果都不应粘贴到宣传站。它们只在桌面应用和你配置的网关之间使用。</span></div>
+          </section>
+
+          <section id="connect">
+            <p class="content-step">STEP / 02</p>
+            <h2>连接 OpenAI 兼容网关</h2>
+            <p>首次启动会打开网关设置。依次填写 HTTPS Base URL、API Key、Agent 协议、Agent 模型和图片模型。图片模型默认使用 <code>gpt-image-2</code>；Agent 与图片接口共用同一组 Base URL 和 Key。</p>
+            <figure class="content-media"><img src="/images/guide/settings.jpg" width="1440" height="900" alt="Image2 Studio 深色网关设置界面" loading="lazy" /><figcaption>Base URL 与 API Key 相邻配置；保存后 Key 输入框会清空。</figcaption></figure>
+            <dl class="content-ledger">
+              <div><dt>BASE URL</dt><dd>远程地址必须使用 HTTPS；仅本机 localhost 可使用 HTTP。</dd></div>
+              <div><dt>API KEY</dt><dd>由 Rust 后端写入 macOS Keychain 或 Windows Credential Manager。</dd></div>
+              <div><dt>PROTOCOL</dt><dd>按中转站能力选择 Responses API 或 Chat Completions。</dd></div>
+              <div><dt>MODEL</dt><dd>模型名称必须与中转站实际开放的名称一致。</dd></div>
+            </dl>
+          </section>
+
+          <section id="first-run">
+            <p class="content-step">STEP / 03</p>
+            <h2>完成第一次生成</h2>
+            <p>在对话中写清主体、用途、画幅、风格与必须保持的约束。Agent 会先拆成图片任务；发送前检查标题、提示词、尺寸和参考关系，再进入串行队列。</p>
+            <figure class="content-media"><img src="/images/guide/workspace.jpg" width="1920" height="1080" alt="Image2 Studio 对话、参考图与串行任务工作区" loading="lazy" /><figcaption>同一工作面显示对话、引用、队列状态与版本结果。</figcaption></figure>
+            <pre><code>为一款无品牌的黑色桌面音响生成 1:1 产品摄影。
+石材底座，克制的青色边缘光，不出现文字、Logo 或水印。</code></pre>
+          </section>
+
+          <section id="references">
+            <p class="content-step">STEP / 04</p>
+            <h2>给参考图分配明确角色</h2>
+            <p>不要只说“参考这些图”。分别说明哪张图负责身份、产品结构、姿势、构图、材质、色卡或视觉风格，并写明冲突时的优先级。这样 Agent 才能把引用关系编译进每个任务。</p>
+            <ul>
+              <li><strong>身份：</strong>保持人物脸型、五官、年龄感和发型。</li>
+              <li><strong>结构：</strong>保持产品比例、零件位置和可制造关系。</li>
+              <li><strong>构图：</strong>只迁移主体位置、镜头方向和留白。</li>
+              <li><strong>风格：</strong>只迁移光线、色彩和媒介气质，不替换主体。</li>
+            </ul>
+          </section>
+
+          <aside class="ad-unit" data-ad-unit aria-hidden="true" hidden></aside>
+
+          <section id="annotate">
+            <p class="content-step">STEP / 05</p>
+            <h2>用标注限定局部修改</h2>
+            <p>从一个已有版本继续，使用点、框、箭头或画笔标出需要变化的区域。标注只是给模型的定位信息，最终图必须移除标注，并保持未标注区域。</p>
+            <figure class="content-media"><img src="/images/guide/annotation.webp" width="1280" height="720" alt="月饼海报上的区域框、箭头和编辑说明" loading="lazy" /><figcaption>Region 与 Mark 进入结构化编辑请求，不应出现在输出图中。</figcaption></figure>
+          </section>
+
+          <section id="queue">
+            <p class="content-step">STEP / 06</p>
+            <h2>让付费调用严格串行</h2>
+            <p>Image2 同一时间只执行一项图片任务。停止会阻止新任务开始；恢复从等待项继续；失败项保留错误和参数，确认网关额度、模型名与接口能力后再重试。</p>
+            <div class="content-callout"><strong>成本边界</strong><span>Agent 规划和图片生成都可能产生网关费用。先检查拆分数量，再启动队列。</span></div>
+          </section>
+
+          <section id="versions">
+            <p class="content-step">STEP / 07</p>
+            <h2>从任意版本继续</h2>
+            <p>每个结果都保留父子关系。你可以重命名版本、隐藏不再使用的结果、从旧版本另开分支，或把当前版本重新放回编辑上下文。隐藏不会破坏文件与版本关系。</p>
+          </section>
+
+          <section id="troubleshoot">
+            <p class="content-step">STEP / 08</p>
+            <h2>按错误所在阶段排查</h2>
+            <dl class="content-ledger">
+              <div><dt>401 / 403</dt><dd>重新确认 Key、网关权限和模型授权，不要把 Key 发到网页或 Issue。</dd></div>
+              <div><dt>404</dt><dd>检查 Base URL 是否包含正确的 <code>/v1</code> 路径，以及协议端点是否存在。</dd></div>
+              <div><dt>429</dt><dd>等待额度恢复；保持串行，不要通过多开窗口绕过限流。</dd></div>
+              <div><dt>INVALID JSON</dt><dd>Agent 返回格式不符合任务协议；切换受支持模型或协议后重试。</dd></div>
+            </dl>
+            <p>公开反馈请使用 <a href="https://github.com/weilaiqishi/image2-web/issues">GitHub Issues</a>，只提交可复现步骤和已脱敏错误，不要附带 Key、完整网关响应或私人图片。</p>
+          </section>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main"><a class="brand-lockup footer-brand" href="/"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a><p>OpenAI-compatible gateway in. Controlled image workflow out.</p><nav aria-label="页脚导航"><a href="/cases/">案例</a><a href="/about/">关于</a><a href="/privacy/">隐私与 Cookie</a><button type="button" data-consent-reset hidden>广告隐私选择</button><a href="/en/guide/" lang="en">English</a></nav></div>
+      <div class="footer-meta"><span>© <span data-current-year>2026</span> Image2 Studio</span><span>GUIDE / LOCAL-FIRST / SERIAL BY DESIGN</span></div>
+    </footer>
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

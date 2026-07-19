@@ -1,12 +1,216 @@
-document.addEventListener("DOMContentLoaded", () => {
-  document.body.classList.add("is-ready");
+const ADSENSE_CLIENT = "__ADSENSE_CLIENT__";
+const ADSENSE_SLOT = "__ADSENSE_SLOT__";
+const ADSENSE_SCRIPT_URL = "__ADSENSE_SCRIPT_URL__";
+const AD_CONSENT_KEY = "image2.ads.consent.v1";
+const VALID_CONSENT = new Set(["accepted", "rejected"]);
 
-  document.querySelectorAll("[data-current-year]").forEach((node) => {
-    node.textContent = String(new Date().getFullYear());
+let adsInitialized = false;
+let siteInitialized = false;
+let inMemoryAdConsent;
+
+function readAdConsent() {
+  if (VALID_CONSENT.has(inMemoryAdConsent) || inMemoryAdConsent === "unknown") return inMemoryAdConsent;
+  try {
+    const value = window.localStorage.getItem(AD_CONSENT_KEY);
+    return VALID_CONSENT.has(value) ? value : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+function writeAdConsent(value) {
+  try {
+    if (value === "unknown") window.localStorage.removeItem(AD_CONSENT_KEY);
+    else window.localStorage.setItem(AD_CONSENT_KEY, value);
+  } catch {
+    // A blocked storage API keeps the decision in-memory for this page only.
+  }
+  applyAdConsentState(value);
+}
+
+function applyAdConsentState(value) {
+  inMemoryAdConsent = value;
+  document.body.dataset.adConsent = value;
+  document.querySelectorAll("[data-consent-status]").forEach((node) => {
+    node.textContent = value;
+  });
+  document.querySelectorAll("[data-consent-reset]").forEach((button) => {
+    button.hidden = !adsAreConfigured() || value === "unknown";
+  });
+  document.dispatchEvent(new CustomEvent("image2:ad-consent", { detail: { value } }));
+}
+
+function adsAreConfigured() {
+  return /^ca-pub-\d{16}$/.test(ADSENSE_CLIENT)
+    && /^\d{10}$/.test(ADSENSE_SLOT)
+    && ADSENSE_SCRIPT_URL.startsWith("https://");
+}
+
+function pageAllowsAds() {
+  return !document.body.hasAttribute("data-no-ads") && document.querySelector("[data-ad-unit]") !== null;
+}
+
+function adLabels() {
+  return document.body.getAttribute("data-locale") === "zh-CN"
+    ? {
+        title: "是否允许加载广告？",
+        description: "只有你明确同意后，本页才会连接 Google AdSense，并默认请求非个性化广告。拒绝不会产生 Google 请求。",
+        accept: "同意并加载",
+        reject: "拒绝",
+        label: "广告隐私选择",
+        details: "查看隐私说明",
+        privacyHref: "/privacy/",
+      }
+    : {
+        title: "Allow ads on this site?",
+        description: "This page connects to Google AdSense only after you opt in, and requests non-personalized ads by default. Rejecting sends no request to Google.",
+        accept: "Allow and load",
+        reject: "Reject",
+        label: "Advertising privacy choice",
+        details: "Read the privacy details",
+        privacyHref: "/en/privacy/",
+      };
+}
+
+function ensureConsentBanner() {
+  const existing = document.querySelector("[data-consent-banner]");
+  if (existing) return existing;
+  const labels = adLabels();
+  const banner = document.createElement("section");
+  banner.className = "consent-banner";
+  banner.hidden = true;
+  banner.setAttribute("data-consent-banner", "");
+  banner.setAttribute("role", "region");
+  banner.setAttribute("aria-label", labels.label);
+  banner.innerHTML = `
+    <div class="consent-copy">
+      <strong>${labels.title}</strong>
+      <p>${labels.description}</p>
+      <a href="${labels.privacyHref}">${labels.details}</a>
+    </div>
+    <div class="consent-actions">
+      <button class="button button-secondary" type="button" data-consent-reject>${labels.reject}</button>
+      <button class="button button-primary" type="button" data-consent-accept>${labels.accept}</button>
+    </div>
+  `;
+  document.body.append(banner);
+  return banner;
+}
+
+function hideConsentBanners() {
+  document.querySelectorAll("[data-consent-banner]").forEach((banner) => { banner.hidden = true; });
+}
+
+function showConsentBanner() {
+  if (!adsAreConfigured() || !pageAllowsAds()) return;
+  ensureConsentBanner().hidden = false;
+}
+
+function initializeAds() {
+  if (adsInitialized || !adsAreConfigured() || !pageAllowsAds() || readAdConsent() !== "accepted") return false;
+  const units = Array.from(document.querySelectorAll("[data-ad-unit]"));
+  if (!units.length) return false;
+
+  adsInitialized = true;
+  const queue = window.adsbygoogle = window.adsbygoogle || [];
+  queue.requestNonPersonalizedAds = 1;
+
+  units.forEach((unit) => {
+    if (unit.hasAttribute("data-ad-initialized")) return;
+    const requestedSlot = unit.getAttribute("data-ad-slot") || "";
+    const slot = /^\d{10}$/.test(requestedSlot) ? requestedSlot : ADSENSE_SLOT;
+    const ad = document.createElement("ins");
+    ad.className = "adsbygoogle";
+    ad.style.display = "block";
+    ad.setAttribute("data-ad-client", ADSENSE_CLIENT);
+    ad.setAttribute("data-ad-slot", slot);
+    ad.setAttribute("data-ad-format", "auto");
+    ad.setAttribute("data-full-width-responsive", "true");
+    unit.replaceChildren(ad);
+    unit.classList.add("is-ad-ready");
+    unit.hidden = false;
+    unit.setAttribute("data-ad-initialized", "");
+    unit.setAttribute("aria-hidden", "false");
+    queue.push({});
   });
 
+  const script = document.createElement("script");
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.referrerPolicy = "strict-origin-when-cross-origin";
+  script.src = `${ADSENSE_SCRIPT_URL}?client=${encodeURIComponent(ADSENSE_CLIENT)}`;
+  script.setAttribute("data-image2-adsense", "");
+  document.head.append(script);
+  return true;
+}
+
+function acceptAds() {
+  writeAdConsent("accepted");
+  hideConsentBanners();
+  initializeAds();
+}
+
+function rejectAds() {
+  writeAdConsent("rejected");
+  hideConsentBanners();
+}
+
+function resetAdConsent() {
+  const needsReload = adsInitialized;
+  writeAdConsent("unknown");
+  if (needsReload) {
+    window.location.reload();
+    return;
+  }
+  showConsentBanner();
+}
+
+function syncAdConsentFromStorage(event) {
+  if (event.key !== AD_CONSENT_KEY && event.key !== null) return;
+  const value = VALID_CONSENT.has(event.newValue) ? event.newValue : "unknown";
+  applyAdConsentState(value);
+
+  if (!adsAreConfigured() || !pageAllowsAds()) return;
+  if (adsInitialized && value !== "accepted") {
+    window.location.reload();
+    return;
+  }
+  if (value === "accepted") {
+    hideConsentBanners();
+    initializeAds();
+  } else if (value === "unknown") {
+    showConsentBanner();
+  } else {
+    hideConsentBanners();
+  }
+}
+
+function bindConsentControls() {
+  document.querySelectorAll("[data-consent-accept]").forEach((button) => button.addEventListener("click", acceptAds));
+  document.querySelectorAll("[data-consent-reject]").forEach((button) => button.addEventListener("click", rejectAds));
+  document.querySelectorAll("[data-consent-reset]").forEach((button) => button.addEventListener("click", resetAdConsent));
+}
+
+function initializeConsent() {
+  const consent = readAdConsent();
+  writeAdConsent(consent);
+  window.addEventListener("storage", syncAdConsentFromStorage);
+
+  if (!adsAreConfigured() || !pageAllowsAds()) {
+    bindConsentControls();
+    return;
+  }
+
+  if (consent === "accepted") initializeAds();
+  else if (consent === "unknown") ensureConsentBanner();
+  bindConsentControls();
+  if (consent === "unknown") showConsentBanner();
+}
+
+function initializeCaseLightbox() {
   const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
   const caseItems = Array.from(document.querySelectorAll(".case-item"));
+  if (!caseItems.length) return;
 
   filterButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -97,4 +301,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key === "ArrowLeft") renderCase(activeIndex - 1);
     if (event.key === "ArrowRight") renderCase(activeIndex + 1);
   });
-});
+}
+
+function initializeSite() {
+  if (siteInitialized) return;
+  siteInitialized = true;
+  document.body.classList.add("is-ready");
+  document.querySelectorAll("[data-current-year]").forEach((node) => {
+    node.textContent = String(new Date().getFullYear());
+  });
+  initializeConsent();
+  initializeCaseLightbox();
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initializeSite, { once: true });
+else initializeSite();

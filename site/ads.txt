@@ -1,0 +1,2 @@
+# AdSense record is emitted only for a validated build configuration.
+__ADSENSE_ADS_TXT_RECORD__

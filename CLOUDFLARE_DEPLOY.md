@@ -20,6 +20,12 @@ npm run build:site
 dist-site/
 ├── index.html          # 中文宣传页
 ├── en/index.html       # English landing page
+├── cases/              # 中文案例页
+├── guide/              # 中文图文操作指南
+├── about/              # 项目边界与联系方式
+├── privacy/            # 隐私、Cookie 与广告选择说明
+├── 404.html            # 真实静态 404，避免 SPA 软回退
+├── ads.txt             # 未配置 AdSense 时只有说明注释
 ├── images/             # Image2 生成案例、产品截图与社交分享图
 ├── robots.txt
 ├── sitemap.xml
@@ -52,9 +58,22 @@ SITE_ORIGIN=https://你的域名
 
 不要创建 `VITE_OPENAI_API_KEY`、`OPENAI_API_KEY` 或任何包含中转密钥的 Pages 变量。Vite 前缀变量会进入浏览器包。
 
+## AdSense 隐私边界
+
+当前生产部署不设置广告变量，因此构建不会包含 Google 广告脚本地址、发布商 ID、广告位 ID 或 Google 广告域名 CSP，也不会显示广告同意控件。`ads.txt` 只保留说明注释，不发布虚假卖方记录。
+
+接入分为两个阶段：
+
+1. 站点验证：账号所有者确认 AdSense 条款并取得发布商 ID 后，只配置 `ADSENSE_CLIENT=ca-pub-...`。构建会生成官方 `google-adsense-account` meta 与 `ads.txt` 记录，但不会包含广告脚本、广告位或同意条，也不会请求 Google 广告。
+2. 开始投放：`image2-studio.pages.dev` 通过站点审核、真实广告位创建、Google 认证 CMP 配置并验证后，再配置 `ADSENSE_SLOT=...` 与 `ADSENSE_CMP_CERTIFIED=true`。三个值全部有效时才会启用广告代码。
+
+`ADSENSE_CMP_CERTIFIED=true` 只是防止误部署的人工闸门，不会安装或替代 CMP。启用前还必须完成隐私页、撤回入口、`ads.txt` 和真实流量回归。Google 当前只支持为 AdSense 使用每次响应随机 nonce 的严格 CSP；纯静态 Pages 无法安全地产生这种 nonce，因此广告启用构建会移除 CSP 响应头，其他安全响应头仍保留。广告禁用和仅验证发布商的构建继续使用 self-only CSP。
+
+`ADSENSE_CLIENT` 和 `ADSENSE_SLOT` 会按 AdSense 规范公开在浏览器广告标记中，不是密钥；不要把它们误写成中转站 API Key。广告采用显式同意后加载，并默认请求非个性化广告。非个性化广告仍可能让 Google 处理 IP、设备、页面、衡量、安全和反作弊所需数据，因此不得宣称“AdSense 完全不获取用户信息”。用户拒绝时，本站不加载 AdSense 脚本，也不向 Google 发起展示广告请求。
+
 ## Wrangler 可选部署
 
-仓库包含 `wrangler.toml`，已经把 Pages 输出目录设为 `dist-site`。需要命令行部署时：
+需要命令行部署时，可以显式指定构建目录：
 
 ```bash
 npm run build:site
@@ -85,5 +104,7 @@ Wrangler 登录、项目创建和生产发布会改变 Cloudflare 账户状态�
 2. 所有主 CTA 都指向 GitHub Releases 或仓库，不出现在线生成入口。
 3. `robots.txt`、`sitemap.xml`、8 张生成案例和社交分享图返回 `200`。
 4. 页面源码中的 canonical 与实际生产域名一致。
-5. Cloudflare 响应包含 `_headers` 中的 CSP、`nosniff`、Referrer Policy 与 Permissions Policy。
-6. Git 仓库和构建日志中不存在任何 API Key。
+5. 任意不存在的路径返回真实 `404`，不以首页内容和 `200` 伪装成功。
+6. 未配置广告时，`/ads.txt` 不含卖方记录，HTML、JavaScript 与 CSP 都不含 Google 广告域名。
+7. Cloudflare 响应包含 `_headers` 中的 CSP、`nosniff`、Referrer Policy 与 Permissions Policy。
+8. Git 仓库、完整 Git 历史和构建日志中不存在任何 API Key。
