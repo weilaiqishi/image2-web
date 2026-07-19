@@ -1,3 +1,9 @@
 name = "image2-studio"
 pages_build_output_dir = "dist-site"
 compatibility_date = "2026-07-18"
+
+[vars]
+ADSENSE_CLIENT = ""
+
+[env.production.vars]
+ADSENSE_CLIENT = "ca-pub-1171422771199393"
