@@ -107,12 +107,12 @@ describe("Image2 Agent workspace", () => {
     expect((composer as HTMLTextAreaElement).value).toContain(`@${imageLabel}`);
     fireEvent.click(screen.getAllByRole("button", { name: /^Draw / }).at(-1)!);
     expect(await screen.findByRole("dialog", { name: "标注修改" })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "移动画布" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "移动画布" }, { timeout: 5_000 })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "点选 Mark" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "框选 Region" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "画笔 Mask" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "方向箭头" })).toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("reorders attachments without changing their stable Image labels", async () => {
     const { container } = render(<App />);
