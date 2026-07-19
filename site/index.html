@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#142019" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050607" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
-    <meta name="description" content="Image2 Studio 是为使用 OpenAI 兼容中转的家庭准备的本地优先 AI 生图工作台。懂技术的人一次配置 Base URL、模型和密钥，家人用日常语言生成、编辑和下载图片。支持中英文、参考图、精准标注与串行任务。" />
-    <meta name="keywords" content="AI 生图, OpenAI 中转, GPT Image, 家庭 AI 工具, 图片生成器, Image2 Studio, 本地优先" />
+    <meta name="description" content="Image2 Studio 是面向 OpenAI 兼容中转站的本地 AI 图片任务工作台。配置 Base URL、API Key 与 gpt-image-2 模型后，用自然语言拆分、串行生成、参考图编辑和管理图片版本。" />
+    <meta name="keywords" content="GPT Image 2, gpt-image-2, AI 生图, OpenAI 中转, OpenAI Compatible, AI 图片编辑, Image2 Studio" />
     <link rel="canonical" href="__SITE_ORIGIN__/" />
     <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/" />
     <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/" />
@@ -16,87 +16,43 @@
     <meta property="og:site_name" content="Image2 Studio" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:title" content="Image2 Studio｜你管好中转，家人只管说想要什么图" />
-    <meta property="og:description" content="一次配置兼容 OpenAI 的中转，给家人一个不用学习 API 和提示词工程的本地 AI 生图工作台。" />
+    <meta property="og:title" content="Image2 Studio｜把中转站变成专业生图工作流" />
+    <meta property="og:description" content="连接你的 OpenAI 兼容网关，用 gpt-image-2 拆解、生成、精准编辑并管理每一版图片。" />
     <meta property="og:url" content="__SITE_ORIGIN__/" />
     <meta property="og:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Image2 Studio 家庭 AI 生图工作台界面" />
+    <meta property="og:image:alt" content="Image2 Studio 黑色科技感图片工作台与原创生成案例" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Image2 Studio｜给家人的 AI 生图工作台" />
-    <meta name="twitter:description" content="中转由你懂，创作让家人直接上手。" />
+    <meta name="twitter:title" content="Image2 Studio｜OpenAI 兼容中转生图工作台" />
+    <meta name="twitter:description" content="你的网关，你的 Key，你的 gpt-image-2 工作流。" />
     <meta name="twitter:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
-    <link rel="preload" as="image" href="/images/studio-workspace.jpg" />
+    <link rel="preload" as="image" href="/images/cases/case-fashion.webp" />
     <link rel="stylesheet" href="/assets/site.css" />
-    <title>Image2 Studio｜给家人的中转 AI 生图工作台</title>
+    <title>Image2 Studio｜OpenAI 兼容中转的 GPT Image 2 工作台</title>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "SoftwareApplication",
-            "name": "Image2 Studio",
-            "url": "__SITE_ORIGIN__/",
-            "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
-            "applicationCategory": "MultimediaApplication",
-            "operatingSystem": "Windows, macOS",
-            "inLanguage": ["zh-CN", "en"],
-            "description": "为 OpenAI 兼容中转用户和家人设计的本地优先 AI 图片生成、参考图编辑与任务编排工作台。",
-            "isAccessibleForFree": true,
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            },
-            "downloadUrl": "https://github.com/weilaiqishi/image2-web",
-            "featureList": [
-              "OpenAI compatible relay configuration",
-              "Chinese and English interface",
-              "Reference image generation and precise annotation",
-              "Local-first conversations and image history",
-              "Strict serial image task queue"
-            ]
-          },
-          {
-            "@type": "FAQPage",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "Image2 Studio 是什么？",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Image2 Studio 是本地优先的 AI 生图任务工作台。它把自然语言目标、参考图和精准标注整理成独立任务，再通过你配置的 OpenAI 兼容中转串行生成。"
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "可以使用 ChatGPT 或 OpenAI 兼容中转吗？",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "可以。桌面端支持自定义 HTTPS Base URL、Responses API 或 Chat Completions，以及可配置的 Agent 和图片模型名称。"
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "家人需要懂 API 或提示词工程吗？",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "不需要。由熟悉技术的人在家人使用的电脑上完成一次连接设置，之后使用者只需描述目标、选择灵感或上传参考图。"
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "为什么真实生图使用桌面端？",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "桌面端能把 API Key 保存在 macOS Keychain 或 Windows Credential Manager，并让对话、任务和图片历史保留在本机。公开网页只提供不发送真实请求的演示。"
-                }
-              }
-            ]
-          }
-        ]
+        "@type": "SoftwareApplication",
+        "name": "Image2 Studio",
+        "url": "__SITE_ORIGIN__/",
+        "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Windows, macOS",
+        "inLanguage": ["zh-CN", "en"],
+        "description": "面向 OpenAI 兼容中转站的本地 AI 图片任务工作台，支持自然语言任务拆分、串行生成、参考图编辑与版本管理。",
+        "isAccessibleForFree": true,
+        "downloadUrl": "https://github.com/weilaiqishi/image2-web/releases",
+        "codeRepository": "https://github.com/weilaiqishi/image2-web",
+        "featureList": [
+          "Custom OpenAI-compatible Base URL and API key",
+          "Configurable agent and GPT Image model names",
+          "Reference images and structured region editing",
+          "Strict serial image task queue",
+          "Local-first conversations and image version history"
+        ],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
   </head>
@@ -106,271 +62,166 @@
     <header class="site-header" aria-label="主导航">
       <a class="brand-lockup" href="#top" aria-label="Image2 Studio 首页">
         <span class="brand-symbol" aria-hidden="true">I²</span>
-        <span><strong>Image2</strong><small>FAMILY STUDIO</small></span>
+        <span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span>
       </a>
       <nav class="primary-nav" aria-label="页面导航">
-        <a href="#product">真实界面</a>
-        <a href="#workflow">家庭工作流</a>
-        <a href="#deploy">Cloudflare</a>
-        <a href="#faq">常见问题</a>
+        <a href="#cases">生成案例</a>
+        <a href="#studio">软件本体</a>
+        <a href="#workflow">工作流</a>
       </nav>
       <div class="header-actions">
         <a class="language-link" href="/en/" lang="en" hreflang="en" aria-label="Read in English">EN</a>
-        <a class="nav-cta" href="/app/?demo=1">在线演示</a>
+        <a class="nav-cta" href="https://github.com/weilaiqishi/image2-web/releases">GitHub 下载</a>
       </div>
     </header>
 
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
-        <img class="hero-media" src="/images/studio-workspace.jpg" width="1920" height="847" alt="Image2 Studio 对话、参数和串行任务工作区" fetchpriority="high" />
-        <div class="hero-wash" aria-hidden="true"></div>
+        <div class="hero-gallery" aria-hidden="true">
+          <img src="/images/cases/case-fashion.webp" alt="" fetchpriority="high" />
+          <img src="/images/cases/case-product.webp" alt="" fetchpriority="high" />
+          <img src="/images/cases/case-architecture.webp" alt="" fetchpriority="high" />
+          <img src="/images/cases/case-game.webp" alt="" fetchpriority="high" />
+          <img src="/images/cases/case-food.webp" alt="" fetchpriority="high" />
+        </div>
+        <div class="hero-scrim" aria-hidden="true"></div>
         <div class="hero-copy">
-          <p class="hero-kicker">为已经有中转的家庭准备</p>
+          <p class="hero-kicker"><span></span> OPENAI-COMPATIBLE / LOCAL-FIRST</p>
           <h1 id="hero-title">Image2 Studio</h1>
-          <p class="hero-promise">你管好中转，家人只管说想要什么图。</p>
-          <p class="hero-summary">在家人使用的电脑上配置一次 Base URL、模型和密钥。以后，他们只需聊天、选灵感、上传参考图。</p>
+          <p class="hero-promise">把你的中转站，变成一套真正的图片工作流。</p>
+          <p class="hero-summary">连接 Base URL、API Key 与 gpt-image-2。用自然语言拆任务、带参考图精准编辑，并让每次生成严格排队、版本可追溯。</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#workflow">看家庭工作流</a>
-            <a class="button button-ghost" href="/app/?demo=1">打开在线演示</a>
+            <a class="button button-primary" href="https://github.com/weilaiqishi/image2-web/releases">前往 GitHub 下载</a>
+            <a class="button button-secondary" href="https://github.com/weilaiqishi/image2-web">查看源码</a>
           </div>
-          <p class="demo-note">在线演示使用本地模拟数据，不发送真实请求。</p>
         </div>
-
-        <ol class="relay-ribbon" aria-label="从中转到家人创作的四步状态">
-          <li><span class="relay-code">RELAY</span><strong>兼容中转</strong><small>HTTPS Base URL</small></li>
-          <li><span class="relay-code">VAULT</span><strong>密钥受保护</strong><small>系统凭证库</small></li>
-          <li><span class="relay-code">FAMILY</span><strong>家人直接说</strong><small>中文或 English</small></li>
-          <li><span class="relay-code">IMAGE</span><strong>任务排队生成</strong><small>逐张、可恢复</small></li>
-        </ol>
+        <dl class="hero-readout" aria-label="产品能力摘要">
+          <div><dt>MODEL</dt><dd>gpt-image-2</dd></div>
+          <div><dt>GATEWAY</dt><dd>OpenAI Compatible</dd></div>
+          <div><dt>QUEUE</dt><dd>Strict Serial</dd></div>
+          <div><dt>STORAGE</dt><dd>Local First</dd></div>
+        </dl>
       </section>
 
-      <section class="intro-band" aria-labelledby="intro-title">
-        <div class="section-shell intro-layout">
-          <p class="section-index">为什么是它</p>
-          <div>
-            <h2 id="intro-title">给家人的不是 API Key，<br />是一个会听懂需求的画布。</h2>
-            <p>你不需要再远程指导“去哪里粘贴密钥、模型名该填什么、比例参数在哪里”。连接设置完成后，复杂性留在底层，创作留在屏幕上。</p>
-          </div>
-          <blockquote>“帮我把这盒月饼做成海报，再把店铺地址放到底部。”</blockquote>
-        </div>
-      </section>
-
-      <section class="product-section" id="product" aria-labelledby="product-title">
+      <section class="case-section" id="cases" aria-labelledby="case-title">
         <div class="section-shell">
-          <header class="section-heading">
-            <p class="section-index">真实产品，不是概念图</p>
-            <h2 id="product-title">一句需求进去，清楚的任务出来。</h2>
-            <p>对话在中间，历史和灵感在左边，严格串行的图片任务在右边。家人不必理解 Agent 协议，也不会一次误发一排昂贵请求。</p>
+          <header class="section-heading case-heading">
+            <div>
+              <p class="section-index">IMAGE2 OUTPUT / 001—008</p>
+              <h2 id="case-title">先看图，再谈能力。</h2>
+            </div>
+            <p>以下全部为 Image2 为本次重构生成的原创案例，覆盖商业摄影、人物、空间、界面、游戏与叙事视觉。</p>
           </header>
+          <div class="case-filter" role="group" aria-label="筛选生成案例">
+            <button class="active" type="button" data-filter="all" aria-pressed="true">全部</button>
+            <button type="button" data-filter="commercial" aria-pressed="false">商业</button>
+            <button type="button" data-filter="world" aria-pressed="false">场景</button>
+            <button type="button" data-filter="story" aria-pressed="false">叙事</button>
+          </div>
+          <div class="case-grid">
+            <article class="case-item case-tall" data-category="commercial">
+              <figure><img src="/images/cases/case-fashion.webp" width="656" height="1280" alt="雨夜拱廊中的原创时尚人物摄影" loading="lazy" /></figure>
+              <div><span>PORTRAIT / 01</span><h3>蓝调拱廊人物</h3><p>自然皮肤、雨面反射与克制的未来时装。</p></div>
+            </article>
+            <article class="case-item" data-category="commercial">
+              <figure><img src="/images/cases/case-product.webp" width="1254" height="1254" alt="石台上的黑色无线音箱产品摄影" loading="lazy" /></figure>
+              <div><span>PRODUCT / 02</span><h3>石墨音响产品图</h3><p>材质、结构与边缘光都能经得起放大。</p></div>
+            </article>
+            <article class="case-item case-wide" data-category="world">
+              <figure><img src="/images/cases/case-food.webp" width="1280" height="853" alt="现代面馆内厨师上菜的餐饮摄影" loading="lazy" /></figure>
+              <div><span>EDITORIAL / 03</span><h3>午夜面馆</h3><p>真实人物互动与有温度的商业餐饮叙事。</p></div>
+            </article>
+            <article class="case-item case-wide" data-category="commercial">
+              <figure><img src="/images/cases/case-ui.webp" width="1280" height="853" alt="平板与手机上的黑色创意应用界面" loading="lazy" /></figure>
+              <div><span>INTERFACE / 04</span><h3>创意任务控制台</h3><p>从设备、层级到状态反馈都像真实产品。</p></div>
+            </article>
+            <article class="case-item case-wide" data-category="world">
+              <figure><img src="/images/cases/case-architecture.webp" width="1280" height="853" alt="冷海悬崖上的黑木与玻璃创意工作室" loading="lazy" /></figure>
+              <div><span>SPACE / 05</span><h3>冷海悬崖工作室</h3><p>可建造的结构、天气与室内暖光关系。</p></div>
+            </article>
+            <article class="case-item case-tall" data-category="story">
+              <figure><img src="/images/cases/case-game.webp" width="607" height="1280" alt="轨道维修舱内的原创科幻工程师角色" loading="lazy" /></figure>
+              <div><span>CHARACTER / 06</span><h3>轨道舱工程师</h3><p>原创角色、可信装备与工业世界观。</p></div>
+            </article>
+            <article class="case-item case-tall" data-category="story">
+              <figure><img src="/images/cases/case-illustration.webp" width="853" height="1280" alt="夜间档案馆中漂浮玻璃鲸的编辑插画" loading="lazy" /></figure>
+              <div><span>ILLUSTRATION / 07</span><h3>玻璃鲸档案馆</h3><p>纸张、墨色与透光材质形成安静的超现实感。</p></div>
+            </article>
+            <article class="case-item case-wide" data-category="story">
+              <figure><img src="/images/cases/case-storyboard.webp" width="1280" height="853" alt="雾中电车抵达山站的四格电影分镜" loading="lazy" /></figure>
+              <div><span>STORYBOARD / 08</span><h3>凌晨列车四镜</h3><p>同一场景、连续叙事与一致的摄影语言。</p></div>
+            </article>
+          </div>
+        </div>
+      </section>
 
-          <figure class="product-figure">
-            <img src="/images/studio-workspace.jpg" width="1920" height="847" alt="Image2 Studio 中文主工作区，包含会话、输入区和串行任务轨道" loading="lazy" />
-            <figcaption><span>工作区</span> 对话、参考图、参数与任务状态在同一屏完成。</figcaption>
+      <section class="studio-section" id="studio" aria-labelledby="studio-title">
+        <div class="section-shell">
+          <header class="section-heading split-heading">
+            <div><p class="section-index">DESKTOP SYSTEM</p><h2 id="studio-title">不是又一个输入框。</h2></div>
+            <p>Image2 把对话、参考图、生成参数、串行任务和版本结果放进同一个安静的桌面工作面。Key 留在系统凭证库，图片和会话留在本机。</p>
+          </header>
+          <figure class="studio-figure">
+            <img src="/images/studio-workspace-dark.jpg" width="1920" height="1080" alt="Image2 Studio 黑色科技感桌面工作区" loading="lazy" />
+            <figcaption><span>LIVE INTERFACE</span><span>Conversation / References / Serial Queue / Versions</span></figcaption>
           </figure>
-
-          <div class="feature-ledger" aria-label="Image2 Studio 核心能力">
-            <article class="feature-row">
-              <p class="feature-audience">懂技术的人</p>
-              <h3>连接只设置一次</h3>
-              <p>自定义 OpenAI 兼容 Base URL、Agent 协议和模型；密钥由桌面系统凭证库保存。</p>
-            </article>
-            <article class="feature-row">
-              <p class="feature-audience">真正使用的人</p>
-              <h3>说人话就能开始</h3>
-              <p>中文和英文即时切换。不会写提示词，也可以从灵感库挑选、再用自己的话修改。</p>
-            </article>
-            <article class="feature-row">
-              <p class="feature-audience">每一次生成</p>
-              <h3>任务清楚，费用可控</h3>
-              <p>不同视角拆成独立任务，始终逐张执行；支持停止、恢复、失败继续和单项重试。</p>
-            </article>
+          <div class="feature-ledger">
+            <article><span>01 / CONNECT</span><h3>接入你的网关</h3><p>自定义 HTTPS Base URL、Responses 或 Chat Completions、Agent 模型与图片模型。</p></article>
+            <article><span>02 / COMPOSE</span><h3>描述目标与参考</h3><p>参考图可以分配身份、产品、姿势、构图、材质和风格角色，不再混成一团。</p></article>
+            <article><span>03 / CONTROL</span><h3>严格串行执行</h3><p>每个方向都是独立任务。停止、恢复、失败重试和额度控制都有明确状态。</p></article>
+            <article><span>04 / REFINE</span><h3>从任意版本继续</h3><p>用区域标注说明局部修改，保留父子版本关系，并随时从旧结果另开分支。</p></article>
           </div>
         </div>
       </section>
 
       <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
-        <div class="section-shell">
-          <header class="section-heading compact-heading">
-            <p class="section-index">家庭接力</p>
-            <h2 id="workflow-title">一次配置，之后每个人都少做几步。</h2>
-          </header>
-          <ol class="workflow-steps">
-            <li>
-              <span class="step-number">01</span>
-              <div>
-                <p class="step-owner">你来处理</p>
-                <h3>把中转接上</h3>
-                <p>在家人的 Windows 或 macOS 电脑上填好 HTTPS Base URL、模型和密钥。完成后不需要把 API 细节教给他们。</p>
-              </div>
-            </li>
-            <li>
-              <span class="step-number">02</span>
-              <div>
-                <p class="step-owner">家人来表达</p>
-                <h3>说目标，放参考</h3>
-                <p>输入一句日常需求，或者上传产品、人物、姿势和风格参考图。灵感库也能直接把成熟案例带进对话。</p>
-              </div>
-            </li>
-            <li>
-              <span class="step-number">03</span>
-              <div>
-                <p class="step-owner">Image2 来执行</p>
-                <h3>拆任务，逐张生成</h3>
-                <p>Agent 把目标整理为独立图片任务，按顺序生成。结果留在本地历史里，下一轮可以继续编辑和分支。</p>
-              </div>
-            </li>
+        <div class="section-shell workflow-layout">
+          <header><p class="section-index">TASK PIPELINE</p><h2 id="workflow-title">复杂需求，按顺序落地。</h2><p>Agent 负责理解和拆分，桌面端负责把每次付费调用变成可见、可停、可恢复的任务。</p></header>
+          <ol class="workflow-list">
+            <li><span>INPUT</span><div><h3>写目标，放参考</h3><p>一句需求可以同时包含主体、风格、文字、比例与多个参考图。</p></div><code>01</code></li>
+            <li><span>PLAN</span><div><h3>Agent 拆成独立图片</h3><p>每张图都有明确标题、提示词、参数和参考关系，发送前就能确认。</p></div><code>02</code></li>
+            <li><span>RUN</span><div><h3>队列严格串行</h3><p>任何时刻只执行一项图片任务，避免网关限流与意外并发费用。</p></div><code>03</code></li>
+            <li><span>ITERATE</span><div><h3>标注并继续修改</h3><p>点、框、箭头和画笔区域进入结构化编辑请求，未标注区域要求保持。</p></div><code>04</code></li>
           </ol>
         </div>
       </section>
 
-      <section class="case-section" aria-labelledby="case-title">
-        <div class="section-shell case-layout">
-          <header class="section-heading case-heading">
-            <p class="section-index">真实编辑案例</p>
-            <h2 id="case-title">不用重做整张图，只改说清楚的地方。</h2>
-            <p>用矩形、箭头、画笔和备注把修改位置讲清楚。Image2 会把标注整理成结构化编辑要求，同时提醒模型保持未标注区域。</p>
-            <ul class="plain-checks">
-              <li>原图身份与构图作为最高优先级</li>
-              <li>标注色和编号只用于定位，不进入成品</li>
-              <li>版本关系保留，随时从旧结果继续</li>
-            </ul>
-          </header>
-
-          <div class="case-compare" data-compare data-before-src="/images/mooncake-original.jpg" data-after-src="/images/mooncake-edited.jpg" data-before-alt="未添加地址的月饼礼盒原图" data-after-alt="底部精准添加上海市静安区南京西路 888 号的月饼海报" data-before-caption="原图：保持产品、灯光与构图" data-after-caption="编辑后：仅在底部加入指定地址">
-            <div class="compare-toolbar">
-              <span>月饼产品图 · 精准编辑</span>
-              <div class="segmented-control" role="group" aria-label="切换原图和编辑结果">
-                <button type="button" data-view="before" aria-pressed="true">原图</button>
-                <button type="button" data-view="after" aria-pressed="false">编辑后</button>
-              </div>
-            </div>
-            <figure>
-              <img data-compare-image src="/images/mooncake-original.jpg" width="768" height="768" alt="未添加地址的月饼礼盒原图" loading="lazy" />
-              <figcaption data-compare-caption>原图：保持产品、灯光与构图</figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <section class="library-section" aria-labelledby="library-title">
-        <div class="section-shell">
-          <header class="section-heading split-heading">
-            <div>
-              <p class="section-index">灵感不是空白输入框</p>
-              <h2 id="library-title">先看得到，再说得清。</h2>
-            </div>
-            <p>本地灵感库把公开案例、缩略图、提示词和来源放在一起。家人可以先选接近的画面，再替换主体、场景和文字。</p>
-          </header>
-          <figure class="library-figure">
-            <img src="/images/prompt-library.jpg" width="1920" height="847" alt="Image2 Studio 灵感库，展示多种图片案例、筛选器和提示词详情" loading="lazy" />
-            <figcaption>30+ 本地模板来自固定白名单目录；收藏、备注和本地改写不会上传。</figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section class="deploy-section" id="deploy" aria-labelledby="deploy-title">
-        <div class="section-shell deploy-layout">
-          <div class="deploy-copy">
-            <p class="section-index light-index">穷鬼独立开发套餐</p>
-            <h2 id="deploy-title">官网和演示放 Cloudflare，真实密钥留在桌面。</h2>
-            <p>宣传站、双语 SEO 页面和模拟演示都是静态文件，Cloudflare Pages 免费档通常足够个人项目起步。真实生图由桌面端直接访问你的中转，不把 Key 打进网页包。</p>
-            <a class="button button-mint" href="https://github.com/weilaiqishi/image2-web/blob/main/CLOUDFLARE_DEPLOY.md">查看部署说明</a>
-          </div>
-          <div class="deploy-terminal" aria-label="Cloudflare Pages 构建命令">
-            <div class="terminal-bar"><span>image2-studio / deploy</span><span>STATIC</span></div>
-            <pre><code><span class="terminal-muted">$</span> npm run build:site
-
-<span class="terminal-ok">✓</span> zh-CN + English SEO pages
-<span class="terminal-ok">✓</span> social preview + sitemap
-<span class="terminal-ok">✓</span> browser demo at /app/
-
-<span class="terminal-muted">output</span>  dist-site/</code></pre>
-            <dl class="cost-ledger">
-              <div><dt>Pages</dt><dd>$0 起步</dd></div>
-              <div><dt>数据库</dt><dd>不需要</dd></div>
-              <div><dt>网页密钥</dt><dd>0 个</dd></div>
-            </dl>
-          </div>
-        </div>
-      </section>
-
-      <section class="privacy-section" aria-labelledby="privacy-title">
-        <div class="section-shell privacy-layout">
-          <div>
-            <p class="section-index">本地优先，不是口号</p>
-            <h2 id="privacy-title">你知道 Key 在哪里，也知道图片去了哪里。</h2>
-          </div>
-          <dl class="privacy-ledger">
-            <div><dt>API Key</dt><dd>macOS Keychain 或 Windows Credential Manager</dd></div>
-            <div><dt>会话与任务</dt><dd>本机 IndexedDB</dd></div>
-            <div><dt>图片与标注</dt><dd>本机应用数据目录</dd></div>
-            <div><dt>公开宣传站</dt><dd>不接收、不保存真实密钥</dd></div>
+      <section class="security-section" aria-labelledby="security-title">
+        <div class="section-shell security-layout">
+          <div><p class="section-index">LOCAL SECURITY</p><h2 id="security-title">网关凭证不该出现在网页包里。</h2></div>
+          <dl>
+            <div><dt>API KEY</dt><dd>macOS Keychain / Windows Credential Manager</dd></div>
+            <div><dt>REQUEST</dt><dd>仅允许配置后的 OpenAI 兼容路径</dd></div>
+            <div><dt>HISTORY</dt><dd>会话、任务、图片与标注保存在本机</dd></div>
+            <div><dt>WEBSITE</dt><dd>宣传站不接收 Key，也不提供在线生成</dd></div>
           </dl>
         </div>
       </section>
 
-      <section class="faq-section" id="faq" aria-labelledby="faq-title">
-        <div class="section-shell faq-layout">
-          <header>
-            <p class="section-index">常见问题</p>
-            <h2 id="faq-title">先把关键问题说清楚。</h2>
-          </header>
-          <div class="faq-list">
-            <details>
-              <summary>Image2 Studio 和普通 AI 生图网站有什么不同？</summary>
-              <p>它不是按月售卖另一套模型额度，而是把你已有的 OpenAI 兼容中转变成更适合家人使用的本地工作台。重点是自然语言任务拆解、参考图分工、精准标注和可恢复的串行队列。</p>
-            </details>
-            <details>
-              <summary>支持哪些中转和模型？</summary>
-              <p>中转需要提供 HTTPS Base URL，并兼容 Responses API 或 Chat Completions，以及 OpenAI Images 的 generations 和 edits 端点。Agent 与图片模型名称都可以自定义。</p>
-            </details>
-            <details>
-              <summary>家人需要接触 API Key 吗？</summary>
-              <p>第一次仍需要由你在他们使用的电脑上完成连接设置。保存后，桌面端只显示“已保存在系统凭证库”，日常生成不需要再次查看或粘贴密钥。</p>
-            </details>
-            <details>
-              <summary>Cloudflare 上的在线演示会产生费用吗？</summary>
-              <p>不会。公开演示只使用本地模拟 Agent 和示例素材，不调用真实图片接口。真实请求只从桌面端发往你配置的中转。</p>
-            </details>
-            <details>
-              <summary>Cloudflare Pages 免费档够用吗？</summary>
-              <p>对个人项目的静态宣传站和模拟演示通常足够，而且不需要数据库或 Worker。实际额度与条款可能变化，部署前请以 Cloudflare 当前官方说明为准。</p>
-            </details>
+      <section class="download-section" aria-labelledby="download-title">
+        <div class="download-media" aria-hidden="true"><img src="/images/cases/case-storyboard.webp" alt="" loading="lazy" /></div>
+        <div class="download-scrim" aria-hidden="true"></div>
+        <div class="section-shell download-copy">
+          <p class="section-index">GET THE DESKTOP BUILD</p>
+          <h2 id="download-title">你的网关。你的 Key。<br />你的图片系统。</h2>
+          <p>前往 GitHub 获取 Windows 与 macOS 版本、阅读安装说明或直接查看源码。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://github.com/weilaiqishi/image2-web/releases">查看 GitHub Releases</a>
+            <a class="button button-secondary" href="https://github.com/weilaiqishi/image2-web/blob/main/USER_GUIDE.md">阅读操作手册</a>
           </div>
-        </div>
-      </section>
-
-      <section class="final-cta" aria-labelledby="cta-title">
-        <div class="section-shell final-cta-inner">
-          <p class="section-index">把复杂性留给懂它的人</p>
-          <h2 id="cta-title">让下一张家庭海报，<br />从一句普通话开始。</h2>
-          <div class="final-actions">
-            <a class="button button-dark" href="https://github.com/weilaiqishi/image2-web">在 GitHub 获取项目</a>
-            <a class="button button-outline-dark" href="/app/?demo=1">先试在线演示</a>
-          </div>
+          <small>当前安装包未签名，系统可能显示安全提示。请只从本仓库 Releases 下载。</small>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="footer-main">
-        <a class="brand-lockup footer-brand" href="#top">
-          <span class="brand-symbol" aria-hidden="true">I²</span>
-          <span><strong>Image2</strong><small>FAMILY STUDIO</small></span>
-        </a>
-        <p>给已有中转的家庭，一个真正能用的 AI 生图工作台。</p>
-        <nav aria-label="页脚导航">
-          <a href="https://github.com/weilaiqishi/image2-web">GitHub</a>
-          <a href="https://github.com/weilaiqishi/image2-web/blob/main/USER_GUIDE.md">操作手册</a>
-          <a href="/en/" lang="en">English</a>
-        </nav>
+        <a class="brand-lockup footer-brand" href="#top"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+        <p>OpenAI-compatible gateway in. Controlled image workflow out.</p>
+        <nav aria-label="页脚导航"><a href="https://github.com/weilaiqishi/image2-web/releases">Releases</a><a href="https://github.com/weilaiqishi/image2-web">GitHub</a><a href="/en/" lang="en">English</a></nav>
       </div>
-      <div class="footer-meta">
-        <span>© <span data-current-year>2026</span> Image2 Studio</span>
-        <span>Local-first · OpenAI-compatible · Self-hostable</span>
-      </div>
+      <div class="footer-meta"><span>© <span data-current-year>2026</span> Image2 Studio</span><span>LOCAL-FIRST / OPENAI-COMPATIBLE / SERIAL BY DESIGN</span></div>
     </footer>
-
     <script src="/assets/site.js" defer></script>
   </body>
 </html>

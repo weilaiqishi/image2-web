@@ -15,13 +15,13 @@ npm run tauri:dev
 
 主工作区分为三部分：左侧管理会话和灵感库，中间完成对话、附件与参数设置，右侧显示严格串行执行的任务队列。
 
-![Image2 Studio 主工作区](docs/images/manual-workspace.jpg)
+![Image2 Studio 主工作区](docs/images/manual-workspace-dark-v2.jpg)
 
 ### 1.2 配置图片服务
 
 首次使用先点击左下角的“连接设置”。
 
-![连接设置](docs/images/manual-settings.jpg)
+![连接设置](docs/images/manual-settings-dark.jpg)
 
 依次填写：
 
@@ -100,7 +100,7 @@ Agent 每批最多创建 8 个独立任务。任务会进入全局 FIFO 队列�
 
 点击左侧“灵感库”进入本地创作索引。目录可按关键词、来源、分类、收藏、最近使用、本地改写和归档状态筛选。
 
-![本地灵感库](docs/images/manual-prompt-library.jpg)
+![本地灵感库](docs/images/manual-prompt-library-dark.jpg)
 
 典型操作：
 

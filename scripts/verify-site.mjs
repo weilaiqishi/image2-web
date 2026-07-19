@@ -26,8 +26,9 @@ for (const page of pages) {
   if ($('meta[property="og:image"]').length !== 1) failures.push("Open Graph image is missing");
   if ($('script[type="application/ld+json"]').length < 1) failures.push("JSON-LD is missing");
   if ($("img:not([alt])").length > 0) failures.push("every image needs an alt attribute");
-  if ($('a[href="/app/?demo=1"]').length < 1) failures.push("online demo CTA is missing");
-  if ($('a[href*="github.com/weilaiqishi/image2-web"]').length < 1) failures.push("GitHub CTA is missing");
+  if ($('a[href^="/app/"]').length > 0) failures.push("marketing pages must not expose the browser app");
+  if ($('a[href*="github.com/weilaiqishi/image2-web/releases"]').length < 2) failures.push("GitHub Releases CTAs are missing");
+  if ($(".case-item img").length < 8) failures.push("generated case gallery must contain at least eight images");
 
   for (const script of $('script[type="application/ld+json"]').toArray()) {
     JSON.parse($(script).text());
@@ -40,12 +41,19 @@ for (const file of [
   "assets/site.css",
   "assets/site.js",
   "images/og-image2-studio.jpg",
-  "images/studio-workspace.jpg",
+  "images/studio-workspace-dark.jpg",
+  "images/cases/case-fashion.webp",
+  "images/cases/case-product.webp",
+  "images/cases/case-food.webp",
+  "images/cases/case-ui.webp",
+  "images/cases/case-architecture.webp",
+  "images/cases/case-game.webp",
+  "images/cases/case-illustration.webp",
+  "images/cases/case-storyboard.webp",
   "robots.txt",
   "sitemap.xml",
   "_headers",
   "_redirects",
-  "app/index.html",
 ]) {
   await access(resolve(outputDir, file));
 }

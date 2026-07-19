@@ -7,7 +7,7 @@
     "dev": "vite",
     "dev:site": "npm run build:site && vite --host 127.0.0.1 --port 1430 --strictPort dist-site",
     "build": "tsc -b && vite build",
-    "build:site": "tsc -b && vite build --config vite.web.config.ts && node scripts/build-site.mjs && node scripts/verify-site.mjs",
+    "build:site": "tsc -b && node scripts/build-site.mjs && node scripts/verify-site.mjs",
     "preview": "vite preview",
     "preview:site": "vite --host 127.0.0.1 --port 1430 --strictPort dist-site",
     "test": "vitest run",

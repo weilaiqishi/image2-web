@@ -31,13 +31,10 @@ for (const template of templates) {
 const imageDir = join(outputDir, "images");
 await rm(imageDir, { recursive: true, force: true });
 await mkdir(imageDir, { recursive: true });
+await cp(join(sourceDir, "images"), imageDir, { recursive: true, force: true });
 
 const images = [
-  ["docs/images/manual-workspace.jpg", "studio-workspace.jpg"],
-  ["docs/images/manual-prompt-library.jpg", "prompt-library.jpg"],
-  ["docs/images/manual-settings.jpg", "connection-settings.jpg"],
-  ["public/demo/mooncake-original.jpg", "mooncake-original.jpg"],
-  ["public/demo/mooncake-edited.jpg", "mooncake-edited.jpg"],
+  ["docs/images/manual-workspace-dark-v2.jpg", "studio-workspace-dark.jpg"],
   ["src-tauri/icons/128x128.png", "favicon.png"],
 ];
 
@@ -50,24 +47,18 @@ await cp(
   join(outputDir, "assets/instrument-sans.woff2"),
   { force: true },
 );
-await cp(
-  join(root, "node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2"),
-  join(outputDir, "assets/newsreader-italic.woff2"),
-  { force: true },
-);
-
 const ogOverlay = Buffer.from(`
   <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1200" height="630" fill="#142019" fill-opacity="0.82"/>
-    <rect x="62" y="64" width="62" height="62" rx="8" fill="#e54f3b"/>
-    <text x="93" y="106" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">I²</text>
-    <text x="62" y="382" fill="#ffffff" font-family="Arial, sans-serif" font-size="78" font-weight="700">Image2 Studio</text>
-    <text x="64" y="448" fill="#9fe3c2" font-family="Arial, sans-serif" font-size="34">One relay setup. A studio the family can use.</text>
-    <text x="64" y="510" fill="#ffffff" font-family="Arial, sans-serif" font-size="25">Compatible relay · Local-first · Chinese &amp; English</text>
+    <rect width="1200" height="630" fill="#050607" fill-opacity="0.74"/>
+    <rect x="62" y="60" width="58" height="58" rx="4" fill="#0d2a21" stroke="#68f0be" stroke-width="2"/>
+    <text x="91" y="98" fill="#68f0be" font-family="Arial, sans-serif" font-size="27" font-weight="700" text-anchor="middle">I²</text>
+    <text x="62" y="382" fill="#f3f6f4" font-family="Arial, sans-serif" font-size="76" font-weight="700">Image2 Studio</text>
+    <text x="64" y="446" fill="#68f0be" font-family="Arial, sans-serif" font-size="31">Your gateway. A controlled image workflow.</text>
+    <text x="64" y="505" fill="#f3f6f4" font-family="Arial, sans-serif" font-size="23">gpt-image-2 · OpenAI-compatible · Local-first</text>
   </svg>
 `);
 
-await sharp(join(root, "docs/images/manual-workspace.jpg"))
+await sharp(join(sourceDir, "images/cases/case-ui.webp"))
   .resize(1200, 630, { fit: "cover", position: "centre" })
   .composite([{ input: ogOverlay }])
   .jpeg({ quality: 88, progressive: true })

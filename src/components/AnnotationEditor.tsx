@@ -253,6 +253,37 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
     return () => { cancelled = true; };
   }, [imageUrl, setCurrentDocument]);
 
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || !imageUrl || typeof ResizeObserver === "undefined") return;
+    let frame = 0;
+    const fitToHost = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const natural = naturalSizeRef.current;
+        const availableWidth = Math.max(240, host.clientWidth - 72);
+        const availableHeight = Math.max(220, host.clientHeight - 72);
+        const scale = Math.min(availableWidth / natural.width, availableHeight / natural.height, 1);
+        const next = { width: Math.round(natural.width * scale), height: Math.round(natural.height * scale) };
+        setStageSize((current) => {
+          if (Math.abs(current.width - next.width) < 2 && Math.abs(current.height - next.height) < 2) return current;
+          const canvas = fabricRef.current;
+          if (canvas) documentRef.current = { ...documentRef.current, fabricJson: fabricJson(canvas) };
+          setPan({ x: 0, y: 0 });
+          setZoom(1);
+          return next;
+        });
+      });
+    };
+    const observer = new ResizeObserver(fitToHost);
+    observer.observe(host);
+    fitToHost();
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
+  }, [imageUrl]);
+
   const persist = useCallback((canvas: FabricCanvas, next: AnnotationDocumentV2) => {
     if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => {
@@ -438,7 +469,8 @@ export function AnnotationEditor({ asset, conversationId, documentId, initialDoc
     const selected = (event: { selected?: FabricObject[] }) => setSelectedObjectId((event.selected?.[0] as AnnotatedFabricObject | undefined)?.annotationId);
 
     const initialize = async () => {
-      const savedDocument = initialDocument ?? await bridge.loadAnnotation(documentId).then((stored) => stored ? JSON.parse(stored.json) as AnnotationDocumentV2 : undefined).catch(() => undefined);
+      const storedDocument = await bridge.loadAnnotation(documentId).then((stored) => stored ? JSON.parse(stored.json) as AnnotationDocumentV2 : undefined).catch(() => undefined);
+      const savedDocument = documentRef.current.fabricJson ? documentRef.current : initialDocument ?? storedDocument;
       if (disposed) return;
       if (savedDocument) setCurrentDocument(savedDocument);
       const activeDocument = savedDocument ?? documentRef.current;

@@ -24,19 +24,17 @@ jobs:
           - name: macOS Apple Silicon
             runner: macos-15
             target: aarch64-apple-darwin
-            bundles: dmg,app
+            bundles: dmg
             artifact: image2-studio-macos-arm64
             paths: |
               src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
-              src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
           - name: macOS Intel
             runner: macos-15-intel
             target: x86_64-apple-darwin
-            bundles: dmg,app
+            bundles: dmg
             artifact: image2-studio-macos-x64
             paths: |
               src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-              src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app
           - name: Windows 10 x64
             runner: windows-2022
             target: x86_64-pc-windows-msvc
@@ -93,3 +91,84 @@ jobs:
           path: ${{ matrix.paths }}
           if-no-files-found: error
           retention-days: 14
+
+  release:
+    name: Create draft pre-release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: image2-studio-*
+          path: downloaded-installers
+
+      - name: Collect and verify release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir release-assets
+
+          while IFS= read -r -d '' installer; do
+            filename="$(basename "$installer")"
+            destination="release-assets/$filename"
+
+            if [[ -e "$destination" ]]; then
+              echo "Duplicate installer filename: $filename" >&2
+              exit 1
+            fi
+
+            cp "$installer" "$destination"
+          done < <(find downloaded-installers -type f \( \
+            -name '*.dmg' -o \
+            -name '*.exe' -o \
+            -name '*.msi' \
+          \) -print0)
+
+          test "$(find release-assets -maxdepth 1 -type f -name '*.dmg' | wc -l)" -eq 2
+          test "$(find release-assets -maxdepth 1 -type f -name '*.exe' | wc -l)" -eq 1
+          test "$(find release-assets -maxdepth 1 -type f -name '*.msi' | wc -l)" -eq 1
+
+          (
+            cd release-assets
+            find . -maxdepth 1 -type f \( \
+              -name '*.dmg' -o \
+              -name '*.exe' -o \
+              -name '*.msi' \
+            \) -print0 \
+              | sort -z \
+              | xargs -0 sha256sum \
+              | sed 's#  \./#  #'
+          ) > release-assets/SHA256SUMS
+
+      - name: Create GitHub draft pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Image2 Studio $TAG_NAME" \
+              --draft \
+              --prerelease
+            gh release upload "$TAG_NAME" release-assets/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            gh release create "$TAG_NAME" release-assets/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --title "Image2 Studio $TAG_NAME" \
+              --generate-notes \
+              --draft \
+              --prerelease
+          fi

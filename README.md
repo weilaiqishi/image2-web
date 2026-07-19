@@ -6,14 +6,14 @@ Image2 Studio 是一款本地优先的 Windows / macOS 图片任务 Agent。用�
 
 使用说明：[Image2 Studio 操作手册](USER_GUIDE.md)（含界面截图、精准标注和真实编辑案例）。
 
-产品宣传站提供独立的中文与英文静态页面、SEO 元数据、真实界面示例和在线模拟演示。它与 Tauri 桌面产物分开构建：
+产品宣传站提供独立的中文与英文静态页面、SEO 元数据、Image2 生成案例和真实桌面界面截图。宣传站只引导到 GitHub 下载，不接收 API Key，也不提供在线生成。它与 Tauri 桌面产物分开构建：
 
 ```bash
 npm run build:site
 npm run preview:site
 ```
 
-Cloudflare Pages 部署说明见 [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md)，同类生图站调研与设计取舍见 [docs/MARKETING_RESEARCH.md](docs/MARKETING_RESEARCH.md)。公开演示不会接受真实 API Key，也不会发送真实图片请求。
+Cloudflare Pages 部署说明见 [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md)，同类生图站调研与设计取舍见 [docs/MARKETING_RESEARCH.md](docs/MARKETING_RESEARCH.md)，8 个原创宣传案例的 Image2 生成参数与 MVP 验收记录见 [docs/MARKETING_CASES.md](docs/MARKETING_CASES.md)。
 
 ## 已完成功能
 
@@ -118,7 +118,7 @@ GitHub 工作流 `.github/workflows/desktop-build.yml` 会在推送到 `main`、
 - `image2-studio-macos-x64`
 - `image2-studio-windows10-x64`
 
-Actions Artifacts 默认保留 14 天。当前安装包未签名，正式分发前仍需配置 macOS 和 Windows 代码签名。
+Actions Artifacts 默认保留 14 天。`v*` 标签构建完成后，工作流还会聚合两个 DMG、Windows EXE/MSI 与 `SHA256SUMS`，创建 GitHub Draft Pre-release，等待人工复核后发布。当前安装包未签名，正式分发前仍需配置 macOS 和 Windows 代码签名。
 
 ## 本地灵感库
 
