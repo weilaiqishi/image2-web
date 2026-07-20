@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "20260715134634",
-  "generatedAt": "2026-07-15T13:46:34.897Z",
+  "catalogVersion": "20260720062907",
+  "generatedAt": "2026-07-20T06:29:07.206Z",
   "sources": [
     {
       "id": "image2-net",
@@ -12,7 +12,7 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 12,
-      "fetchedAt": "2026-07-15T13:46:34.897Z"
+      "fetchedAt": "2026-07-20T06:29:07.206Z"
     },
     {
       "id": "awesome-gpt4o-images",
@@ -23,7 +23,7 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 12,
-      "fetchedAt": "2026-07-15T13:46:34.897Z"
+      "fetchedAt": "2026-07-20T06:29:07.206Z"
     },
     {
       "id": "awesome-prompts",
@@ -34,7 +34,7 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 12,
-      "fetchedAt": "2026-07-15T13:46:34.897Z"
+      "fetchedAt": "2026-07-20T06:29:07.206Z"
     },
     {
       "id": "openai-cookbook",
@@ -45,16 +45,16 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 6,
-      "fetchedAt": "2026-07-15T13:46:34.897Z"
+      "fetchedAt": "2026-07-20T06:29:07.206Z"
     }
   ],
   "shards": [
     {
       "id": "catalog-0001",
       "url": "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/catalog-0001.json",
-      "checksum": "fdf70cbfa5aa33cfcb6d315eade3a04cc7c3bc7b5cd5b50e9960dcafc07a9922",
+      "checksum": "b8a0b29ba8decd383db6882d62350ed288fd7cc9e1ba24edbd8e42f63ee95cca",
       "itemCount": 30
     }
   ],
-  "checksum": "09c10f458642cbccc3bd4c87971296f81be07178715421eaa3ad1f88cf3173ef"
+  "checksum": "72621ed2e62474e908c17d379ab5c46d4f0da80bc4dfe891435edf88e51142d5"
 }
