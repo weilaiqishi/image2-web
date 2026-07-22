@@ -1,18 +1,32 @@
+const AD_PROVIDER = "__AD_PROVIDER__";
 const ADSENSE_CLIENT = "__ADSENSE_CLIENT__";
 const ADSENSE_SLOT = "__ADSENSE_SLOT__";
 const ADSENSE_SCRIPT_URL = "__ADSENSE_SCRIPT_URL__";
-const AD_CONSENT_KEY = "image2.ads.consent.v1";
+const ADSTERRA_PLACEMENT_ID = "__ADSTERRA_PLACEMENT_ID__";
+const ADSTERRA_OPTIONS_SOURCE = __ADSTERRA_OPTIONS_SOURCE_JSON__;
+const ADSTERRA_SCRIPT_ORIGIN = "__ADSTERRA_SCRIPT_ORIGIN__";
+const ADSTERRA_SCRIPT_URL = "__ADSTERRA_SCRIPT_URL__";
+const AD_CONSENT_KEY = "image2.ads.consent.v2";
+const LEGACY_AD_CONSENT_KEY = "image2.ads.consent.v1";
 const VALID_CONSENT = new Set(["accepted", "rejected"]);
 
 let adsInitialized = false;
 let siteInitialized = false;
 let inMemoryAdConsent;
 
+function parseStoredAdConsent(value) {
+  if (value === "rejected") return "rejected";
+  if (value === `accepted:${AD_PROVIDER}`) return "accepted";
+  return "unknown";
+}
+
 function readAdConsent() {
   if (VALID_CONSENT.has(inMemoryAdConsent) || inMemoryAdConsent === "unknown") return inMemoryAdConsent;
   try {
     const value = window.localStorage.getItem(AD_CONSENT_KEY);
-    return VALID_CONSENT.has(value) ? value : "unknown";
+    const storedConsent = parseStoredAdConsent(value);
+    if (storedConsent !== "unknown") return storedConsent;
+    return window.localStorage.getItem(LEGACY_AD_CONSENT_KEY) === "rejected" ? "rejected" : "unknown";
   } catch {
     return "unknown";
   }
@@ -21,7 +35,7 @@ function readAdConsent() {
 function writeAdConsent(value) {
   try {
     if (value === "unknown") window.localStorage.removeItem(AD_CONSENT_KEY);
-    else window.localStorage.setItem(AD_CONSENT_KEY, value);
+    else window.localStorage.setItem(AD_CONSENT_KEY, value === "accepted" ? `accepted:${AD_PROVIDER}` : value);
   } catch {
     // A blocked storage API keeps the decision in-memory for this page only.
   }
@@ -37,13 +51,37 @@ function applyAdConsentState(value) {
   document.querySelectorAll("[data-consent-reset]").forEach((button) => {
     button.hidden = !adsAreConfigured() || value === "unknown";
   });
-  document.dispatchEvent(new CustomEvent("image2:ad-consent", { detail: { value } }));
+  document.dispatchEvent(new CustomEvent("image2:ad-consent", { detail: { value, provider: AD_PROVIDER } }));
 }
 
-function adsAreConfigured() {
+function adsenseIsConfigured() {
   return /^ca-pub-\d{16}$/.test(ADSENSE_CLIENT)
     && /^\d{10}$/.test(ADSENSE_SLOT)
     && ADSENSE_SCRIPT_URL.startsWith("https://");
+}
+
+function adsterraIsConfigured() {
+  return /^[a-f0-9]{32}$/.test(ADSTERRA_PLACEMENT_ID)
+    && ADSTERRA_OPTIONS_SOURCE.includes(`'key' : '${ADSTERRA_PLACEMENT_ID}'`)
+    && ADSTERRA_OPTIONS_SOURCE.includes("'format' : 'iframe'")
+    && ADSTERRA_OPTIONS_SOURCE.includes("'height' : 250")
+    && ADSTERRA_OPTIONS_SOURCE.includes("'width' : 300")
+    && ADSTERRA_OPTIONS_SOURCE.includes("'params' : {}")
+    && ADSTERRA_SCRIPT_URL === `${ADSTERRA_SCRIPT_ORIGIN}/${ADSTERRA_PLACEMENT_ID}/invoke.js`;
+}
+
+const AD_PROVIDERS = {
+  adsense: { label: "Google AdSense", isConfigured: adsenseIsConfigured, initialize: initializeAdsense },
+  adsterra: { label: "Adsterra", isConfigured: adsterraIsConfigured, initialize: initializeAdsterra },
+};
+
+function activeAdProvider() {
+  const provider = AD_PROVIDERS[AD_PROVIDER];
+  return provider?.isConfigured() ? provider : null;
+}
+
+function adsAreConfigured() {
+  return activeAdProvider() !== null;
 }
 
 function pageAllowsAds() {
@@ -51,10 +89,15 @@ function pageAllowsAds() {
 }
 
 function adLabels() {
+  const provider = activeAdProvider();
+  const providerLabel = provider?.label || "the selected advertising provider";
+  const isAdsense = AD_PROVIDER === "adsense";
   return document.body.getAttribute("data-locale") === "zh-CN"
     ? {
         title: "是否允许加载广告？",
-        description: "只有你明确同意后，本页才会连接 Google AdSense，并默认请求非个性化广告。拒绝不会产生 Google 请求。",
+        description: isAdsense
+          ? "只有你明确同意后，本页才会连接 Google AdSense，并默认请求非个性化广告。拒绝不会产生 Google 广告请求。"
+          : `只有你明确同意后，本页才会连接 ${providerLabel} 并加载展示横幅。拒绝不会产生该广告平台的请求。`,
         accept: "同意并加载",
         reject: "拒绝",
         label: "广告隐私选择",
@@ -63,7 +106,9 @@ function adLabels() {
       }
     : {
         title: "Allow ads on this site?",
-        description: "This page connects to Google AdSense only after you opt in, and requests non-personalized ads by default. Rejecting sends no request to Google.",
+        description: isAdsense
+          ? "This page connects to Google AdSense only after you opt in, and requests non-personalized ads by default. Rejecting sends no Google advertising request."
+          : `This page connects to ${providerLabel} and loads a display banner only after you opt in. Rejecting sends no request to that advertising provider.`,
         accept: "Allow and load",
         reject: "Reject",
         label: "Advertising privacy choice",
@@ -106,12 +151,7 @@ function showConsentBanner() {
   ensureConsentBanner().hidden = false;
 }
 
-function initializeAds() {
-  if (adsInitialized || !adsAreConfigured() || !pageAllowsAds() || readAdConsent() !== "accepted") return false;
-  const units = Array.from(document.querySelectorAll("[data-ad-unit]"));
-  if (!units.length) return false;
-
-  adsInitialized = true;
+function initializeAdsense(units) {
   const queue = window.adsbygoogle = window.adsbygoogle || [];
   queue.requestNonPersonalizedAds = 1;
 
@@ -144,6 +184,39 @@ function initializeAds() {
   return true;
 }
 
+function initializeAdsterra(units) {
+  units.forEach((unit) => {
+    if (unit.hasAttribute("data-ad-initialized")) return;
+    unit.replaceChildren();
+    unit.classList.add("is-ad-ready");
+    unit.hidden = false;
+    unit.dataset.adProvider = "adsterra";
+    unit.dataset.adPlacement = ADSTERRA_PLACEMENT_ID;
+    unit.setAttribute("data-ad-initialized", "");
+    unit.setAttribute("aria-hidden", "false");
+    const optionsScript = document.createElement("script");
+    optionsScript.textContent = ADSTERRA_OPTIONS_SOURCE;
+    unit.append(optionsScript);
+
+    const loaderScript = document.createElement("script");
+    // Match the approved parser-ordered tag: the loader must observe atOptions.
+    loaderScript.async = false;
+    loaderScript.src = ADSTERRA_SCRIPT_URL;
+    loaderScript.setAttribute("data-image2-adsterra", "");
+    unit.append(loaderScript);
+  });
+  return true;
+}
+
+function initializeAds() {
+  const provider = activeAdProvider();
+  if (adsInitialized || !provider || !pageAllowsAds() || readAdConsent() !== "accepted") return false;
+  const units = Array.from(document.querySelectorAll("[data-ad-unit]"));
+  if (!units.length) return false;
+  adsInitialized = provider.initialize(units);
+  return adsInitialized;
+}
+
 function acceptAds() {
   writeAdConsent("accepted");
   hideConsentBanners();
@@ -167,7 +240,7 @@ function resetAdConsent() {
 
 function syncAdConsentFromStorage(event) {
   if (event.key !== AD_CONSENT_KEY && event.key !== null) return;
-  const value = VALID_CONSENT.has(event.newValue) ? event.newValue : "unknown";
+  const value = parseStoredAdConsent(event.newValue);
   applyAdConsentState(value);
 
   if (!adsAreConfigured() || !pageAllowsAds()) return;

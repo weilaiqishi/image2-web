@@ -3,7 +3,17 @@ pages_build_output_dir = "dist-site"
 compatibility_date = "2026-07-18"
 
 [vars]
+AD_PROVIDER = "none"
 ADSENSE_CLIENT = ""
+ADSTERRA_PLACEMENT_ID = ""
+ADSTERRA_CSP_ORIGINS = ""
+ADSTERRA_ADS_TXT_RECORD = ""
+ADSTERRA_POLICY_REVIEWED = "false"
 
 [env.production.vars]
+AD_PROVIDER = "adsterra"
 ADSENSE_CLIENT = "ca-pub-1171422771199393"
+ADSTERRA_PLACEMENT_ID = "091e951f349e105d9dd17535d7b97262"
+ADSTERRA_CSP_ORIGINS = "https://www.highperformanceformat.com"
+ADSTERRA_ADS_TXT_RECORD = ""
+ADSTERRA_POLICY_REVIEWED = "true"

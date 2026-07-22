@@ -2,48 +2,34 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { resolveAdConfig } from "./ad-config.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceDir = join(root, "site");
 const outputDir = join(root, "dist-site");
 const defaultOrigin = "https://image2-studio.pages.dev";
 const siteOrigin = (process.env.SITE_ORIGIN || defaultOrigin).replace(/\/$/, "");
-const requestedAdsenseClient = (process.env.ADSENSE_CLIENT || "").trim();
-const requestedAdsenseSlot = (process.env.ADSENSE_SLOT || "").trim();
-const validAdsenseClient = /^ca-pub-\d{16}$/.test(requestedAdsenseClient);
-const validAdsenseSlot = /^\d{10}$/.test(requestedAdsenseSlot);
-const certifiedCmpConfirmed = process.env.ADSENSE_CMP_CERTIFIED === "true";
-const adsenseEnabled = validAdsenseClient && validAdsenseSlot && certifiedCmpConfirmed;
-const adsensePublisherClient = validAdsenseClient ? requestedAdsenseClient : "";
-const adsenseClient = adsenseEnabled ? requestedAdsenseClient : "";
-const adsenseSlot = adsenseEnabled ? requestedAdsenseSlot : "";
-const adsenseScriptUrl = adsenseEnabled ? "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" : "";
-const selfOnlyCsp = "Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; upgrade-insecure-requests";
+const adConfig = resolveAdConfig(process.env);
 
 if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(siteOrigin)) {
   throw new Error("SITE_ORIGIN must be an HTTPS origin without a path");
 }
 
-if (requestedAdsenseClient && !validAdsenseClient) {
-  console.warn("AdSense publisher verification disabled: ADSENSE_CLIENT must match ca-pub- plus 16 digits");
-} else if (requestedAdsenseSlot && !validAdsenseSlot) {
-  console.warn("AdSense ad serving disabled: ADSENSE_SLOT must contain 10 digits");
-} else if (validAdsenseClient && validAdsenseSlot && !certifiedCmpConfirmed) {
-  console.warn("AdSense disabled: set ADSENSE_CMP_CERTIFIED=true only after a Google-certified CMP is configured for production traffic");
-}
-
 const replacements = new Map([
   ["__SITE_ORIGIN__", siteOrigin],
-  ["__ADSENSE_CLIENT__", adsenseClient],
-  ["__ADSENSE_ACCOUNT_CLIENT__", adsensePublisherClient],
-  ["__ADSENSE_SLOT__", adsenseSlot],
-  ["__ADSENSE_SCRIPT_URL__", adsenseScriptUrl],
-  ["__ADSENSE_PUBLISHER_ID__", adsensePublisherClient.replace(/^ca-/, "")],
-  ["__ADSENSE_ADS_TXT_RECORD__", validAdsenseClient ? `google.com, ${adsensePublisherClient.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0` : ""],
-  // Google only supports nonce-based strict CSP for AdSense. A static Pages build
-  // cannot issue a fresh nonce per response, so ad-enabled builds omit CSP rather
-  // than ship a brittle domain allowlist that can silently block ad resources.
-  ["__CONTENT_SECURITY_POLICY__", adsenseEnabled ? "" : selfOnlyCsp],
+  ["__AD_PROVIDER__", adConfig.activeProvider],
+  ["__ADSENSE_CLIENT__", adConfig.adsense.client],
+  ["__ADSENSE_ACCOUNT_CLIENT__", adConfig.adsense.publisherClient],
+  ["__ADSENSE_SLOT__", adConfig.adsense.slot],
+  ["__ADSENSE_SCRIPT_URL__", adConfig.adsense.scriptUrl],
+  ["__ADSENSE_PUBLISHER_ID__", adConfig.adsense.publisherClient.replace(/^ca-/, "")],
+  ["__ADSENSE_ADS_TXT_RECORD__", adConfig.adsTxtRecords.find((record) => record.startsWith("google.com,")) || ""],
+  ["__ADSTERRA_PLACEMENT_ID__", adConfig.adsterra.placementId],
+  ["__ADSTERRA_OPTIONS_SOURCE_JSON__", JSON.stringify(adConfig.adsterra.optionsSource)],
+  ["__ADSTERRA_SCRIPT_ORIGIN__", adConfig.adsterra.scriptOrigin],
+  ["__ADSTERRA_SCRIPT_URL__", adConfig.adsterra.scriptUrl],
+  ["__ADSTERRA_ADS_TXT_RECORD__", adConfig.adsterra.adsTxtRecord],
+  ["__CONTENT_SECURITY_POLICY__", adConfig.csp],
 ]);
 
 function renderTemplate(source) {
@@ -119,4 +105,4 @@ await sharp(join(sourceDir, "images/cases/case-ui.webp"))
   .jpeg({ quality: 88, progressive: true })
   .toFile(join(imageDir, "og-image2-studio.jpg"));
 
-console.log(`Marketing site assembled in dist-site for ${siteOrigin} (AdSense ${adsenseEnabled ? "configured" : "disabled"})`);
+console.log(`Marketing site assembled in dist-site for ${siteOrigin} (ads: ${adConfig.activeProvider})`);
