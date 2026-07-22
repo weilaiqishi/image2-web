@@ -4,19 +4,14 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { load } from "cheerio";
 import { JSDOM } from "jsdom";
+import { resolveAdConfig } from "./ad-config.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const outputDir = resolve(root, "dist-site");
-const requestedAdsenseClient = (process.env.ADSENSE_CLIENT || "").trim();
-const requestedAdsenseSlot = (process.env.ADSENSE_SLOT || "").trim();
-const validAdsenseClient = /^ca-pub-\d{16}$/.test(requestedAdsenseClient);
-const validAdsenseSlot = /^\d{10}$/.test(requestedAdsenseSlot);
-const adsenseEnabled = validAdsenseClient
-  && validAdsenseSlot
-  && process.env.ADSENSE_CMP_CERTIFIED === "true";
-const adsensePublisherClient = validAdsenseClient ? requestedAdsenseClient : "";
-const adsenseClient = adsenseEnabled ? requestedAdsenseClient : "";
-const adsenseSlot = adsenseEnabled ? requestedAdsenseSlot : "";
+const adConfig = resolveAdConfig(process.env, () => {});
+const adsensePublisherClient = adConfig.adsense.publisherClient;
+const adsenseClient = adConfig.adsense.client;
+const adsenseSlot = adConfig.adsense.slot;
 
 const pages = [
   { path: "index.html", lang: "zh-CN", canonicalSuffix: "/", home: true, ads: true },
@@ -32,15 +27,12 @@ const pages = [
   { path: "404.html", lang: "zh-CN", canonicalSuffix: "/404.html", content: true, noAds: true, notFound: true },
 ];
 
-const googleResourceSelector = [
-  'script[src*="google"]',
-  'script[src*="doubleclick"]',
-  'iframe[src*="google"]',
-  'iframe[src*="doubleclick"]',
-  'img[src*="google"]',
-  'img[src*="doubleclick"]',
-  'link[rel="preconnect"][href*="google"]',
-  'link[rel="dns-prefetch"][href*="google"]',
+const thirdPartyResourceSelector = [
+  'script[src^="http"]',
+  'iframe[src^="http"]',
+  'img[src^="http"]',
+  'link[rel="preconnect"][href^="http"]',
+  'link[rel="dns-prefetch"][href^="http"]',
 ].join(",");
 
 for (const page of pages) {
@@ -56,7 +48,7 @@ for (const page of pages) {
   if ($("img:not([alt])").length > 0) failures.push("every image needs an alt attribute");
   if ($('a[href^="/app/"]').length > 0) failures.push("marketing pages must not expose the browser app");
   if ($('script[src="/assets/site.js"]').length !== 1) failures.push("site.js must be loaded exactly once");
-  if ($(googleResourceSelector).length > 0) failures.push("Google resources must never be present in static HTML");
+  if ($(thirdPartyResourceSelector).length > 0) failures.push("third-party resources must never be present in static HTML");
   if ($("ins.adsbygoogle").length > 0) failures.push("AdSense elements must be created only after consent");
   if (/__[A-Z0-9_]+__/.test(html)) failures.push("contains an unresolved build placeholder");
 
@@ -88,10 +80,17 @@ for (const page of pages) {
     if ($("[data-ad-unit]").length > 0) failures.push("no-ads page must not contain ad units");
     if (page.canonicalSuffix.endsWith("/privacy/")
       && ($("[data-consent-reset]").length !== 1 || !$("[data-consent-reset]").is("[hidden]"))) failures.push("privacy reset control must start hidden");
+    if (page.canonicalSuffix.endsWith("/privacy/")) {
+      const privacyText = $("main").text();
+      if (!privacyText.includes("Google AdSense") || !privacyText.includes("Adsterra")) failures.push("privacy page must disclose both supported advertising providers");
+      if ($('a[href="https://adsterra.com/privacy-policy-managed/"]').length !== 1) failures.push("official Adsterra privacy link is missing");
+      if ($('a[href="https://adsterra.com/publishers-terms-managed/"]').length !== 1) failures.push("official Adsterra publisher terms link is missing");
+      if ($("[data-ad-provider-status]").text().trim() !== adConfig.activeProvider) failures.push("active advertising provider disclosure is incorrect");
+    }
   }
 
   if (page.ads) {
-    if ($("[data-ad-unit]").length < 1) failures.push("ad-bearing page needs an inert data-ad-unit");
+    if ($("[data-ad-unit]").length !== 1) failures.push("ad-bearing page needs exactly one inert data-ad-unit");
     if ($('meta[name="google-adsense-account"]').length !== 1
       || $('meta[name="google-adsense-account"]').attr("content") !== adsensePublisherClient) failures.push("official AdSense account meta is incorrect");
     if ($('meta[name="adsense-client"]').attr("content") !== adsenseClient) failures.push("AdSense client build value is incorrect");
@@ -145,34 +144,44 @@ const redirects = await readFile(resolve(outputDir, "_redirects"), "utf8");
 assert.ok(!/\/\*\s+\/index\.html\s+200/.test(redirects), "soft SPA fallback must not mask the real 404 page");
 
 const headers = await readFile(resolve(outputDir, "_headers"), "utf8");
-assert.ok(!/__ADSENSE_[A-Z_]+__/.test(headers), "CSP contains unresolved AdSense placeholders");
+assert.ok(!/__(?:AD|ADSENSE|ADSTERRA)_[A-Z_]+__/.test(headers), "CSP contains unresolved advertising placeholders");
 const cspHeaders = headers.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.startsWith("Content-Security-Policy:"));
-if (adsenseEnabled) {
+if (!adConfig.csp) {
   assert.equal(cspHeaders.length, 0, "static ad-enabled builds must omit CSP because AdSense only supports a fresh nonce-based strict CSP");
 } else {
-  assert.equal(cspHeaders.length, 1, "ad-disabled builds must retain one enforced CSP header");
-  assert.match(cspHeaders[0], /default-src 'self'/, "ad-disabled CSP must remain self-only by default");
-  assert.doesNotMatch(headers, /googlesyndication|doubleclick/i, "default CSP must not allow Google ad domains");
+  assert.deepEqual(cspHeaders, [adConfig.csp], "the rendered CSP must exactly match the validated provider configuration");
+  if (adConfig.activeProvider === "none") {
+    assert.match(cspHeaders[0], /default-src 'self'/, "ad-disabled CSP must remain self-only by default");
+    assert.doesNotMatch(headers, /googlesyndication|doubleclick/i, "default CSP must not allow Google ad domains");
+  }
 }
 
 const adsText = await readFile(resolve(outputDir, "ads.txt"), "utf8");
 const activeAdsText = adsText.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith("#"));
-if (validAdsenseClient) {
-  assert.ok(activeAdsText.includes(`google.com, ${adsensePublisherClient.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0`), "validated publisher ads.txt record is missing");
-} else {
-  assert.equal(activeAdsText.length, 0, "placeholder ads.txt must not publish a fake seller record");
-}
+assert.deepEqual(activeAdsText, adConfig.adsTxtRecords, "ads.txt must contain only validated seller records");
 
 const builtSiteScript = await readFile(resolve(outputDir, "assets/site.js"), "utf8");
-assert.ok(!/__ADSENSE_[A-Z_]+__/.test(builtSiteScript), "site.js contains unresolved AdSense placeholders");
+assert.ok(!/__(?:AD|ADSENSE|ADSTERRA)_[A-Z_]+__/.test(builtSiteScript), "site.js contains unresolved advertising placeholders");
 assert.match(builtSiteScript, /requestNonPersonalizedAds\s*=\s*1/, "AdSense must default to non-personalized ads");
-if (!adsenseEnabled) assert.doesNotMatch(builtSiteScript, /https:\/\/pagead2\.googlesyndication\.com/, "default site.js must contain no Google loader URL");
+assert.match(builtSiteScript, new RegExp(`const AD_PROVIDER = "${adConfig.activeProvider}";`), "site.js has the wrong active provider");
+if (adConfig.activeProvider === "none") {
+  assert.doesNotMatch(builtSiteScript, /https:\/\/pagead2\.googlesyndication\.com/, "disabled site.js must contain no Google loader URL");
+  assert.match(builtSiteScript, /const ADSTERRA_OPTIONS_SOURCE = "";/, "disabled site.js must contain no Adsterra options");
+  assert.match(builtSiteScript, /const ADSTERRA_SCRIPT_ORIGIN = "";/, "disabled site.js must contain no Adsterra script origin");
+  assert.match(builtSiteScript, /const ADSTERRA_SCRIPT_URL = "";/, "disabled site.js must contain no Adsterra loader URL");
+  assert.doesNotMatch(builtSiteScript, /highperformanceformat/i, "disabled site.js must contain no Adsterra domain");
+}
 
 function withAdConfig(source, client, slot, scriptUrl) {
   return source
+    .replace(/const AD_PROVIDER = "[^"]*";/, 'const AD_PROVIDER = "adsense";')
     .replace(/const ADSENSE_CLIENT = "[^"]*";/, `const ADSENSE_CLIENT = "${client}";`)
     .replace(/const ADSENSE_SLOT = "[^"]*";/, `const ADSENSE_SLOT = "${slot}";`)
-    .replace(/const ADSENSE_SCRIPT_URL = "[^"]*";/, `const ADSENSE_SCRIPT_URL = "${scriptUrl}";`);
+    .replace(/const ADSENSE_SCRIPT_URL = "[^"]*";/, `const ADSENSE_SCRIPT_URL = "${scriptUrl}";`)
+    .replace(/const ADSTERRA_PLACEMENT_ID = "[^"]*";/, 'const ADSTERRA_PLACEMENT_ID = "";')
+    .replace(/^const ADSTERRA_OPTIONS_SOURCE = .*;$/m, 'const ADSTERRA_OPTIONS_SOURCE = "";')
+    .replace(/const ADSTERRA_SCRIPT_ORIGIN = "[^"]*";/, 'const ADSTERRA_SCRIPT_ORIGIN = "";')
+    .replace(/const ADSTERRA_SCRIPT_URL = "[^"]*";/, 'const ADSTERRA_SCRIPT_URL = "";');
 }
 
 function runConsentScenario(source, { consent, noAds = false, resetControl = false, storageBlocked = false, instrumentReload = false } = {}) {
@@ -190,7 +199,7 @@ function runConsentScenario(source, { consent, noAds = false, resetControl = fal
     send() { requests.push({ kind: "xhr", method: this.method, url: this.url }); }
   }
   dom.window.XMLHttpRequest = TestXMLHttpRequest;
-  if (consent) dom.window.localStorage.setItem("image2.ads.consent.v1", consent);
+  if (consent) dom.window.localStorage.setItem("image2.ads.consent.v2", consent === "accepted" ? "accepted:adsense" : consent);
   if (storageBlocked) {
     Object.defineProperty(dom.window, "localStorage", {
       configurable: true,
@@ -211,7 +220,7 @@ function runConsentScenario(source, { consent, noAds = false, resetControl = fal
 
 function assertNoAdRequest(scenario, message) {
   assert.equal(scenario.requests.length, 0, `${message}: fetch/XHR request detected`);
-  assert.equal(scenario.document.querySelectorAll('script[src*="google"], script[src*="doubleclick"], iframe[src*="google"], iframe[src*="doubleclick"], img[src*="google"], img[src*="doubleclick"]').length, 0, `${message}: Google request element detected`);
+  assert.equal(scenario.document.querySelectorAll('script[src^="http"], iframe[src^="http"], img[src^="http"]').length, 0, `${message}: third-party request element detected`);
   assert.equal(scenario.document.querySelectorAll("ins.adsbygoogle").length, 0, `${message}: AdSense unit was initialized`);
 }
 
@@ -221,7 +230,8 @@ const validRuntimeScript = withAdConfig(
   "1234567890",
   "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
 );
-const disabledRuntimeScript = withAdConfig(builtSiteScript, "", "", "");
+const disabledRuntimeScript = withAdConfig(builtSiteScript, "", "", "")
+  .replace('const AD_PROVIDER = "adsense";', 'const AD_PROVIDER = "none";');
 
 const unknownScenario = runConsentScenario(validRuntimeScript);
 assert.equal(unknownScenario.document.querySelector("[data-consent-banner]")?.hidden, false, "unknown consent must show the opt-in banner");
@@ -231,7 +241,7 @@ unknownScenario.dom.window.close();
 
 const rejectedScenario = runConsentScenario(validRuntimeScript);
 rejectedScenario.document.querySelector("[data-consent-reject]").click();
-assert.equal(rejectedScenario.dom.window.localStorage.getItem("image2.ads.consent.v1"), "rejected", "reject choice must persist");
+assert.equal(rejectedScenario.dom.window.localStorage.getItem("image2.ads.consent.v2"), "rejected", "reject choice must persist");
 assertNoAdRequest(rejectedScenario, "rejected consent");
 rejectedScenario.dom.window.close();
 
@@ -239,7 +249,7 @@ const acceptedScenario = runConsentScenario(validRuntimeScript);
 const acceptButton = acceptedScenario.document.querySelector("[data-consent-accept]");
 acceptButton.click();
 acceptButton.click();
-assert.equal(acceptedScenario.dom.window.localStorage.getItem("image2.ads.consent.v1"), "accepted", "accept choice must persist");
+assert.equal(acceptedScenario.dom.window.localStorage.getItem("image2.ads.consent.v2"), "accepted:adsense", "accept choice must persist for the active provider");
 assert.equal(acceptedScenario.document.querySelectorAll("script[data-image2-adsense]").length, 1, "accepted consent must load AdSense once");
 assert.equal(acceptedScenario.document.querySelectorAll("ins.adsbygoogle").length, 1, "accepted consent must initialize each ad unit once");
 assert.equal(acceptedScenario.document.querySelector("[data-ad-unit]").hidden, false, "accepted ad unit must become visible");
@@ -253,8 +263,8 @@ persistedScenario.dom.window.close();
 
 const crossTabWithdrawalScenario = runConsentScenario(validRuntimeScript, { consent: "accepted", instrumentReload: true });
 crossTabWithdrawalScenario.dom.window.dispatchEvent(new crossTabWithdrawalScenario.dom.window.StorageEvent("storage", {
-  key: "image2.ads.consent.v1",
-  oldValue: "accepted",
+  key: "image2.ads.consent.v2",
+  oldValue: "accepted:adsense",
   newValue: "rejected",
   storageArea: crossTabWithdrawalScenario.dom.window.localStorage,
   url: "https://image2.test/privacy/",
@@ -280,8 +290,8 @@ disabledScenario.dom.window.close();
 
 const resetScenario = runConsentScenario(validRuntimeScript, { consent: "rejected", noAds: true, resetControl: true });
 resetScenario.document.querySelector("[data-consent-reset]").click();
-assert.equal(resetScenario.dom.window.localStorage.getItem("image2.ads.consent.v1"), null, "reset must clear the stored choice");
+assert.equal(resetScenario.dom.window.localStorage.getItem("image2.ads.consent.v2"), null, "reset must clear the stored choice");
 assertNoAdRequest(resetScenario, "consent reset on data-no-ads page");
 resetScenario.dom.window.close();
 
-console.log(`Marketing page, privacy, asset, CSP, and consent checks passed (AdSense ${adsenseEnabled ? "configured" : "disabled"}).`);
+console.log(`Marketing page, privacy, asset, CSP, and consent checks passed (ads: ${adConfig.activeProvider}).`);

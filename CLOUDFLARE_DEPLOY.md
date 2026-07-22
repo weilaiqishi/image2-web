@@ -25,7 +25,7 @@ dist-site/
 ├── about/              # 项目边界与联系方式
 ├── privacy/            # 隐私、Cookie 与广告选择说明
 ├── 404.html            # 真实静态 404，避免 SPA 软回退
-├── ads.txt             # 未配置 AdSense 时只有说明注释
+├── ads.txt             # 只包含经过校验的广告平台卖方记录
 ├── images/             # Image2 生成案例、产品截图与社交分享图
 ├── robots.txt
 ├── sitemap.xml
@@ -58,9 +58,15 @@ SITE_ORIGIN=https://你的域名
 
 不要创建 `VITE_OPENAI_API_KEY`、`OPENAI_API_KEY` 或任何包含中转密钥的 Pages 变量。Vite 前缀变量会进入浏览器包。
 
-## AdSense 隐私边界
+## 广告提供商与隐私边界
 
-当前生产部署只设置公开的 AdSense 发布商 ID，用于站点验证。构建不会包含 Google 广告脚本地址、广告位 ID 或 Google 广告域名 CSP，也不会显示广告同意控件。
+`AD_PROVIDER` 只接受 `none`、`adsense` 或 `adsterra`，预览默认值是 `none`，当前生产值是 `adsterra`。一次构建最多启用一个广告提供商，不做自动失败回退，也不会在同一广告位并发加载两个平台。生产构建保留公开的 AdSense 发布商 ID 和卖方验证记录，但 `AD_PROVIDER=adsterra` 时不会包含或加载 AdSense 广告脚本和广告位。
+
+所有广告页面先输出隐藏且无子节点的 `[data-ad-unit]`。只有配置完整、页面不是 `data-no-ads`，并且用户明确同意后，运行时才会向选定提供商插入广告标签。拒绝或尚未选择时不会产生广告平台请求。隐私、关于和 404 页面永不投放，但隐私页可以管理或撤回已有选择。
+
+同意记录使用 `image2.ads.consent.v2`，接受状态会绑定到具体广告提供商。从旧版本升级或切换提供商时，旧的拒绝会继续生效；旧的同意不会自动授权新增或替换后的广告提供商，用户需要重新选择。
+
+### Google AdSense
 
 接入分为两个阶段：
 
@@ -70,6 +76,32 @@ SITE_ORIGIN=https://你的域名
 `ADSENSE_CMP_CERTIFIED=true` 只是防止误部署的人工闸门，不会安装或替代 CMP。启用前还必须完成隐私页、撤回入口、`ads.txt` 和真实流量回归。Google 当前只支持为 AdSense 使用每次响应随机 nonce 的严格 CSP；纯静态 Pages 无法安全地产生这种 nonce，因此广告启用构建会移除 CSP 响应头，其他安全响应头仍保留。广告禁用和仅验证发布商的构建继续使用 self-only CSP。
 
 `ADSENSE_CLIENT` 和 `ADSENSE_SLOT` 会按 AdSense 规范公开在浏览器广告标记中，不是密钥；不要把它们误写成中转站 API Key。广告采用显式同意后加载，并默认请求非个性化广告。非个性化广告仍可能让 Google 处理 IP、设备、页面、衡量、安全和反作弊所需数据，因此不得宣称“AdSense 完全不获取用户信息”。用户拒绝时，本站不加载 AdSense 脚本，也不向 Google 发起展示广告请求。
+
+### Adsterra Display Banner
+
+2026 年 7 月 21 日核验的官方资料：
+
+- [发布商页面](https://adsterra.com/publishers/)列出 Banner、Native Banner、Popunder、Social Bar 与 Smartlink 等格式，并公开宣称无流量门槛和较快审核；这些是平台自身陈述，不是本站对审核结果的保证。
+- [Banner 官方页面](https://adsterra.com/banner-ads/)确认普通 Display Banner，并要求先添加网站、创建广告单元，再复制后台生成的代码。当前实现只允许这一低干扰展示格式。
+- [发布商条款](https://adsterra.com/publishers-terms-managed/)第 4.5 条说明网站批准后才提供 Ad Tag；第 4.7 条禁止未经书面同意修改 Ad Tag 或放入 iframe；第 4.9 条要求披露数据处理，并在使用 Cookie 时提供同意提示。
+- [隐私政策](https://adsterra.com/privacy-policy-managed/)说明技术数据可能包含 IP 地址、浏览器、时区和位置、操作系统、访问 URL、页面互动和广告详情。
+- 官方发布商页只明确写明 Paxum 的最低余额可为 5 美元；没有在本次核验材料中确认“PayPal 最低 25 美元”，因此项目文档和界面不采用该说法。
+
+生产投放只使用账号后台为 `image2-studio.pages.dev` 批准的真实 Display Banner Tag，并完成以下公开配置：
+
+```text
+AD_PROVIDER=adsterra
+ADSTERRA_PLACEMENT_ID=后台已批准的 image2-studio.pages.dev 300x250 Banner placement ID
+ADSTERRA_CSP_ORIGINS=https://www.highperformanceformat.com
+ADSTERRA_ADS_TXT_RECORD=可选；仅在 Adsterra 后台或支持团队明确提供时填写完整卖方记录
+ADSTERRA_POLICY_REVIEWED=true
+```
+
+完整 Banner Tag、其中的公开广告位 key、脚本地址和 `ads.txt` 行会出现在公开网页或公开标准文件中，不是密码。真实 Tag 已按后台原文固定在构建配置中；环境变量只选择与该 Tag 精确匹配的 placement ID，不能传入任意脚本。不得提供或写入账户密码、Cookie、Token 或登录会话。
+
+当前适配器只接受本次已批准网站后台生成的两段式 300x250 Display Banner Tag：第一段是未经修改的 `atOptions`，第二段是匹配同一公开 key 的 HTTPS loader。构建会严格校验已批准的 placement ID、尺寸、iframe 格式、loader 主机和 key 一致性；任一处缺失或不匹配都会自动保持 `AD_PROVIDER=none`。运行时只在用户明确同意后，按原顺序创建这两段脚本，不接受任意 HTML 或脚本配置。当前生产 CSP 只加入 Tag 直接证明必需的 `https://www.highperformanceformat.com`；没有证据的动态 Origin 不加入允许列表。
+
+Adsterra 构建保留 CSP，并仅允许 `ADSTERRA_CSP_ORIGINS` 中逐项校验过的 HTTPS Origin；脚本 Origin 不在列表中时构建会自动禁用广告。若真实广告还需要其他动态 Origin，浏览器将按默认拒绝策略阻止资源，需根据官方 Tag 和实际网络记录补齐后重新验证。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
 
 ## Wrangler 可选部署
 
@@ -105,6 +137,6 @@ Wrangler 登录、项目创建和生产发布会改变 Cloudflare 账户状态�
 3. `robots.txt`、`sitemap.xml`、8 张生成案例和社交分享图返回 `200`。
 4. 页面源码中的 canonical 与实际生产域名一致。
 5. 任意不存在的路径返回真实 `404`，不以首页内容和 `200` 伪装成功。
-6. 未配置广告时，`/ads.txt` 不含卖方记录，HTML、JavaScript 与 CSP 都不含 Google 广告域名。
+6. 未配置广告时，HTML、JavaScript 与 CSP 都不含广告平台域名；`/ads.txt` 只保留独立验证通过的公开卖方记录（当前为 Google 发布商验证记录）。
 7. Cloudflare 响应包含 `_headers` 中的 CSP、`nosniff`、Referrer Policy 与 Permissions Policy。
 8. Git 仓库、完整 Git 历史和构建日志中不存在任何 API Key。

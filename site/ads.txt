@@ -1,2 +1,3 @@
-# AdSense record is emitted only for a validated build configuration.
+# Seller records are emitted only for validated build configuration.
 __ADSENSE_ADS_TXT_RECORD__
+__ADSTERRA_ADS_TXT_RECORD__
