@@ -13,7 +13,7 @@ npm run build:site
 npm run preview:site
 ```
 
-Cloudflare Pages 部署说明见 [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md)，同类生图站调研与设计取舍见 [docs/MARKETING_RESEARCH.md](docs/MARKETING_RESEARCH.md)，8 个原创宣传案例的 Image2 生成参数与 MVP 验收记录见 [docs/MARKETING_CASES.md](docs/MARKETING_CASES.md)。
+Cloudflare Pages 部署说明见 [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md)，同类生图站调研与设计取舍见 [docs/MARKETING_RESEARCH.md](docs/MARKETING_RESEARCH.md)，8 个原创宣传案例的 Image2 生成参数与 MVP 验收记录见 [docs/MARKETING_CASES.md](docs/MARKETING_CASES.md)。已完成阶段、代表提交和当前分支差异统一记录在[开发里程碑](docs/milestones/README.md)。
 
 ## 已完成功能
 
