@@ -6,9 +6,11 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     collections::HashMap,
+    error::Error as _,
     fs,
     path::{Path, PathBuf},
     sync::Arc,
+    time::Duration,
 };
 use tauri::{Manager, State};
 use tokio::sync::Mutex;
@@ -17,6 +19,8 @@ use uuid::Uuid;
 
 const KEYRING_SERVICE: &str = "com.image2.studio";
 const KEYRING_USER: &str = "openai-api-key";
+const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
+const IMAGE_REQUEST_TIMEOUT: Duration = Duration::from_secs(600);
 const CATALOG_BASE_URL: &str =
     "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/";
 const CATALOG_MANIFEST_URL: &str = "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/catalog-manifest.json";
@@ -30,7 +34,51 @@ enum StudioError {
     #[error("Invalid stored data: {0}")]
     Json(#[from] serde_json::Error),
     #[error("Network request failed: {0}")]
-    Network(#[from] reqwest::Error),
+    Network(String),
+}
+
+impl From<reqwest::Error> for StudioError {
+    fn from(error: reqwest::Error) -> Self {
+        let category = if error.is_timeout() {
+            "request timed out"
+        } else if error.is_connect() {
+            "connection failed"
+        } else if error.is_decode() {
+            "service returned an invalid response"
+        } else if error.is_body() {
+            "request or response body transfer failed"
+        } else if error.is_request() {
+            "request could not be sent"
+        } else {
+            "request failed"
+        };
+        let url = error.url().map(redacted_url);
+        let mut causes = Vec::new();
+        let mut source = error.source();
+        while let Some(cause) = source {
+            let detail = cause.to_string();
+            if !detail.is_empty() && causes.last() != Some(&detail) {
+                causes.push(detail);
+            }
+            source = cause.source();
+        }
+        let location = url
+            .map(|value| format!(" for {value}"))
+            .unwrap_or_default();
+        let detail = if causes.is_empty() {
+            String::new()
+        } else {
+            format!(": {}", causes.join(": "))
+        };
+        Self::Network(format!("{category}{location}{detail}"))
+    }
+}
+
+fn redacted_url(url: &Url) -> String {
+    let mut redacted = url.clone();
+    redacted.set_query(None);
+    redacted.set_fragment(None);
+    redacted.to_string()
 }
 
 impl Serialize for StudioError {
@@ -665,6 +713,7 @@ async fn send_generation_request(
         let response = state
             .client
             .post(format!("{}/images/generations", settings.base_url))
+            .timeout(IMAGE_REQUEST_TIMEOUT)
             .bearer_auth(api_key)
             .json(&serde_json::json!({
                 "model": settings.image_model,
@@ -710,6 +759,7 @@ async fn send_generation_request(
     let response = state
         .client
         .post(format!("{}/images/edits", settings.base_url))
+        .timeout(IMAGE_REQUEST_TIMEOUT)
         .bearer_auth(api_key)
         .multipart(form)
         .send()
@@ -852,6 +902,7 @@ async fn edit_image(input: EditInput, state: State<'_, AppState>) -> Result<Asse
     let response = state
         .client
         .post(format!("{}/images/edits", settings.base_url))
+        .timeout(IMAGE_REQUEST_TIMEOUT)
         .bearer_auth(api_key)
         .multipart(form)
         .send()
@@ -951,6 +1002,33 @@ async fn export_asset(asset_id: String, state: State<'_, AppState>) -> Result<bo
         .await;
     if let Some(target) = selected {
         fs::copy(asset.file_path, target.path())?;
+        return Ok(true);
+    }
+    Ok(false)
+}
+
+fn diagnostic_log_filename(value: &str) -> &str {
+    Path::new(value)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .filter(|name| name.len() <= 160 && name.ends_with(".json"))
+        .unwrap_or("image2-diagnostic-log.json")
+}
+
+#[tauri::command]
+async fn export_diagnostic_log(json: String, suggested_name: String) -> Result<bool> {
+    if json.len() > 16 * 1024 * 1024 {
+        return Err(StudioError::Message("诊断日志内容过大".into()));
+    }
+    serde_json::from_str::<serde_json::Value>(&json)
+        .map_err(|_| StudioError::Message("诊断日志格式不正确".into()))?;
+    let selected = rfd::AsyncFileDialog::new()
+        .add_filter("JSON", &["json"])
+        .set_file_name(diagnostic_log_filename(&suggested_name))
+        .save_file()
+        .await;
+    if let Some(target) = selected {
+        fs::write(target.path(), json)?;
         return Ok(true);
     }
     Ok(false)
@@ -1175,7 +1253,7 @@ pub fn run() {
             };
             app.manage(AppState {
                 client: Client::builder()
-                    .timeout(std::time::Duration::from_secs(180))
+                    .timeout(DEFAULT_REQUEST_TIMEOUT)
                     .build()?,
                 data_dir,
                 history: Arc::new(Mutex::new(history)),
@@ -1194,6 +1272,7 @@ pub fn run() {
             delete_asset,
             update_asset_metadata,
             export_asset,
+            export_diagnostic_log,
             save_annotation,
             load_annotation,
             list_annotations,
@@ -1216,6 +1295,19 @@ mod tests {
         assert!(validate_base_url("https://api.openai.com/v1/").is_ok());
         assert!(validate_base_url("http://127.0.0.1:8080/v1").is_ok());
         assert!(validate_base_url("http://example.com/v1").is_err());
+    }
+
+    #[test]
+    fn redacts_query_and_fragment_from_network_error_urls() {
+        let url = Url::parse("https://example.com/image.png?signature=secret#fragment").unwrap();
+        assert_eq!(redacted_url(&url), "https://example.com/image.png");
+    }
+
+    #[test]
+    fn restricts_diagnostic_log_suggested_filename() {
+        assert_eq!(diagnostic_log_filename("image2-log-123.json"), "image2-log-123.json");
+        assert_eq!(diagnostic_log_filename("../../private.txt"), "image2-diagnostic-log.json");
+        assert_eq!(diagnostic_log_filename("../../nested.json"), "nested.json");
     }
 
     #[test]

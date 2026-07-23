@@ -245,6 +245,20 @@ export const bridge = {
     if (!isTauri()) return false;
     return invoke("export_asset", { assetId });
   },
+  async exportDiagnosticLog(json: string, suggestedName: string): Promise<boolean> {
+    if (!isTauri()) {
+      const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = suggestedName;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      return true;
+    }
+    return invoke("export_diagnostic_log", { json, suggestedName });
+  },
   async saveAnnotation(documentId: string, sourceAssetId: string, json: string): Promise<void> {
     if (!isTauri()) {
       localStorage.setItem(`image2-annotation:${documentId}`, JSON.stringify({ documentId, sourceAssetId, json, updatedAt: new Date().toISOString() }));

@@ -1,6 +1,7 @@
-import { Columns2, Download, GitBranch, PencilLine, X } from "lucide-react";
-import { createPortal } from "react-dom";
-import { useEffect, useRef } from "react";
+import { Columns2, Download, GitBranch, PencilLine } from "lucide-react";
+import type { ReactNode } from "react";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import { useI18n } from "../i18n";
 
 interface ImagePreviewDialogProps {
@@ -15,44 +16,45 @@ interface ImagePreviewDialogProps {
 
 export function ImagePreviewDialog({ src, title, onClose, onDraw, onContinue, onCompare, onExport }: ImagePreviewDialogProps) {
   const { t } = useI18n();
-  const closeButton = useRef<HTMLButtonElement>(null);
-  const returnFocus = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  const toolbarButtons: ReactNode[] = [];
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeButton.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-      returnFocus.current?.focus();
-    };
-  }, [onClose]);
+  const addAction = (key: string, label: string, icon: ReactNode, onClick?: () => void) => {
+    if (!onClick) return;
+    toolbarButtons.push(
+      <button key={key} type="button" className="yarl__button image-preview-action" onClick={onClick} aria-label={label} title={label}>
+        {icon}
+      </button>,
+    );
+  };
 
-  return createPortal(
-    <div className="image-preview-backdrop" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
-    }}>
-      <div className="image-preview-dialog" role="dialog" aria-modal="true" aria-label={t("workspace.preview", { title })}>
-        <header>
-          <strong>{title}</strong>
-          <span className="image-preview-actions">
-            {onDraw && <button type="button" onClick={onDraw} aria-label={t("preview.draw")} title={t("preview.draw")}><PencilLine size={17} /></button>}
-            {onContinue && <button type="button" onClick={onContinue} aria-label={t("preview.continue")} title={t("preview.continue")}><GitBranch size={17} /></button>}
-            {onCompare && <button type="button" onClick={onCompare} aria-label={t("preview.compare")} title={t("preview.compare")}><Columns2 size={17} /></button>}
-            {onExport && <button type="button" onClick={onExport} aria-label={t("preview.export")} title={t("preview.export")}><Download size={17} /></button>}
-            <button ref={closeButton} type="button" onClick={onClose} aria-label={t("preview.close")} title={t("common.close")}><X size={18} /></button>
-          </span>
-        </header>
-        <div className="image-preview-stage">
-          <img src={src} alt={title} />
-        </div>
-      </div>
-    </div>,
-    document.body,
+  addAction("draw", t("preview.draw"), <PencilLine size={18} />, onDraw);
+  addAction("continue", t("preview.continue"), <GitBranch size={18} />, onContinue);
+  addAction("compare", t("preview.compare"), <Columns2 size={18} />, onCompare);
+  addAction("export", t("preview.export"), <Download size={18} />, onExport);
+  toolbarButtons.push("zoom", "close");
+
+  return (
+    <Lightbox
+      open
+      close={onClose}
+      className="image-preview-lightbox"
+      slides={[{ src, alt: title }]}
+      plugins={[Zoom]}
+      carousel={{ finite: true, imageFit: "contain", padding: 24 }}
+      controller={{ closeOnBackdropClick: true }}
+      zoom={{ maxZoomPixelRatio: 3, scrollToZoom: true }}
+      toolbar={{ buttons: toolbarButtons }}
+      labels={{
+        Lightbox: t("workspace.preview", { title }),
+        Close: t("preview.close"),
+        "Zoom in": t("annotation.zoomIn"),
+        "Zoom out": t("annotation.zoomOut"),
+      }}
+      render={{
+        buttonPrev: () => null,
+        buttonNext: () => null,
+        controls: () => <div className="image-preview-title"><strong>{title}</strong></div>,
+      }}
+    />
   );
 }

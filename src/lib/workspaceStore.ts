@@ -40,6 +40,7 @@ export function createInitialWorkspace(): WorkspaceState {
       [conversationId]: { text: "", attachments: [], nextImageSequence: 1, params: { ...defaultGenerationParams } },
     },
     annotationDocuments: {},
+    diagnosticLogs: [],
   };
 }
 
@@ -162,6 +163,7 @@ export function migrateWorkspace(input: unknown): WorkspaceState {
       tasks,
       drafts,
       annotationDocuments: documents,
+      diagnosticLogs: Array.isArray(source.diagnosticLogs) ? source.diagnosticLogs : [],
       migrationWarning: typeof source.migrationWarning === "string" ? source.migrationWarning : undefined,
     } as WorkspaceState;
   } catch (error) {

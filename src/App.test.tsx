@@ -19,6 +19,7 @@ describe("Image2 Agent workspace", () => {
     expect(screen.getByRole("button", { name: "新对话" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "串行任务" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "给 Image2 Agent 发消息" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出当前会话诊断日志" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "分辨率" })).toHaveValue("1K");
     expect(screen.getByPlaceholderText("gpt-5.6")).toBeInTheDocument();
   });

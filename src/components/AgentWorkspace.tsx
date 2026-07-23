@@ -8,6 +8,7 @@ import {
   Download,
   FileSearch,
   EyeOff,
+  FileDown,
   GitBranch,
   History,
   ImagePlus,
@@ -71,6 +72,7 @@ interface AgentWorkspaceProps {
   onSelectConversation: (id: string) => void;
   onRenameConversation: (id: string, title: string) => void;
   onDeleteConversation: (id: string) => void;
+  onExportLog: (id: string) => void;
   onDraftChange: (draft: Partial<ComposerDraft>) => void;
   onAddAttachments: (attachments: Attachment[]) => void;
   onAnswerRecommendation: (apply: boolean) => void;
@@ -245,7 +247,10 @@ export function AgentWorkspace(props: AgentWorkspaceProps) {
       <main className="chat-workspace">
         <header className="chat-header">
           <div><span>{t("workspace.currentConversation")}</span><h1>{conversation.title === "新对话" || conversation.title === "New conversation" ? t("workspace.newConversation") : conversation.title}</h1></div>
-          <div className="model-readout" title={`${gatewayHost} / ${props.settings.agentModel} / ${props.settings.imageModel}`}><i className={props.settings.hasApiKey ? "online" : ""} /><span>{gatewayHost}</span><code>{props.settings.imageModel}</code><code>{props.settings.agentProtocol === "responses" ? "RESPONSES" : "CHAT"}</code></div>
+          <div className="chat-header-actions">
+            <div className="model-readout" title={`${gatewayHost} / ${props.settings.agentModel} / ${props.settings.imageModel}`}><i className={props.settings.hasApiKey ? "online" : ""} /><span>{gatewayHost}</span><code>{props.settings.imageModel}</code><code>{props.settings.agentProtocol === "responses" ? "RESPONSES" : "CHAT"}</code></div>
+            <button className="diagnostic-log-button" type="button" onClick={() => props.onExportLog(conversation.id)} aria-label={t("workspace.exportLog")} title={t("workspace.exportLog")}><FileDown size={15} /></button>
+          </div>
         </header>
 
         <div className="message-scroll">
@@ -438,7 +443,7 @@ function BatchResults({ tasks, aspectRatio, assetMap, onAnnotate, onContinue, on
     const asset = task.resultAssetId ? assetMap.get(task.resultAssetId) : undefined;
     const children = asset ? [...assetMap.values()].filter((candidate) => candidate.parentId === asset.id) : [];
     return <div className={`result-tile ${task.status}`} key={task.id}>
-      <div className={`result-media ${asset ? "has-image" : ""}`} style={asset ? undefined : { aspectRatio: aspectRatio.replace(":", " / ") }}>{asset ? <><button type="button" onClick={() => onPreview(assetSrc(asset), task.title, asset)} aria-label={t("workspace.preview", { title: task.title })}><img src={assetSrc(asset)} alt="" /></button><span className="asset-hover-actions"><button type="button" onClick={() => onAnnotate(asset)} aria-label={`Draw ${task.title}`} title={t("preview.draw")}><PencilLine size={13} /></button><button type="button" onClick={() => onRegenerate(task)} aria-label={t("workspace.regenerate", { title: task.title })} title={t("workspace.regenerateTitle")}><Repeat2 size={13} /></button><button type="button" onClick={() => onContinue(asset)} aria-label={t("workspace.continue", { title: task.title })} title={t("workspace.continueTitle")}><GitBranch size={13} /></button><button type="button" onClick={() => onExport(asset)} aria-label={t("workspace.exportTitle", { title: task.title })} title={t("common.download")}><Download size={13} /></button>{asset.parentId && <button type="button" onClick={() => onCompare(asset)} aria-label={t("workspace.compare", { title: task.title })} title={t("workspace.compareTitle")}><Columns2 size={13} /></button>}</span></> : task.status === "failed" ? <AlertCircle size={24} /> : task.status === "running" ? <LoaderCircle className="spin" size={24} /> : <span>{String(task.position + 1).padStart(2, "0")}</span>}</div>
+      <div className={`result-media ${asset ? "has-image" : ""}`} style={asset ? undefined : { aspectRatio: aspectRatio.replace(":", " / ") }}>{asset ? <><button type="button" onClick={() => onPreview(assetSrc(asset), task.title, asset)} aria-label={t("workspace.preview", { title: task.title })}><img src={assetSrc(asset)} alt="" /></button><span className="asset-hover-actions"><button type="button" onClick={() => onAnnotate(asset)} aria-label={`Draw ${task.title}`} title={t("preview.draw")}><PencilLine size={13} /></button><button type="button" onClick={() => onRegenerate(task)} aria-label={t("workspace.regenerate", { title: task.title })} title={t("workspace.regenerateTitle")}><Repeat2 size={13} /></button><button type="button" onClick={() => onContinue(asset)} aria-label={t("workspace.continue", { title: task.title })} title={t("workspace.continueTitle")}><GitBranch size={13} /></button><button type="button" onClick={() => onExport(asset)} aria-label={t("workspace.exportTitle", { title: task.title })} title={t("common.download")}><Download size={13} /></button>{asset.parentId && <button type="button" onClick={() => onCompare(asset)} aria-label={t("workspace.compare", { title: task.title })} title={t("workspace.compareTitle")}><Columns2 size={13} /></button>}</span></> : task.status === "failed" ? <AlertCircle size={24} /> : task.status === "running" ? <div className="result-loader"><LoaderCircle size={24} /></div> : <span>{String(task.position + 1).padStart(2, "0")}</span>}</div>
       <div className="result-caption"><div><strong>{asset?.lineage?.branchLabel || task.title}</strong><small>{t(statusKeys[task.status])}</small></div>{asset && <span><button type="button" onClick={() => { const label = window.prompt(t("workspace.versionNamePrompt"), asset.lineage?.branchLabel || task.title); if (label?.trim()) onRename(asset, label); }} aria-label={t("workspace.renameVersion", { title: task.title })} title={t("workspace.renameVersionTitle")}><Tag size={14} /></button><button type="button" onClick={() => onHide(asset)} aria-label={t("workspace.hideVersion", { title: task.title })} title={t("workspace.hideVersionTitle")}><EyeOff size={14} /></button><button type="button" onClick={() => onAnnotate(asset)} aria-label={t("workspace.annotate", { title: task.title })} title={t("workspace.annotateTitle")}><PencilLine size={14} /></button><button type="button" onClick={() => onExport(asset)} aria-label={t("workspace.exportTitle", { title: task.title })} title={t("common.download")}><Download size={14} /></button></span>}</div>
       {asset && (asset.parentId || children.length > 0) && <div className="version-trail"><GitBranch size={11} /><span>{t("workspace.revision", { revision: asset.lineage?.revision ?? (asset.parentId ? 1 : 0), kind: asset.parentId ? t("workspace.childVersion") : t("workspace.rootVersion") })}</span><code>{t("workspace.branchCount", { count: children.length })}</code></div>}
     </div>;
@@ -466,5 +471,5 @@ function BeforeAfterCompare({ before, after, alternatives, onClose }: { before: 
 function QueueTask({ task, onRetry }: { task: GenerationTask; onRetry: () => void }) {
   const { t } = useI18n();
   const Icon = task.status === "succeeded" ? Check : task.status === "running" ? LoaderCircle : task.status === "failed" ? AlertCircle : task.status === "interrupted" ? CircleStop : MoreHorizontal;
-  return <div className={`queue-task ${task.status}`}><span className="runway-node"><Icon className={task.status === "running" ? "spin" : ""} size={13} /></span><div><strong>{task.title}</strong><small>{task.error || t(statusKeys[task.status])}</small></div>{["failed", "interrupted", "cancelled"].includes(task.status) && <button type="button" onClick={onRetry} aria-label={t("workspace.retry", { title: task.title })} title={t("workspace.retryTitle")}><RefreshCw size={13} /></button>}</div>;
+  return <div className={`queue-task ${task.status}`}><span className="runway-node"><Icon size={13} /></span><div><strong>{task.title}</strong><small>{task.error || t(statusKeys[task.status])}</small></div>{["failed", "interrupted", "cancelled"].includes(task.status) && <button type="button" onClick={onRetry} aria-label={t("workspace.retry", { title: task.title })} title={t("workspace.retryTitle")}><RefreshCw size={13} /></button>}</div>;
 }

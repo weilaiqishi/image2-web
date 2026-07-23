@@ -6,6 +6,7 @@ describe("Workspace v2 migration", () => {
     const workspace = createInitialWorkspace();
     expect(workspace.version).toBe(2);
     expect(workspace.annotationDocuments).toEqual({});
+    expect(workspace.diagnosticLogs).toEqual([]);
   });
 
   it("migrates legacy annotations and assigns stable image labels", () => {
@@ -40,6 +41,7 @@ describe("Workspace v2 migration", () => {
     const migrated = migrateWorkspace(legacy);
     const attachments = migrated.drafts["conversation-1"].attachments;
     expect(migrated.version).toBe(2);
+    expect(migrated.diagnosticLogs).toEqual([]);
     expect(attachments[0]).toMatchObject({ descriptor: { label: "Image001", roles: ["other"] } });
     expect(attachments[1]).toMatchObject({ descriptor: { label: "Image002", roles: ["other"] } });
     expect(attachments[2]).toMatchObject({ documentId: "legacy-annotation-1", objectIds: [] });

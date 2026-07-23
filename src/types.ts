@@ -251,6 +251,20 @@ export interface GenerationRecommendation {
   status: "loading" | "ready" | "applied" | "dismissed" | "error";
 }
 
+export interface AgentDiagnosticLog {
+  id: string;
+  conversationId: string;
+  startedAt: string;
+  completedAt: string;
+  protocol: AgentProtocol;
+  model: string;
+  status: "succeeded" | "failed";
+  allowedAttachmentIds: string[];
+  request?: unknown;
+  response?: unknown;
+  error?: string;
+}
+
 export interface WorkspaceState {
   version: 2;
   selectedConversationId: string;
@@ -260,6 +274,7 @@ export interface WorkspaceState {
   tasks: GenerationTask[];
   drafts: Record<string, ComposerDraft>;
   annotationDocuments: Record<string, AnnotationDocumentV2>;
+  diagnosticLogs: AgentDiagnosticLog[];
   migrationWarning?: string;
 }
 

@@ -346,9 +346,3 @@ body:not(.is-ready) .hero-copy { transform: translateY(18px); opacity: 0; }
   .case-lightbox figcaption { grid-template-columns: 1fr; }
   .case-lightbox figcaption span { grid-row: auto; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  body:not(.is-ready) .hero-copy { transform: none; opacity: 1; }
-}

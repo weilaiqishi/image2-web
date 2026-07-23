@@ -19,6 +19,11 @@ export interface AgentTurnInput {
 
 type ProxyAgent = (protocol: AgentProtocol, body: unknown) => Promise<unknown>;
 
+export interface AgentTurnDiagnostics {
+  request?: unknown;
+  response?: unknown;
+}
+
 const systemPrompt = () => translate("agent.systemPrompt");
 
 const taskProperties = {
@@ -171,8 +176,11 @@ export function parseAgentResponse(protocol: AgentProtocol, payload: unknown, al
   return { text: typeof message?.content === "string" ? message.content : "", plan: call ? validateImagePlan(parseArguments(call.function.arguments), allowedReferenceIds, input) : undefined };
 }
 
-export async function createAgentTurn(settings: Settings, input: AgentTurnInput, proxy: ProxyAgent): Promise<AgentTurnResult> {
-  const payload = await proxy(settings.agentProtocol, buildAgentRequest(settings, input));
+export async function createAgentTurn(settings: Settings, input: AgentTurnInput, proxy: ProxyAgent, diagnostics?: AgentTurnDiagnostics): Promise<AgentTurnResult> {
+  const request = buildAgentRequest(settings, input);
+  if (diagnostics) diagnostics.request = request;
+  const payload = await proxy(settings.agentProtocol, request);
+  if (diagnostics) diagnostics.response = payload;
   return parseAgentResponse(settings.agentProtocol, payload, input.attachments.map((attachment) => attachment.id), input);
 }
 

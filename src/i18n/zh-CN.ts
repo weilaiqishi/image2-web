@@ -57,6 +57,7 @@ export const zhCN = {
   "app.templateAdded": "已将“{title}”加入当前对话",
   "app.catalogChecked": "灵感库已检查：新增 {added}，修改 {updated}，归档 {archived}",
   "app.catalogImported": "本地灵感资料已导入",
+  "app.logExported": "当前会话诊断日志已导出",
   "app.deleteConversationConfirm": "删除这个对话？生成图片仍会保留在历史素材中。",
   "app.closeNotice": "关闭提示",
 
@@ -68,6 +69,7 @@ export const zhCN = {
   "workspace.inspiration": "灵感库",
   "workspace.conversationList": "对话列表",
   "workspace.currentConversation": "当前会话",
+  "workspace.exportLog": "导出当前会话诊断日志",
   "workspace.you": "你",
   "workspace.agentThinking": "正在理解需求并编排任务",
   "workspace.emptyTitle": "从一个目标开始",

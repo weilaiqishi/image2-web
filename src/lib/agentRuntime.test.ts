@@ -73,6 +73,23 @@ describe("SerialImageQueue", () => {
     expect(bridge.proxyAgent).not.toHaveBeenCalled();
   });
 
+  it("captures a redacted Agent response when task validation rejects an external attachment", async () => {
+    const runtime = await AgentRuntime.create();
+    await runtime.createConversation();
+    const conversationId = runtime.snapshot().selectedConversationId;
+    const attachment = { id: "current-attachment", kind: "reference" as const, name: "source.png", dataUrl: "data:image/png;base64,aGVsbG8=", descriptor: { label: "Image001", roles: ["other" as const], priority: 0, preserve: [] } };
+    await runtime.updateDraft(conversationId, { text: "生成海报", attachments: [attachment] });
+    planOverride = { summary: "poster", tasks: [{ title: "poster", prompt: "poster", operation: "generate", referenceIds: ["outside-attachment"] }] };
+
+    await runtime.submit(conversationId, settings);
+
+    const log = runtime.snapshot().diagnosticLogs.filter((item) => item.conversationId === conversationId).at(-1)!;
+    const json = JSON.stringify(log);
+    expect(log).toMatchObject({ status: "failed", allowedAttachmentIds: [attachment.id], error: "Agent 引用了当前消息之外的附件" });
+    expect(json).toContain("outside-attachment");
+    expect(json).not.toContain("aGVsbG8=");
+  });
+
   it("executes planned image tasks one at a time", async () => {
     const runtime = await AgentRuntime.create();
     const conversationId = runtime.snapshot().selectedConversationId;

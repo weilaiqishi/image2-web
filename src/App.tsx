@@ -7,6 +7,7 @@ import { AgentRuntime } from "./lib/agentRuntime";
 import { bridge, errorMessage } from "./lib/bridge";
 import { normalizeAspectRatio, normalizeResolution } from "./lib/promptCatalog";
 import { replaceSourceAttachmentWithAnnotation } from "./lib/annotationModel";
+import { conversationLogFilename, createConversationLogExport } from "./lib/diagnosticLog";
 import { useI18n } from "./i18n";
 import {
   exportPromptCatalogData,
@@ -237,6 +238,15 @@ export default function App() {
     }).catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
   };
 
+  const exportConversationLog = (conversationId: string) => {
+    void (async () => {
+      const exportedAt = new Date();
+      const data = createConversationLogExport(workspace!, settings, conversationId, exportedAt.toISOString());
+      const exported = await bridge.exportDiagnosticLog(JSON.stringify(data, null, 2), conversationLogFilename(conversationId, exportedAt));
+      if (exported) setNotice({ type: "success", text: t("app.logExported") });
+    })().catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
+  };
+
   const importPrompts = (file: File) => {
     void (async () => {
       const data = file.name.toLowerCase().endsWith(".zip")
@@ -266,6 +276,7 @@ export default function App() {
         onSelectConversation={(id) => { setView("chat"); void runtime.selectConversation(id); }}
         onRenameConversation={(id, title) => void runtime.renameConversation(id, title)}
         onDeleteConversation={(id) => { if (window.confirm(t("app.deleteConversationConfirm"))) void runtime.deleteConversation(id); }}
+        onExportLog={exportConversationLog}
         onDraftChange={(draft) => void runtime.updateDraft(selectedConversationId, draft)}
         onAddAttachments={addAttachments}
         onAnswerRecommendation={(apply) => void runtime.answerRecommendation(selectedConversationId, apply)}

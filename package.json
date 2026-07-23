@@ -29,7 +29,8 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.548.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "yet-another-react-lightbox": "^3.32.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",

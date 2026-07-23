@@ -1,5 +1,6 @@
 import type {
   AnnotationAttachment,
+  AgentDiagnosticLog,
   AssetAttachment,
   Attachment,
   ChatMessage,
@@ -14,14 +15,16 @@ import type {
   WorkspaceState,
 } from "../types";
 import { bridge, errorMessage } from "./bridge";
-import { createAgentTurn, recommendGenerationSettings } from "./agentProvider";
+import { createAgentTurn, recommendGenerationSettings, type AgentTurnDiagnostics } from "./agentProvider";
 import { SIZE_PRESETS } from "../types";
 import { defaultGenerationParams, interruptRunningTasks, loadWorkspace, saveWorkspace } from "./workspaceStore";
 import { assertCompilable, compileEditRequest, providerCapabilitiesForModel, referenceConflictDiagnostics, renderMaskDataUrl } from "./promptCompiler";
 import { getLocale, translate } from "../i18n";
+import { sanitizeDiagnosticValue } from "./diagnosticLog";
 
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const now = () => new Date().toISOString();
+const MAX_AGENT_DIAGNOSTIC_LOGS = 100;
 
 type Listener = (state: WorkspaceState) => void;
 
@@ -81,7 +84,11 @@ export class AgentRuntime {
   async deleteConversation(conversationId: string) {
     if (this.state.conversations.length === 1) {
       await this.renameConversation(conversationId, translate("workspace.newConversation"));
-      await this.commit({ ...this.state, messages: this.state.messages.filter((message) => message.conversationId !== conversationId) });
+      await this.commit({
+        ...this.state,
+        messages: this.state.messages.filter((message) => message.conversationId !== conversationId),
+        diagnosticLogs: this.state.diagnosticLogs.filter((log) => log.conversationId !== conversationId),
+      });
       return;
     }
     const conversations = this.state.conversations.filter((conversation) => conversation.id !== conversationId);
@@ -95,8 +102,19 @@ export class AgentRuntime {
       messages: this.state.messages.filter((message) => message.conversationId !== conversationId),
       batches: this.state.batches.filter((batch) => batch.conversationId !== conversationId),
       tasks: this.state.tasks.filter((task) => !batchIds.has(task.batchId)),
+      diagnosticLogs: this.state.diagnosticLogs.filter((log) => log.conversationId !== conversationId),
       drafts,
     });
+  }
+
+  private async recordAgentDiagnosticLog(log: AgentDiagnosticLog) {
+    const sanitized = sanitizeDiagnosticValue(log) as AgentDiagnosticLog;
+    const diagnosticLogs = [...this.state.diagnosticLogs, sanitized].slice(-MAX_AGENT_DIAGNOSTIC_LOGS);
+    try {
+      await this.commit({ ...this.state, diagnosticLogs });
+    } catch (error) {
+      console.error("Unable to persist Agent diagnostic log", error);
+    }
   }
 
   async updateDraft(conversationId: string, update: Partial<ComposerDraft>) {
@@ -220,6 +238,9 @@ export class AgentRuntime {
       drafts: { ...this.state.drafts, [conversationId]: { ...draft, text: "", attachments: [], recommendation: undefined } },
     });
 
+    const diagnosticId = newId();
+    const diagnosticStartedAt = now();
+    const diagnostics: AgentTurnDiagnostics = {};
     try {
       const attachments = userMessage.attachments;
       const result = await createAgentTurn(settings, {
@@ -227,9 +248,14 @@ export class AgentRuntime {
         attachments,
         attachmentImages: await this.attachmentImages(attachments),
         annotationDocuments: this.state.annotationDocuments,
-      }, bridge.proxyAgent);
+      }, bridge.proxyAgent, diagnostics);
       if (this.pendingSubmissions.get(conversationId)?.token !== submissionToken) return;
       if (!result.plan) {
+        await this.recordAgentDiagnosticLog({
+          id: diagnosticId, conversationId, startedAt: diagnosticStartedAt, completedAt: now(), protocol: settings.agentProtocol,
+          model: settings.agentModel, status: "succeeded", allowedAttachmentIds: attachments.map((attachment) => attachment.id),
+          request: diagnostics.request, response: diagnostics.response,
+        });
         this.pendingSubmissions.delete(conversationId);
         await this.appendAssistant(conversationId, result.text || translate("runtime.needMoreInfo"));
         return;
@@ -267,11 +293,21 @@ export class AgentRuntime {
       const assistant: ChatMessage = {
         id: newId(), conversationId, role: "assistant", content: result.plan.summary || result.text || translate("runtime.tasksCreated", { count: tasks.length }), attachments: [], batchId, createdAt: now(),
       };
+      await this.recordAgentDiagnosticLog({
+        id: diagnosticId, conversationId, startedAt: diagnosticStartedAt, completedAt: now(), protocol: settings.agentProtocol,
+        model: settings.agentModel, status: "succeeded", allowedAttachmentIds: attachments.map((attachment) => attachment.id),
+        request: diagnostics.request, response: diagnostics.response,
+      });
       this.pendingSubmissions.delete(conversationId);
       await this.commit({ ...this.state, batches: [...this.state.batches, batch], tasks: [...this.state.tasks, ...tasks], messages: [...this.state.messages, assistant] });
       void this.processQueue();
     } catch (error) {
       if (this.pendingSubmissions.get(conversationId)?.token !== submissionToken) return;
+      await this.recordAgentDiagnosticLog({
+        id: diagnosticId, conversationId, startedAt: diagnosticStartedAt, completedAt: now(), protocol: settings.agentProtocol,
+        model: settings.agentModel, status: "failed", allowedAttachmentIds: userMessage.attachments.map((attachment) => attachment.id),
+        request: diagnostics.request, response: diagnostics.response, error: errorMessage(error),
+      });
       this.pendingSubmissions.delete(conversationId);
       await this.appendAssistant(conversationId, translate("runtime.taskCreationFailed", { message: errorMessage(error) }));
     }
