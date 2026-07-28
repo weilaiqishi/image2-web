@@ -16,6 +16,16 @@ const validAdsterra = {
 };
 
 describe("resolveAdConfig", () => {
+  it.each([
+    ["the default configuration", {}],
+    ["the Adsterra configuration", { AD_PROVIDER: "adsterra", ...validAdsterra }],
+  ])("allows Cloudflare Web Analytics in %s CSP", (_, env) => {
+    const { csp } = resolveAdConfig(env);
+
+    expect(csp).toMatch(/script-src[^;]*https:\/\/static\.cloudflareinsights\.com(?:[ ;]|$)/);
+    expect(csp).toMatch(/connect-src[^;]*https:\/\/cloudflareinsights\.com(?:[ ;]|$)/);
+  });
+
   it("defaults to no active provider and a self-only CSP", () => {
     const config = resolveAdConfig({});
 

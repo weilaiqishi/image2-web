@@ -1,5 +1,7 @@
 const ADSENSE_SCRIPT_URL = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 const ADSTERRA_SCRIPT_ORIGIN = "https://www.highperformanceformat.com";
+const CLOUDFLARE_ANALYTICS_SCRIPT_ORIGIN = "https://static.cloudflareinsights.com";
+const CLOUDFLARE_ANALYTICS_CONNECT_ORIGIN = "https://cloudflareinsights.com";
 
 export const APPROVED_ADSTERRA_BANNER = Object.freeze({
   siteHostname: "image2-studio.pages.dev",
@@ -30,7 +32,7 @@ export const APPROVED_ADSTERRA_BANNER = Object.freeze({
 <script src="https://www.highperformanceformat.com/091e951f349e105d9dd17535d7b97262/invoke.js"></script>`,
 });
 
-export const SELF_ONLY_CSP = "Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; upgrade-insecure-requests";
+export const SELF_ONLY_CSP = `Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self' ${CLOUDFLARE_ANALYTICS_CONNECT_ORIGIN}; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline' ${CLOUDFLARE_ANALYTICS_SCRIPT_ORIGIN}; style-src 'self'; upgrade-insecure-requests`;
 
 function parseHttpsUrl(value) {
   if (!value) return null;
@@ -63,7 +65,7 @@ function isValidAdsTxtRecord(value) {
 
 function buildAdsterraCsp(origins) {
   const sources = origins.join(" ");
-  return `Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self' ${sources}; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'self' ${sources}; img-src 'self' data: ${sources}; object-src 'none'; script-src 'self' 'unsafe-inline' ${sources}; style-src 'self' 'unsafe-inline'; upgrade-insecure-requests`;
+  return `Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self' ${sources} ${CLOUDFLARE_ANALYTICS_CONNECT_ORIGIN}; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'self' ${sources}; img-src 'self' data: ${sources}; object-src 'none'; script-src 'self' 'unsafe-inline' ${sources} ${CLOUDFLARE_ANALYTICS_SCRIPT_ORIGIN}; style-src 'self' 'unsafe-inline'; upgrade-insecure-requests`;
 }
 
 export function resolveAdConfig(env, warn = console.warn) {
