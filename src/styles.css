@@ -170,10 +170,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .choice-feedback-options { display: flex; gap: 5px; }
 .choice-feedback-options button { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); font-size: 9px; font-weight: 650; cursor: pointer; }
 .choice-feedback-options button.primary { border-color: var(--ink); background: var(--ink); color: #fff; }
-.composer > .structured-composer { display: block; width: 100%; min-height: 76px; max-height: 180px; padding: 13px 14px 8px; overflow-y: auto; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 13px; line-height: 1.5; }
+.composer > .structured-composer { display: block; width: 100%; min-height: 76px; max-height: 180px; padding: 13px 14px 8px; overflow-y: auto; border: 0; outline: 0; background: transparent; color: var(--ink); -webkit-text-fill-color: var(--ink); caret-color: var(--select); font-size: 13px; line-height: 1.5; }
 .structured-composer { white-space: pre-wrap; overflow-wrap: anywhere; }
 .structured-composer[data-empty="true"]::before { color: #969d99; content: attr(data-placeholder); pointer-events: none; }
-.structured-token { display: inline-flex; align-items: center; min-height: 20px; margin: 0 2px; padding: 0 5px; border: 1px solid #b8cbc2; border-radius: 3px; background: #edf5f1; color: #18563e; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78em; line-height: 1; vertical-align: baseline; user-select: all; }
+.structured-token { display: inline-flex; align-items: center; min-height: 20px; margin: 0 2px; padding: 0 5px; border: 1px solid #b8cbc2; border-radius: 3px; background: #edf5f1; color: #18563e; -webkit-text-fill-color: currentColor; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78em; line-height: 1; vertical-align: baseline; user-select: all; }
 .structured-token.active { border-color: var(--select); background: #e8eff9; color: #173f72; box-shadow: 0 0 0 1px rgba(36,85,195,.12); }
 .composer-mention-menu, .mention-menu { position: absolute; z-index: 12; display: grid; max-height: 210px; overflow-y: auto; border: 1px solid var(--line); border-radius: 5px; background: #fff; box-shadow: var(--shadow); }
 .composer-mention-menu { left: 12px; bottom: 48px; width: min(330px, calc(100% - 24px)); }

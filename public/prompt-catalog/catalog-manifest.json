@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "20260727064606",
-  "generatedAt": "2026-07-27T06:46:06.541Z",
+  "catalogVersion": "20260728151908",
+  "generatedAt": "2026-07-28T15:19:08.961Z",
   "sources": [
     {
       "id": "image2-net",
@@ -12,49 +12,16 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 12,
-      "fetchedAt": "2026-07-27T06:46:06.541Z"
-    },
-    {
-      "id": "awesome-gpt4o-images",
-      "name": "Awesome GPT-4o Images",
-      "url": "https://github.com/jamez-bondos/awesome-gpt4o-images",
-      "license": "CC BY 4.0",
-      "attribution": "Awesome GPT-4o Images contributors",
-      "enabledByDefault": true,
-      "status": "success",
-      "itemCount": 12,
-      "fetchedAt": "2026-07-27T06:46:06.541Z"
-    },
-    {
-      "id": "awesome-prompts",
-      "name": "Awesome Prompts",
-      "url": "https://github.com/songtianlun/awesome-prompts",
-      "license": "MIT",
-      "attribution": "songtianlun/awesome-prompts",
-      "enabledByDefault": true,
-      "status": "success",
-      "itemCount": 12,
-      "fetchedAt": "2026-07-27T06:46:06.541Z"
-    },
-    {
-      "id": "openai-cookbook",
-      "name": "OpenAI Cookbook",
-      "url": "https://github.com/openai/openai-cookbook",
-      "license": "MIT",
-      "attribution": "OpenAI Cookbook",
-      "enabledByDefault": true,
-      "status": "success",
-      "itemCount": 6,
-      "fetchedAt": "2026-07-27T06:46:06.541Z"
+      "fetchedAt": "2026-07-28T15:19:08.961Z"
     }
   ],
   "shards": [
     {
       "id": "catalog-0001",
       "url": "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/catalog-0001.json",
-      "checksum": "de17664419d1c557f5930981b8a7f0fa4957577b3e476097b60d0e1fd62b0c48",
-      "itemCount": 30
+      "checksum": "8e86de2f3d3d9d2c13f2919b59cd355733840718d10939dbe6e1b73963e80d8a",
+      "itemCount": 12
     }
   ],
-  "checksum": "2abc32bff19b9ccbfaa4e728cb68cebf0476e146dc21ad762fc4e6b95db5fbaf"
+  "checksum": "908f0778ea8fe7e7de8360f36c71375deb169f0cca3acc56bec7e5a2bd434702"
 }

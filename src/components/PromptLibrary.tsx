@@ -36,9 +36,7 @@ interface PromptLibraryProps {
 
 const sourceColors: Record<string, string> = {
   "image2-net": "#236a52",
-  "awesome-gpt4o-images": "#b64535",
   "awesome-prompts": "#315f8c",
-  "openai-cookbook": "#6d5f9a",
 };
 
 const viewOptionKeys: Array<{ id: NonNullable<PromptFilters["view"]>; label: TranslationKey; icon: typeof History }> = [

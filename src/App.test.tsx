@@ -45,7 +45,7 @@ describe("Image2 Agent workspace", () => {
     if (close) fireEvent.click(close);
     fireEvent.click(await screen.findByRole("button", { name: "灵感库" }));
     expect(screen.getByRole("heading", { name: "创作索引" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /OpenAI Cookbook/ })).toBeInTheDocument();
+    expect(screen.queryByText("OpenAI Cookbook")).not.toBeInTheDocument();
     fireEvent.change(screen.getByRole("searchbox", { name: "搜索提示词" }), { target: { value: "underwater" } });
     fireEvent.click(screen.getByRole("button", { name: "查看 Deep Ocean Underwater World" }));
     fireEvent.click(screen.getByRole("button", { name: "生成同款" }));
@@ -65,9 +65,11 @@ describe("Image2 Agent workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "灵感库更新设置" }));
     expect(await screen.findByRole("dialog", { name: "灵感库更新" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "启用 image-2.net" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "启用 OpenAI Cookbook" })).toBeChecked();
+    expect(screen.queryByRole("checkbox", { name: "启用 OpenAI Cookbook" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "启用 Awesome GPT-4o Images" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "启用 Awesome Prompts" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "自动更新" })).toHaveValue("off");
-    expect(screen.getByRole("button", { name: "更新 Awesome GPT-4o Images" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "更新 image-2.net" })).toBeInTheDocument();
   });
 
   it("previews a reference and applies the agent recommendation", async () => {

@@ -122,7 +122,7 @@ Actions Artifacts 默认保留 14 天。`v*` 标签构建完成后，工作流�
 
 ## 本地灵感库
 
-灵感库聚合 image-2.net、Awesome GPT-4o Images、Awesome Prompts 和 OpenAI Cookbook。桌面端不会直接抓取第三方网站，只从仓库固定白名单地址下载带校验值的 Manifest、分片和 WebP 缩略图。
+灵感库从 image-2.net 和 Awesome Prompts 聚合候选内容，仅收录成功下载真实预览图的条目，并隐藏没有可用条目的来源。桌面端不会直接抓取第三方网站，只从仓库固定白名单地址下载带校验值的 Manifest、分片和 WebP 缩略图。
 
 收藏、置顶、隐藏、备注、本地改写和使用记录保存在独立 IndexedDB Store，不会上传，也不会被远程目录更新覆盖。来源下架的模板采用归档标记；已经收藏、改写或使用过的内容仍可访问。
 

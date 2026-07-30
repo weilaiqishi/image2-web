@@ -9,8 +9,7 @@ describe("prompt catalog", () => {
   });
 
   it("filters by source references after exact prompt deduplication", () => {
-    expect(filterPromptTemplates(promptCatalog, { sourceId: "awesome-prompts" }).length).toBeGreaterThan(0);
-    expect(filterPromptTemplates(promptCatalog, { sourceId: "openai-cookbook" }).every((item) => item.sourceReferences.some((source) => source.sourceId === "openai-cookbook"))).toBe(true);
+    expect(filterPromptTemplates(promptCatalog, { sourceId: "image2-net" }).length).toBeGreaterThan(0);
   });
 
   it("keeps archived templates visible when the customer has local value", () => {
@@ -28,9 +27,9 @@ describe("prompt catalog", () => {
     expect(normalizeResolution("unknown")).toBe("2K");
   });
 
-  it("ships all four P0 sources with provenance and licensing", () => {
+  it("ships only sources with successfully cached preview images", () => {
     const sourceIds = new Set(promptCatalog.flatMap((item) => item.sourceReferences.map((source) => source.sourceId)));
-    expect(sourceIds).toEqual(new Set(["image2-net", "awesome-gpt4o-images", "awesome-prompts", "openai-cookbook"]));
+    expect(sourceIds).toEqual(new Set(["image2-net"]));
     for (const template of promptCatalog) {
       expect(template.sourceReferences.length).toBeGreaterThan(0);
       expect(template.sourceReferences.every((source) => source.sourceUrl && source.license && source.attribution)).toBe(true);

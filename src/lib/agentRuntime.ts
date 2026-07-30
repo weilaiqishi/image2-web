@@ -82,19 +82,23 @@ export class AgentRuntime {
   }
 
   async deleteConversation(conversationId: string) {
-    if (this.state.conversations.length === 1) {
-      await this.renameConversation(conversationId, translate("workspace.newConversation"));
-      await this.commit({
-        ...this.state,
-        messages: this.state.messages.filter((message) => message.conversationId !== conversationId),
-        diagnosticLogs: this.state.diagnosticLogs.filter((log) => log.conversationId !== conversationId),
-      });
-      return;
-    }
-    const conversations = this.state.conversations.filter((conversation) => conversation.id !== conversationId);
+    if (!this.state.conversations.some((conversation) => conversation.id === conversationId)) return;
+    this.pendingSubmissions.delete(conversationId);
+    const remaining = this.state.conversations.filter((conversation) => conversation.id !== conversationId);
+    const replacement = remaining.length ? undefined : {
+      id: newId(),
+      title: translate("workspace.newConversation"),
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    const conversations = replacement ? [replacement] : remaining;
     const batchIds = new Set(this.state.batches.filter((batch) => batch.conversationId === conversationId).map((batch) => batch.id));
     const drafts = { ...this.state.drafts };
     delete drafts[conversationId];
+    if (replacement) drafts[replacement.id] = { text: "", attachments: [], nextImageSequence: 1, params: { ...defaultGenerationParams } };
+    const annotationDocuments = Object.fromEntries(
+      Object.entries(this.state.annotationDocuments).filter(([, document]) => document.conversationId !== conversationId),
+    );
     await this.commit({
       ...this.state,
       selectedConversationId: this.state.selectedConversationId === conversationId ? conversations[0].id : this.state.selectedConversationId,
@@ -104,6 +108,7 @@ export class AgentRuntime {
       tasks: this.state.tasks.filter((task) => !batchIds.has(task.batchId)),
       diagnosticLogs: this.state.diagnosticLogs.filter((log) => log.conversationId !== conversationId),
       drafts,
+      annotationDocuments,
     });
   }
 

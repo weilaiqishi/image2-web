@@ -97,6 +97,12 @@ struct AppState {
     client: Client,
     data_dir: PathBuf,
     history: Arc<Mutex<Vec<AssetRecord>>>,
+    api_key_cache: Arc<Mutex<ApiKeyCache>>,
+}
+
+enum ApiKeyCache {
+    Unloaded,
+    Loaded(Option<String>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -451,21 +457,28 @@ fn keyring_entry() -> Result<Entry> {
         .map_err(|error| StudioError::Message(format!("无法访问系统凭证库: {error}")))
 }
 
-fn has_api_key() -> bool {
-    keyring_entry()
+async fn cached_api_key(state: &AppState) -> Option<String> {
+    let mut cache = state.api_key_cache.lock().await;
+    if let ApiKeyCache::Loaded(value) = &*cache {
+        return value.clone();
+    }
+
+    let value = keyring_entry()
         .and_then(|entry| {
             entry
                 .get_password()
                 .map_err(|error| StudioError::Message(error.to_string()))
         })
-        .map(|value| !value.trim().is_empty())
-        .unwrap_or(false)
+        .ok()
+        .filter(|value| !value.trim().is_empty());
+    *cache = ApiKeyCache::Loaded(value.clone());
+    value
 }
 
-fn read_api_key() -> Result<String> {
-    keyring_entry()?
-        .get_password()
-        .map_err(|_| StudioError::Message("尚未配置 OpenAI API Key".into()))
+async fn read_api_key(state: &AppState) -> Result<String> {
+    cached_api_key(state)
+        .await
+        .ok_or_else(|| StudioError::Message("尚未配置 OpenAI API Key".into()))
 }
 
 #[tauri::command]
@@ -476,7 +489,7 @@ async fn get_settings(state: State<'_, AppState>) -> Result<SettingsPublic> {
         agent_protocol: settings.agent_protocol,
         agent_model: settings.agent_model,
         image_model: settings.image_model,
-        has_api_key: has_api_key(),
+        has_api_key: cached_api_key(&state).await.is_some(),
     })
 }
 
@@ -501,9 +514,11 @@ async fn save_settings(
         return Err(StudioError::Message("Agent 与图片模型名称不能为空".into()));
     }
     if let Some(api_key) = input.api_key.filter(|key| !key.trim().is_empty()) {
+        let api_key = api_key.trim().to_string();
         keyring_entry()?
-            .set_password(api_key.trim())
+            .set_password(&api_key)
             .map_err(|error| StudioError::Message(format!("保存密钥失败: {error}")))?;
+        *state.api_key_cache.lock().await = ApiKeyCache::Loaded(Some(api_key));
     }
     atomic_json(&settings_path(&state), &settings)?;
     Ok(SettingsPublic {
@@ -511,7 +526,7 @@ async fn save_settings(
         agent_protocol: settings.agent_protocol,
         agent_model: settings.agent_model,
         image_model: settings.image_model,
-        has_api_key: has_api_key(),
+        has_api_key: cached_api_key(&state).await.is_some(),
     })
 }
 
@@ -525,7 +540,7 @@ async fn proxy_agent(
     let response = state
         .client
         .post(format!("{}/{endpoint}", settings.base_url))
-        .bearer_auth(read_api_key()?)
+        .bearer_auth(read_api_key(&state).await?)
         .json(&input.body)
         .send()
         .await?;
@@ -773,7 +788,7 @@ async fn generate_image(input: GenerateInput, state: State<'_, AppState>) -> Res
         return Err(StudioError::Message("请输入图片描述".into()));
     }
     let settings = load_settings(&state)?;
-    let api_key = read_api_key()?;
+    let api_key = read_api_key(&state).await?;
     let (bytes, mime) = send_generation_request(&state, &settings, &api_key, &input).await?;
     save_generated_asset(
         &state,
@@ -842,7 +857,7 @@ async fn edit_image(input: EditInput, state: State<'_, AppState>) -> Result<Asse
             return Err(StudioError::Message("编辑任务缺少标注合成图".into()));
         };
     let settings = load_settings(&state)?;
-    let api_key = read_api_key()?;
+    let api_key = read_api_key(&state).await?;
     let combined_prompt = format!(
         "第一张图是必须保留主体和整体风格的干净原图。第二张图包含用户用圆圈、箭头和文字做的修改标注。请按照标注和以下要求修改原图：{}。输出最终干净图片，不要保留任何标注线、箭头、圈选框或说明文字。",
         input.annotation_prompt.trim()
@@ -1257,6 +1272,7 @@ pub fn run() {
                     .build()?,
                 data_dir,
                 history: Arc::new(Mutex::new(history)),
+                api_key_cache: Arc::new(Mutex::new(ApiKeyCache::Unloaded)),
             });
             Ok(())
         })
@@ -1379,6 +1395,7 @@ mod tests {
             client: Client::new(),
             data_dir: data_dir.clone(),
             history: Arc::new(Mutex::new(Vec::new())),
+            api_key_cache: Arc::new(Mutex::new(ApiKeyCache::Unloaded)),
         };
 
         save_annotation_file(&state, "document-01", "source-asset", r#"{"objects":[]}"#).unwrap();

@@ -46,6 +46,24 @@ function moveCaretToEnd(element: HTMLElement) {
   selection.addRange(range);
 }
 
+function insertPlainText(element: HTMLElement, text: string) {
+  const selection = window.getSelection();
+  const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+  if (!selection || !range || !element.contains(range.commonAncestorContainer)) {
+    element.append(document.createTextNode(text));
+    moveCaretToEnd(element);
+    return;
+  }
+
+  range.deleteContents();
+  const node = document.createTextNode(text);
+  range.insertNode(node);
+  range.setStartAfter(node);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 export function StructuredComposer({ value, knownTokens, ariaLabel, placeholder, className = "", activeTokens = [], focusRequest = 0, onChange, onTokenClick, onKeyDown, onPaste }: StructuredComposerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const knownKey = knownTokens.join("\u0000");
@@ -95,6 +113,15 @@ export function StructuredComposer({ value, knownTokens, ariaLabel, placeholder,
       if (target.dataset.token) onTokenClick?.(target.dataset.token);
     }}
     onKeyDown={onKeyDown}
-    onPaste={onPaste}
+    onPaste={(event) => {
+      onPaste?.(event);
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      insertPlainText(event.currentTarget, event.clipboardData.getData("text/plain"));
+      const next = plainText(event.currentTarget);
+      event.currentTarget.dataset.empty = next ? "false" : "true";
+      (event.currentTarget as HTMLDivElement & { value?: string }).value = next;
+      onChange(next);
+    }}
   />;
 }

@@ -15,4 +15,21 @@ describe("StructuredComposer", () => {
     fireEvent.input(screen.getByRole("textbox", { name: "结构化提示词" }), { target: { textContent: "新的要求" } });
     expect(onChange).toHaveBeenLastCalledWith("新的要求");
   });
+
+  it("pastes text without carrying source formatting into the composer", () => {
+    const onChange = vi.fn();
+    render(<StructuredComposer value="" knownTokens={[]} ariaLabel="结构化提示词" placeholder="输入" onChange={onChange} />);
+    const composer = screen.getByRole("textbox", { name: "结构化提示词" });
+    composer.focus();
+    fireEvent.paste(composer, {
+      clipboardData: {
+        files: [],
+        getData: (type: string) => type === "text/plain" ? "可见文字" : '<span style="color: black">可见文字</span>',
+      },
+    });
+
+    expect(composer).toHaveTextContent("可见文字");
+    expect(composer.querySelector("span")).toBeNull();
+    expect(onChange).toHaveBeenCalledWith("可见文字");
+  });
 });

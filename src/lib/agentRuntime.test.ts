@@ -60,6 +60,27 @@ describe("SerialImageQueue", () => {
     expect(bridge.generate).not.toHaveBeenCalled();
   });
 
+  it("replaces the last deleted conversation with a fresh empty conversation", async () => {
+    const runtime = await AgentRuntime.create();
+    while (runtime.snapshot().conversations.length > 1) {
+      await runtime.deleteConversation(runtime.snapshot().conversations.at(-1)!.id);
+    }
+    const deletedId = runtime.snapshot().conversations[0].id;
+    await runtime.updateDraft(deletedId, { text: "这段草稿必须被删除" });
+    await runtime.upsertAnnotationDocument(createAnnotationDocument({ id: "deleted-document", sourceAssetId: "asset-old", conversationId: deletedId }));
+
+    await runtime.deleteConversation(deletedId);
+
+    const snapshot = runtime.snapshot();
+    expect(snapshot.conversations).toHaveLength(1);
+    expect(snapshot.selectedConversationId).not.toBe(deletedId);
+    expect(snapshot.drafts[deletedId]).toBeUndefined();
+    expect(snapshot.drafts[snapshot.selectedConversationId]).toMatchObject({ text: "", attachments: [], nextImageSequence: 1 });
+    expect(snapshot.annotationDocuments["deleted-document"]).toBeUndefined();
+    expect(snapshot.messages.some((message) => message.conversationId === deletedId)).toBe(false);
+    expect(snapshot.batches.some((batch) => batch.conversationId === deletedId)).toBe(false);
+  });
+
   it("blocks stale references, invalid colors and equal-priority product conflicts before submission", async () => {
     const runtime = await AgentRuntime.create();
     await runtime.createConversation();

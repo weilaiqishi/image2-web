@@ -275,7 +275,10 @@ export default function App() {
         onNewConversation={() => { setView("chat"); void runtime.createConversation(); }}
         onSelectConversation={(id) => { setView("chat"); void runtime.selectConversation(id); }}
         onRenameConversation={(id, title) => void runtime.renameConversation(id, title)}
-        onDeleteConversation={(id) => { if (window.confirm(t("app.deleteConversationConfirm"))) void runtime.deleteConversation(id); }}
+        onDeleteConversation={(id) => {
+          if (!window.confirm(t("app.deleteConversationConfirm"))) return;
+          void runtime.deleteConversation(id).catch((error) => setNotice({ type: "error", text: errorMessage(error) }));
+        }}
         onExportLog={exportConversationLog}
         onDraftChange={(draft) => void runtime.updateDraft(selectedConversationId, draft)}
         onAddAttachments={addAttachments}

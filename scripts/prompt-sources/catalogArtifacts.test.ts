@@ -22,6 +22,12 @@ describe("published prompt catalog artifacts", () => {
       const payload = JSON.parse(bytes.toString("utf8"));
       expect(payload.items).toHaveLength(shard.itemCount);
       expect(payload.catalogVersion).toBe(manifest.catalogVersion);
+      for (const item of payload.items) {
+        expect(item.previewUrl).toBeTruthy();
+        expect(item.cachedThumbnailPath).toMatch(/^\/prompt-catalog\/thumbnails\/.+\.webp$/);
+        const thumbnail = await readFile(path.join(root, "public", item.cachedThumbnailPath));
+        expect(thumbnail.length).toBeGreaterThan(0);
+      }
     }
   });
 

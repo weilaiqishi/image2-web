@@ -15,6 +15,7 @@ import { translate } from "../i18n";
 
 const DB_NAME = "image2-prompt-catalog";
 const DB_VERSION = 1;
+const RETIRED_SOURCE_IDS = new Set(["openai-cookbook", "awesome-gpt4o-images"]);
 const STORES = {
   templates: "promptTemplates",
   sources: "promptSources",
@@ -53,6 +54,13 @@ export const defaultPromptPreferences: PromptCatalogPreferences = {
   thumbnailStrategy: "lazy",
   enabledSourceIds: bundled.sources.map((source) => source.id),
 };
+
+function sanitizePreferences(preferences: PromptCatalogPreferences): PromptCatalogPreferences {
+  return {
+    ...preferences,
+    enabledSourceIds: preferences.enabledSourceIds.filter((id) => !RETIRED_SOURCE_IDS.has(id)),
+  };
+}
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -110,6 +118,8 @@ async function seedIfNeeded() {
   const existing = await getMeta();
   if (existing && existing.catalogVersion >= bundled.catalogVersion) return;
   if (typeof indexedDB === "undefined") {
+    memory.templates.clear();
+    memory.sources.clear();
     bundled.items.forEach((item) => memory.templates.set(item.id, structuredClone(item)));
     bundled.sources.forEach((source) => memory.sources.set(source.id, structuredClone(source)));
     memory.meta = { id: "catalog", catalogVersion: bundled.catalogVersion, generatedAt: bundled.generatedAt, preferences: existing?.preferences ?? defaultPromptPreferences };
@@ -118,6 +128,8 @@ async function seedIfNeeded() {
   const database = await openDatabase();
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction([STORES.templates, STORES.sources, STORES.meta], "readwrite");
+    transaction.objectStore(STORES.templates).clear();
+    transaction.objectStore(STORES.sources).clear();
     bundled.items.forEach((item) => transaction.objectStore(STORES.templates).put(item));
     bundled.sources.forEach((source) => transaction.objectStore(STORES.sources).put(source));
     transaction.objectStore(STORES.meta).put({ id: "catalog", catalogVersion: bundled.catalogVersion, generatedAt: bundled.generatedAt, preferences: existing?.preferences ?? defaultPromptPreferences });
@@ -151,9 +163,11 @@ export async function loadPromptCatalog(): Promise<PromptCatalogSnapshot> {
     getMeta(),
   ]);
   const localMap = new Map(localStates.map((state) => [state.templateId, state]));
-  const preferences = meta?.preferences ?? defaultPromptPreferences;
+  const preferences = sanitizePreferences(meta?.preferences ?? defaultPromptPreferences);
   const enabled = new Set(preferences.enabledSourceIds);
   const views = templates
+    .map((template) => ({ ...template, sourceReferences: template.sourceReferences.filter((source) => !RETIRED_SOURCE_IDS.has(source.sourceId)) }))
+    .filter((template) => template.sourceReferences.length > 0)
     .filter((template) => template.sourceReferences.some((source) => enabled.has(source.sourceId)))
     .map((template) => mergePromptView(template, localMap.get(template.id)))
     .filter((template) => !template.local.hidden || template.local.favorite || template.local.useCount > 0)
@@ -162,7 +176,7 @@ export async function loadPromptCatalog(): Promise<PromptCatalogSnapshot> {
     catalogVersion: meta?.catalogVersion ?? bundled.catalogVersion,
     generatedAt: meta?.generatedAt ?? bundled.generatedAt,
     templates: views,
-    sources,
+    sources: sources.filter((source) => !RETIRED_SOURCE_IDS.has(source.id)),
     preferences,
     syncRuns: syncRuns.sort((left, right) => right.startedAt.localeCompare(left.startedAt)).slice(0, 20),
   };
@@ -187,7 +201,8 @@ export async function recordPromptUsage(templateId: string, conversationId: stri
 export async function savePromptPreferences(patch: Partial<PromptCatalogPreferences>) {
   await seedIfNeeded();
   const meta = await getMeta();
-  await putValue(STORES.meta, { ...meta, id: "catalog", catalogVersion: meta?.catalogVersion ?? bundled.catalogVersion, generatedAt: meta?.generatedAt ?? bundled.generatedAt, preferences: { ...(meta?.preferences ?? defaultPromptPreferences), ...patch } });
+  const preferences = sanitizePreferences({ ...(meta?.preferences ?? defaultPromptPreferences), ...patch });
+  await putValue(STORES.meta, { ...meta, id: "catalog", catalogVersion: meta?.catalogVersion ?? bundled.catalogVersion, generatedAt: meta?.generatedAt ?? bundled.generatedAt, preferences });
   return loadPromptCatalog();
 }
 
@@ -225,7 +240,7 @@ export async function syncPromptCatalog(requestedSourceIds?: string[]): Promise<
   syncCancellationRequested = false;
   const startedAt = new Date().toISOString();
   const metaBefore = await getMeta();
-  const preferencesBefore = metaBefore?.preferences ?? defaultPromptPreferences;
+  const preferencesBefore = sanitizePreferences(metaBefore?.preferences ?? defaultPromptPreferences);
   const sourceIds = requestedSourceIds?.length ? requestedSourceIds.filter((id) => preferencesBefore.enabledSourceIds.includes(id)) : preferencesBefore.enabledSourceIds;
   const run: PromptSyncRun = { id: crypto.randomUUID(), startedAt, status: "running", sourceIds, added: 0, updated: 0, archived: 0, unchanged: 0, errors: {} };
   await putValue(STORES.sync, run);
@@ -235,7 +250,7 @@ export async function syncPromptCatalog(requestedSourceIds?: string[]): Promise<
       await putValue(STORES.sync, { ...run, status: "cancelled", completedAt: new Date().toISOString() });
       return loadPromptCatalog();
     }
-    const preferences = meta?.preferences ?? defaultPromptPreferences;
+    const preferences = sanitizePreferences(meta?.preferences ?? defaultPromptPreferences);
     const result = applyCatalogUpdate(current, download, preferences.updateStrategy, sourceIds);
     if (typeof indexedDB === "undefined") {
       result.items.forEach((item) => memory.templates.set(item.id, item));
