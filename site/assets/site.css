@@ -203,6 +203,34 @@ ul, ol { margin: 0; padding: 0; }
 .content-table th, .content-table td { padding: 11px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 .content-table th { color: var(--signal); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9px; }
 
+/* Troubleshooting pages turn the product pipeline into a readable diagnostic path. */
+.breadcrumbs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 28px; color: var(--dim); font-size: 11px; }
+.breadcrumbs a { color: var(--muted); }
+.breadcrumbs a:hover { color: var(--signal); }
+.breadcrumbs span[aria-hidden="true"] { color: var(--line-strong); }
+.diagnostic-rail { display: grid !important; margin: 30px 0 36px !important; padding: 0 !important; border-top: 1px solid var(--line-strong); list-style: none; }
+.diagnostic-rail li { display: grid; min-height: 92px; padding: 17px 0; border-bottom: 1px solid var(--line); grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; gap: 15px; }
+.diagnostic-rail li::before { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--signal); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9px; content: attr(data-stage); }
+.diagnostic-rail strong { display: block; color: var(--text); font-size: 15px; }
+.diagnostic-rail span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.diagnostic-rail code { justify-self: end; color: var(--dim); font-size: 9px; text-transform: uppercase; }
+.diagnostic-rail li[data-diagnostic="generation-running"]::before { border-color: var(--amber); color: var(--amber); }
+.diagnostic-rail li[data-diagnostic="session-only"]::before { border-color: var(--ice); color: var(--ice); }
+.diagnostic-rail li[data-diagnostic="gateway-failure"]::before { border-color: var(--danger); color: var(--danger); }
+.decision-tree { display: grid !important; margin: 24px 0 30px !important; padding: 0 !important; border-top: 1px solid var(--line-strong); list-style: none; counter-reset: diagnosis; }
+.decision-tree li { display: grid; padding: 16px 0; border-bottom: 1px solid var(--line); grid-template-columns: 42px minmax(0, 1fr); gap: 14px; counter-increment: diagnosis; }
+.decision-tree li::before { color: var(--signal); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9px; content: "Q" counter(diagnosis); }
+.decision-tree strong { display: block; color: var(--text); font-size: 14px; }
+.decision-tree span { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.checklist { padding-left: 0 !important; list-style: none; }
+.checklist li { position: relative; padding-left: 28px; }
+.checklist li::before { position: absolute; top: .47em; left: 0; display: grid; width: 15px; height: 15px; place-items: center; border: 1px solid var(--line-strong); color: var(--signal); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9px; content: "\2713"; }
+.resolution-panel { margin-top: 62px; padding: 30px 0; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+.resolution-panel h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+.resolution-actions { display: grid; margin-top: 24px; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 10px; }
+.resolution-note { display: block; margin-top: 16px; color: var(--dim); font-size: 11px; line-height: 1.65; }
+.source-list li { color: var(--muted); font-size: 13px; }
+
 .case-study-list { display: grid; margin-top: 54px; border-top: 1px solid var(--line-strong); }
 .case-study { display: grid; padding: 34px 0; border-bottom: 1px solid var(--line); grid-template-columns: minmax(240px, .85fr) minmax(280px, 1.15fr); align-items: start; gap: 38px; }
 .case-study-media { overflow: hidden; border: 1px solid var(--line); border-radius: 3px; background: var(--panel); aspect-ratio: 4 / 3; }
@@ -330,6 +358,9 @@ body:not(.is-ready) .hero-copy { transform: translateY(18px); opacity: 0; }
   .content-body h3 { font-size: 18px; }
   .content-body p, .content-body li { font-size: 14px; }
   .content-table { display: block; overflow-x: auto; white-space: nowrap; }
+  .diagnostic-rail li { min-height: 0; grid-template-columns: 46px minmax(0, 1fr); }
+  .diagnostic-rail code { display: none; }
+  .resolution-actions { grid-template-columns: 1fr; }
   .case-study-list { margin-top: 38px; }
   .case-study { padding: 26px 0; grid-template-columns: 1fr; gap: 22px; }
   .case-study-copy h2 { font-size: 21px; }

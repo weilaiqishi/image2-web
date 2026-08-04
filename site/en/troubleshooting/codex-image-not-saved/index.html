@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050607" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="author" content="Image2 Studio" />
+    <meta name="description" content="Codex generated an image but it is not visible, not saved, or has no saved_path? Diagnose tool availability, run state, session-only results, disk output, and gateway/API failures safely." />
+    <link rel="canonical" href="__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/" />
+    <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" />
+    <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Image2 Studio" />
+    <meta property="og:title" content="Codex image not visible or saved: saved_path troubleshooting" />
+    <meta property="og:description" content="Find whether the image stopped at the tool, run, session, disk, or API layer before retrying." />
+    <meta property="og:url" content="__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/" />
+    <meta property="og:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
+    <meta property="article:published_time" content="2026-08-03" />
+    <meta property="article:modified_time" content="2026-08-03" />
+    <meta name="google-adsense-account" content="__ADSENSE_ACCOUNT_CLIENT__" />
+    <meta name="adsense-client" content="__ADSENSE_CLIENT__" />
+    <meta name="adsense-slot" content="__ADSENSE_SLOT__" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <title>Codex Image Not Visible or Saved: saved_path Troubleshooting | Image2</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Codex generated an image, but it is not visible or saved",
+        "description": "Diagnose Codex image output across tool availability, run state, session results, disk persistence, and gateway errors.",
+        "inLanguage": "en",
+        "datePublished": "2026-08-03",
+        "dateModified": "2026-08-03",
+        "mainEntityOfPage": "__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/",
+        "url": "__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/",
+        "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
+        "author": { "@type": "Organization", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/en/" },
+        "publisher": { "@type": "Organization", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/en/" },
+        "about": ["Codex image generation", "image_gen saved_path", "generated image persistence"],
+        "proficiencyLevel": "Beginner",
+        "dependencies": "A Codex session where run status and workspace files can be inspected",
+        "citation": [
+          "https://learn.chatgpt.com/docs/image-generation",
+          "https://learn.chatgpt.com/docs/reference/troubleshooting",
+          "https://github.com/openai/codex/issues/32153"
+        ],
+        "isPartOf": { "@type": "WebSite", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/en/" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Image2 Studio", "item": "__SITE_ORIGIN__/en/" },
+          { "@type": "ListItem", "position": 2, "name": "Guide", "item": "__SITE_ORIGIN__/en/guide/" },
+          { "@type": "ListItem", "position": 3, "name": "Codex image not saved", "item": "__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/" }
+        ]
+      }
+    </script>
+  </head>
+  <body class="content-page troubleshooting-page" data-locale="en" data-content-type="troubleshooting">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" aria-label="Main navigation">
+      <a class="brand-lockup" href="/en/" aria-label="Image2 Studio home"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+      <nav class="primary-nav" aria-label="Page navigation"><a href="/en/cases/">Cases</a><a href="/en/guide/">Guide</a><a href="/en/about/">About</a></nav>
+      <div class="header-actions"><a class="language-link" href="/troubleshooting/codex-image-not-saved/" lang="zh-CN" hreflang="zh-CN">中文</a><a class="nav-cta" href="https://github.com/weilaiqishi/image2-web/releases">Download on GitHub</a></div>
+    </header>
+
+    <main class="content-main" id="main">
+      <article class="content-article">
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/en/">Home</a><span aria-hidden="true">/</span><a href="/en/guide/">Guide</a><span aria-hidden="true">/</span><span aria-current="page">Codex image not saved</span></nav>
+        <header class="content-header">
+          <p class="section-index">TROUBLESHOOTING / CODEX / IMAGE OUTPUT</p>
+          <h1>Codex generated an image, but it is not visible or saved</h1>
+          <p>A completed-looking message does not prove that a file exists on disk. First locate the break: unavailable tool, active run, UI/session-only result, missing output path, or an upstream gateway/API failure.</p>
+          <div class="content-meta"><span>Published: 2026-08-03</span><span>Reviewed: 2026-08-03</span><span>8 min read</span></div>
+          <nav class="content-nav" aria-label="Article contents"><a href="#triage">Triage</a><a href="#decision-tree">Decision tree</a><a href="#safe-checks">Safe checks</a><a href="#saved-path">saved_path</a><a href="#gateway-failures">API errors</a><a href="#bug-report">Bug report</a><a href="#image2-option">Independent workflow</a></nav>
+        </header>
+
+        <div class="content-body">
+          <section id="triage">
+            <p class="content-step">START HERE / PRESERVE THE RESULT</p>
+            <h2>Do not generate again yet</h2>
+            <p>Another click or repeated prompt may start a second image call and obscure the original evidence. Record the Codex surface, version, operating system, prompt time, last visible status, and whether an image or path ever appeared. Keep the original session open and unarchived.</p>
+            <div class="content-callout"><strong>Separate three states</strong><span>An image visible in the UI, image data present in a session, and an image file saved to disk are different outcomes. Only a real path to a file you can open proves persistence.</span></div>
+
+            <ol class="diagnostic-rail" aria-label="Five-stage image output diagnosis">
+              <li data-stage="01" data-diagnostic="tool-unavailable"><div><strong>Tool unavailable</strong><span>No image-generation call occurred, or Codex says image generation is unavailable.</span></div><code>TOOL</code></li>
+              <li data-stage="02" data-diagnostic="generation-running"><div><strong>Still generating or waiting</strong><span>The status remains generating, or the session is waiting for approval, network response, or completion.</span></div><code>RUN</code></li>
+              <li data-stage="03" data-diagnostic="session-only"><div><strong>UI or session only</strong><span>A preview or session result exists, but there is no evidence of a disk file.</span></div><code>SESSION</code></li>
+              <li data-stage="04" data-diagnostic="missing-saved-path"><div><strong>No saved_path or output path</strong><span>The call appears to have a result, but there is no usable path or new workspace file.</span></div><code>DISK</code></li>
+              <li data-stage="05" data-diagnostic="gateway-failure"><div><strong>Gateway or API failure</strong><span>An HTTP error, timeout, or structured provider error means generation may not have completed.</span></div><code>API</code></li>
+            </ol>
+          </section>
+
+          <section id="decision-tree">
+            <p class="content-step">DECISION TREE / ONE BRANCH AT A TIME</p>
+            <h2>Answer four questions</h2>
+            <ol class="decision-tree">
+              <li><div><strong>Did this turn contain an actual image-generation call?</strong><span>No, or Codex explicitly says the feature is unavailable: use the tool-unavailable branch. Yes: inspect its state.</span></div></li>
+              <li><div><strong>Has the call reached a terminal state?</strong><span>No, it is generating or awaiting approval: preserve, wait, or cancel it without a parallel retry. Yes: inspect the result.</span></div></li>
+              <li><div><strong>Can you view an image in the UI?</strong><span>Yes: classify it as UI-only until a disk file is verified. No: look for a clear API error or output path.</span></div></li>
+              <li><div><strong>Does the reported path point to a real image you can open?</strong><span>Yes: the remaining problem is UI display. No path, or a nonexistent path: use the missing saved_path branch and preserve evidence.</span></div></li>
+            </ol>
+          </section>
+
+          <aside class="ad-unit" data-ad-unit aria-hidden="true" hidden></aside>
+
+          <section id="safe-checks">
+            <p class="content-step">SAFE CHECKS / NO SECRET, NO SECOND CALL</p>
+            <h2>Check the stage you actually reached</h2>
+
+            <h3>1. Tool unavailable: verify the documented invocation</h3>
+            <p>OpenAI's Codex image-generation documentation says you can include <code>$imagegen</code> explicitly in a CLI, App, or IDE prompt. If that still returns a skill/tool unavailable message, or no generation call appears, this is not a persistence failure. Codex surfaces can also carry different versions and receive features at different times.</p>
+            <pre><code>Use $imagegen to create a 64 x 64 solid-color test image.
+Save the final PNG to ./artifacts/codex-image-check.png in this workspace.
+Report only a workspace-relative path that really exists; if nothing was saved,
+say "not saved" and do not guess a path.</code></pre>
+            <p>This minimal prompt can create a new billable or usage-counted image request. Use it only to test availability after the original run has ended. Availability can also depend on the surface, plan, and workspace settings described in the official docs.</p>
+
+            <h3>2. Still generating: inspect approval and terminal state</h3>
+            <p>If the status remains <code>generating</code>, first check whether Codex is waiting for approval. OpenAI's troubleshooting guide recommends checking approval state and using a basic terminal command to see whether the terminal still responds. Do not send a second image request in parallel.</p>
+            <pre><code>git status</code></pre>
+            <p><code>git status</code> only shows that the terminal and Git workspace respond. It does not prove that an image was generated or saved. Move on only after the call succeeds, fails, or is canceled.</p>
+
+            <h3>3. UI or session only: ask about the existing result</h3>
+            <p>Send this check in the original session. It asks Codex to inspect what already exists, without regenerating:</p>
+            <pre><code>Do not regenerate. Inspect only the existing result from this turn:
+1. If a disk file exists, return its workspace-relative path and file type.
+2. If the result exists only in the UI or session, say "not saved."
+3. Do not guess a path or output base64, credentials, or full logs.</code></pre>
+            <p>If Codex reports a path, confirm the working directory and workspace changes:</p>
+            <pre><code>pwd
+git status</code></pre>
+            <p>These commands do not search outside the workspace, and Git-ignored files might not appear. The path itself still needs to resolve to an image you can open. Do not treat an assumed default folder as proof.</p>
+
+            <h3>4. Record the exact version</h3>
+            <p>OpenAI documents these checks for Codex CLI and the CLI bundled with the macOS app. On Windows, record the App version from the Codex About dialog.</p>
+            <pre><code>codex --version
+/Applications/Codex.app/Contents/Resources/codex --version</code></pre>
+          </section>
+
+          <section id="saved-path">
+            <p class="content-step">KNOWN REPORT / NOT A UNIVERSAL DIAGNOSIS</p>
+            <h2>What if <code>result</code> exists but <code>saved_path</code> does not?</h2>
+            <p>A public report in the OpenAI Codex repository, <a href="https://github.com/openai/codex/issues/32153">Issue #32153</a>, described image data in a local session record while the status remained <code>generating</code>, with no display, saved file, or <code>saved_path</code>. The issue was closed on July 16, 2026. Its versions and observations do not prove that every current failure has the same cause.</p>
+            <p>If your visible symptoms match, keep the original session, record the version and time, and submit a redacted reproduction. Do not paste session base64 into an Issue. Avoid making third-party session-extraction scripts the default recovery path: they process local session content that may include private prompts, paths, or images.</p>
+            <div class="content-callout"><strong><code>saved_path</code> is a diagnostic clue, not a contract</strong><span>A field named in a public issue is not proof that every Codex surface and version must expose that field. The user-level test is still a real image file at a path you can open.</span></div>
+          </section>
+
+          <section id="gateway-failures">
+            <p class="content-step">API BRANCH / FIX THE REQUEST FIRST</p>
+            <h2>An HTTP error or timeout belongs to the API branch</h2>
+            <p>If the UI shows a 4xx, 5xx, timeout, or structured gateway error, stop searching for a save path. The request may never have produced a complete image. Use the documentation for the official service or gateway you actually configured to check its image endpoint, model access, quota, and request format.</p>
+            <table class="content-table">
+              <thead><tr><th>Visible signal</th><th>Check first</th><th>Do not</th></tr></thead>
+              <tbody>
+                <tr><td>401 / 403</td><td>Credential source, account permission, and image-model access</td><td>Paste a key into chat, screenshots, or Issues</td></tr>
+                <tr><td>400 / 404</td><td>Provider-documented image endpoint, model name, and capability</td><td>Assume a working text API also implements Images</td></tr>
+                <tr><td>429</td><td>Wait for quota or rate limits; retain the original request time</td><td>Open parallel retries to evade limits</td></tr>
+                <tr><td>5xx / timeout</td><td>Record time, request ID if present, and a redacted error excerpt</td><td>Describe a timeout as “generated but not saved”</td></tr>
+              </tbody>
+            </table>
+            <p>“OpenAI-compatible” may cover only text endpoints. Images API support, edits, response formats, and timeout behavior need separate provider documentation and testing.</p>
+          </section>
+
+          <section id="bug-report">
+            <p class="content-step">BUG REPORT / REDACT BEFORE SHARING</p>
+            <h2>Report a reproducible case without leaking secrets</h2>
+            <p>OpenAI's troubleshooting guide recommends searching <a href="https://github.com/openai/codex/issues">existing Codex Issues</a> before using in-product feedback or the repository's <a href="https://github.com/openai/codex/issues/new?template=2-bug-report.yml">bug report template</a>. Review every log before sharing it.</p>
+            <ul class="checklist">
+              <li>Codex surface (App, CLI, or IDE), exact version, operating system, and architecture.</li>
+              <li>Minimal reproduction prompt, timestamp and timezone, and the last visible call state.</li>
+              <li>Whether a preview appeared, whether a path was returned, and whether that path opened.</li>
+              <li>Any HTTP status, request ID, or approval wait; include only the necessary error excerpt.</li>
+              <li>Expected versus actual behavior, including whether retries would create another call.</li>
+            </ul>
+            <div class="content-callout"><strong>Remove before posting</strong><span>API keys, Authorization headers, private Base URLs, account/workspace identifiers, private prompts and images, full gateway responses, session base64, unrelated local paths, and unreviewed full logs.</span></div>
+          </section>
+
+          <section class="resolution-panel" id="image2-option" data-boundary="image2-independent">
+            <p class="content-step">TWO DIFFERENT PATHS</p>
+            <h2>Keep troubleshooting Codex first; consider Image2 separately</h2>
+            <p>Image2 Studio does not fix Codex and is not a Codex configuration tool. It is an independent local desktop image workflow for users who already lawfully have an OpenAI-compatible Images API endpoint and key. Image2 is not affiliated with OpenAI or Sub2API, does not guarantee arbitrary gateway compatibility, and does not provide or endorse gateway services.</p>
+            <p>If you still need the result from this Codex turn, continue with the official Codex troubleshooting and feedback path. Consider Image2 only if you already wanted to separate image work from coding sessions. This marketing site never accepts API keys.</p>
+            <div class="resolution-actions">
+              <a class="button button-primary" data-cta="continue-codex" href="https://learn.chatgpt.com/docs/reference/troubleshooting">Continue troubleshooting Codex</a>
+              <a class="button button-secondary" data-cta="image2-releases" href="https://github.com/weilaiqishi/image2-web/releases">View Image2 Releases</a>
+            </div>
+            <small class="resolution-note">Current Image2 installers are unsigned and may trigger an OS warning. Read the <a href="/en/guide/">installation and connection guide</a>, and use only endpoints and credentials you are authorized to use.</small>
+          </section>
+
+          <section id="sources">
+            <p class="content-step">SOURCES / EVIDENCE LEVELS</p>
+            <h2>Sources and evidence boundaries</h2>
+            <ul class="source-list">
+              <li><strong>Official documentation:</strong> <a href="https://learn.chatgpt.com/docs/image-generation">Codex image generation</a>, for <code>$imagegen</code>, surface behavior, and availability boundaries.</li>
+              <li><strong>Official documentation:</strong> <a href="https://learn.chatgpt.com/docs/reference/troubleshooting">Codex troubleshooting</a>, for version checks, stuck-state recovery, feedback, log locations, and redaction.</li>
+              <li><strong>Public project report:</strong> <a href="https://github.com/openai/codex/issues/32153">openai/codex #32153</a>, a closed report about a result without display, persistence, or <code>saved_path</code> on specific older versions.</li>
+              <li><strong>Community reports:</strong> <a href="https://linux.do/t/topic/2588635">a Linux.do user report</a> and <a href="https://www.reddit.com/r/codex/comments/1u8orlk/codex_stopped_saving_generated_images_in_the/">an r/codex user report</a> describe UI-only or disk-missing symptoms. They are anecdotes, not official findings, prevalence data, or market-size evidence.</li>
+              <li><strong>API reference:</strong> <a href="https://developers.openai.com/api/docs/guides/image-generation">OpenAI image-generation API guide</a>, for the official API only; third-party endpoints require their own documentation and real testing.</li>
+            </ul>
+          </section>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main"><a class="brand-lockup footer-brand" href="/en/"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a><p>Solve the immediate problem first, then choose the right image workflow.</p><nav aria-label="Footer navigation"><a href="/en/guide/">Guide</a><a href="/en/cases/">Cases</a><a href="/en/about/">About</a><a href="/en/privacy/">Privacy &amp; Cookies</a><button type="button" data-consent-reset hidden>Ad privacy choices</button><a href="/troubleshooting/codex-image-not-saved/" lang="zh-CN">中文</a></nav></div>
+      <div class="footer-meta"><span>© <span data-current-year>2026</span> Image2 Studio</span><span>TROUBLESHOOT / PRESERVE / VERIFY / REPORT</span></div>
+    </footer>
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050607" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="author" content="Image2 Studio" />
+    <meta name="description" content="Codex 生图不显示、图片没有保存或 image_gen 没有 saved_path？按工具、运行状态、会话结果、磁盘路径和网关错误五层排查，保留结果并安全提交脱敏报告。" />
+    <link rel="canonical" href="__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" />
+    <link rel="alternate" hreflang="zh-CN" href="__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" />
+    <link rel="alternate" hreflang="en" href="__SITE_ORIGIN__/en/troubleshooting/codex-image-not-saved/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Image2 Studio" />
+    <meta property="og:title" content="Codex 生图不显示或没保存：saved_path 排障指南" />
+    <meta property="og:description" content="先定位图片停在工具、运行、会话、路径还是网关，再决定等待、保存或报告。" />
+    <meta property="og:url" content="__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" />
+    <meta property="og:image" content="__SITE_ORIGIN__/images/og-image2-studio.jpg" />
+    <meta property="article:published_time" content="2026-08-03" />
+    <meta property="article:modified_time" content="2026-08-03" />
+    <meta name="google-adsense-account" content="__ADSENSE_ACCOUNT_CLIENT__" />
+    <meta name="adsense-client" content="__ADSENSE_CLIENT__" />
+    <meta name="adsense-slot" content="__ADSENSE_SLOT__" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <title>Codex 生图不显示或没保存：saved_path 排障指南｜Image2</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Codex 生图不显示或没保存，先找出图片停在哪一层",
+        "description": "按工具、运行状态、会话结果、磁盘路径和网关错误五层排查 Codex 图片不显示、不保存和缺少 saved_path。",
+        "inLanguage": "zh-CN",
+        "datePublished": "2026-08-03",
+        "dateModified": "2026-08-03",
+        "mainEntityOfPage": "__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/",
+        "url": "__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/",
+        "image": "__SITE_ORIGIN__/images/og-image2-studio.jpg",
+        "author": { "@type": "Organization", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/" },
+        "publisher": { "@type": "Organization", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/" },
+        "about": ["Codex image generation", "image_gen saved_path", "generated image persistence"],
+        "proficiencyLevel": "Beginner",
+        "dependencies": "一个可以查看运行状态和工作区文件的 Codex 会话",
+        "citation": [
+          "https://learn.chatgpt.com/docs/image-generation",
+          "https://learn.chatgpt.com/docs/reference/troubleshooting",
+          "https://github.com/openai/codex/issues/32153"
+        ],
+        "isPartOf": { "@type": "WebSite", "name": "Image2 Studio", "url": "__SITE_ORIGIN__/" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Image2 Studio", "item": "__SITE_ORIGIN__/" },
+          { "@type": "ListItem", "position": 2, "name": "操作指南", "item": "__SITE_ORIGIN__/guide/" },
+          { "@type": "ListItem", "position": 3, "name": "Codex 图片未保存", "item": "__SITE_ORIGIN__/troubleshooting/codex-image-not-saved/" }
+        ]
+      }
+    </script>
+  </head>
+  <body class="content-page troubleshooting-page" data-locale="zh-CN" data-content-type="troubleshooting">
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header" aria-label="主导航">
+      <a class="brand-lockup" href="/" aria-label="Image2 Studio 首页"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a>
+      <nav class="primary-nav" aria-label="页面导航"><a href="/cases/">案例</a><a href="/guide/">指南</a><a href="/about/">关于</a></nav>
+      <div class="header-actions"><a class="language-link" href="/en/troubleshooting/codex-image-not-saved/" lang="en" hreflang="en">EN</a><a class="nav-cta" href="https://github.com/weilaiqishi/image2-web/releases">GitHub 下载</a></div>
+    </header>
+
+    <main class="content-main" id="main">
+      <article class="content-article">
+        <nav class="breadcrumbs" aria-label="面包屑"><a href="/">首页</a><span aria-hidden="true">/</span><a href="/guide/">操作指南</a><span aria-hidden="true">/</span><span aria-current="page">Codex 图片未保存</span></nav>
+        <header class="content-header">
+          <p class="section-index">TROUBLESHOOTING / CODEX / IMAGE OUTPUT</p>
+          <h1>Codex 生图不显示或没保存，先找出图片停在哪一层</h1>
+          <p>看到“生成完成”不等于磁盘上已经有文件。先分清工具是否可用、任务是否仍在运行、结果是否只在界面或会话中、是否缺少输出路径，以及请求是否其实在网关/API 层失败。</p>
+          <div class="content-meta"><span>发布：2026-08-03</span><span>复核：2026-08-03</span><span>阅读约 8 分钟</span></div>
+          <nav class="content-nav" aria-label="本文目录"><a href="#triage">症状分流</a><a href="#decision-tree">决策树</a><a href="#safe-checks">安全检查</a><a href="#saved-path">saved_path</a><a href="#gateway-failures">网关错误</a><a href="#bug-report">报告问题</a><a href="#image2-option">独立工作流</a></nav>
+        </header>
+
+        <div class="content-body">
+          <section id="triage">
+            <p class="content-step">START HERE / PRESERVE THE RESULT</p>
+            <h2>先不要重新生成</h2>
+            <p>重复点击或重发提示词可能启动第二次图片调用，并让原始现场更难判断。先记录使用的 Codex 界面、版本、操作系统、提示词发送时间、最后一个可见状态，以及界面中是否出现过图片或路径。不要关闭、归档或清理原会话。</p>
+            <div class="content-callout"><strong>最重要的判断</strong><span>“界面里看到了图片”“会话里存在图片数据”和“磁盘上已经保存图片文件”是三个不同状态。只有一个真实存在且可打开的文件路径，才能证明已经落盘。</span></div>
+
+            <ol class="diagnostic-rail" aria-label="图片生成结果的五层诊断路径">
+              <li data-stage="01" data-diagnostic="tool-unavailable"><div><strong>工具不可用</strong><span>没有图片生成调用，或 Codex 明确说当前没有可用的图片生成功能。</span></div><code>TOOL</code></li>
+              <li data-stage="02" data-diagnostic="generation-running"><div><strong>仍在生成或等待</strong><span>状态还是 generating，或会话正等待批准、网络响应或运行结束。</span></div><code>RUN</code></li>
+              <li data-stage="03" data-diagnostic="session-only"><div><strong>结果只在界面或会话</strong><span>能看到预览或会话结果，但没有证据表明已经创建磁盘文件。</span></div><code>SESSION</code></li>
+              <li data-stage="04" data-diagnostic="missing-saved-path"><div><strong>缺少 saved_path / 输出路径</strong><span>调用似乎有结果，但没有可用路径，工作区也没有新文件。</span></div><code>DISK</code></li>
+              <li data-stage="05" data-diagnostic="gateway-failure"><div><strong>网关或 API 失败</strong><span>出现 HTTP 错误、超时或结构化错误；图片可能根本没有生成完成。</span></div><code>API</code></li>
+            </ol>
+          </section>
+
+          <section id="decision-tree">
+            <p class="content-step">DECISION TREE / ONE BRANCH AT A TIME</p>
+            <h2>用四个问题确定下一步</h2>
+            <ol class="decision-tree">
+              <li><div><strong>本轮出现了真实的图片生成调用吗？</strong><span>没有，或明确提示功能不可用：走“工具不可用”。有：继续看状态。</span></div></li>
+              <li><div><strong>状态已经结束，而不是 generating 或等待批准吗？</strong><span>没有结束：保留会话并等待或取消，不要并行重试。已经结束：继续看结果。</span></div></li>
+              <li><div><strong>界面中有可查看的图片吗？</strong><span>有：先把它当作“仅界面结果”，再确认磁盘文件。没有：检查是否有明确 API 错误或输出路径。</span></div></li>
+              <li><div><strong>Codex 给出的路径指向一个真实、可打开的图片文件吗？</strong><span>是：问题已缩小为界面预览。否或没有路径：走“缺少 saved_path”，保留证据并报告。</span></div></li>
+            </ol>
+          </section>
+
+          <aside class="ad-unit" data-ad-unit aria-hidden="true" hidden></aside>
+
+          <section id="safe-checks">
+            <p class="content-step">SAFE CHECKS / NO SECRET, NO SECOND CALL</p>
+            <h2>按所在层做可复现检查</h2>
+
+            <h3>1. 工具不可用：使用官方入口名称再确认一次</h3>
+            <p>OpenAI 的 Codex 图片生成文档说明，CLI、App 或 IDE 中可以在提示词里显式加入 <code>$imagegen</code>。如果显式调用后仍提示技能或工具不可用，或本轮完全没有图片生成调用，就不要把它误判为“生成了但没保存”。不同 Codex 界面的版本和功能到达时间也可能不同。</p>
+            <pre><code>使用 $imagegen 生成一张 64 × 64 的纯色测试图。
+将最终 PNG 保存到当前工作区的 ./artifacts/codex-image-check.png，
+并只报告真实存在的工作区相对路径；如果没有保存，请明确说“未保存”，不要猜路径。</code></pre>
+            <p>这段最小提示词会发起新的图片请求，只用于确认工具是否可用；在原任务仍运行时不要执行。图片功能也可能受计划或工作区设置影响，应该按你正在使用的 Codex 界面核对官方文档。</p>
+
+            <h3>2. 仍在生成：先看批准和终止状态</h3>
+            <p>如果状态仍是 <code>generating</code>，先检查 Codex 是否在等待批准。官方排障建议在卡住时确认批准状态，并用一个基本终端命令判断终端是否仍响应。此时不要同时发送第二个图片请求。</p>
+            <pre><code>git status</code></pre>
+            <p><code>git status</code> 只能证明终端和 Git 工作区可响应，不能证明图片已经生成或保存。任务明确成功、失败或被取消后，再进入下一层。</p>
+
+            <h3>3. 图片只在界面或会话：要求确认现有结果，不要重生成</h3>
+            <p>在原会话发送下面的核对请求。它要求 Codex检查已有结果，不应再调用生成：</p>
+            <pre><code>不要重新生成。只检查本轮现有结果：
+1. 如果磁盘文件已经存在，返回工作区相对路径和文件类型；
+2. 如果结果只存在于界面或会话、没有文件，明确回复“未保存”；
+3. 不要猜路径，不要输出 base64、凭证或完整日志。</code></pre>
+            <p>如果回答给出路径，在同一终端先确认当前目录，再看工作区变化：</p>
+            <pre><code>pwd
+git status</code></pre>
+            <p>这两个命令不会搜索工作区之外的目录，Git 忽略的文件也可能不显示。因此路径本身必须真实可打开；不要把“默认应该在某个目录”当作保存证据。</p>
+
+            <h3>4. 记录准确版本</h3>
+            <p>官方排障文档给出了 CLI 和 macOS App 内嵌 CLI 的版本检查方式。Windows 用户可从 Codex 的 About 对话框记录 App 版本。</p>
+            <pre><code>codex --version
+/Applications/Codex.app/Contents/Resources/codex --version</code></pre>
+          </section>
+
+          <section id="saved-path">
+            <p class="content-step">KNOWN REPORT / NOT A UNIVERSAL DIAGNOSIS</p>
+            <h2><code>result</code> 有数据但没有 <code>saved_path</code> 是什么情况？</h2>
+            <p>OpenAI Codex 仓库的公开 <a href="https://github.com/openai/codex/issues/32153">Issue #32153</a> 曾报告：图片数据进入本地 session 记录，但状态停在 <code>generating</code>，没有显示、没有保存，也没有 <code>saved_path</code>。该 Issue 已于 2026-07-16 关闭；报告中的版本和现象不能证明你当前遇到的是同一个缺陷。</p>
+            <p>如果你的可见症状一致，安全做法是保存原会话、记录版本和时间，并提交脱敏复现。不要把 session 中的大段 base64 贴到 Issue，也不要把社区提供的 session 提取脚本当作默认修复：这会接触本地会话内容，可能暴露提示词、路径或私人数据。</p>
+            <div class="content-callout"><strong><code>saved_path</code> 是诊断线索，不是承诺</strong><span>公开 Issue 中出现这个字段，不代表所有 Codex 界面、所有版本或所有图片调用都必须向用户展示同名字段。对用户最可靠的判断仍是：是否得到一个真实、可打开的文件。</span></div>
+          </section>
+
+          <section id="gateway-failures">
+            <p class="content-step">API BRANCH / FIX THE REQUEST FIRST</p>
+            <h2>有 HTTP 错误或超时，就先排网关/API</h2>
+            <p>如果界面已经显示 4xx、5xx、超时或网关返回的结构化错误，先不要继续寻找保存路径。此时请求可能没有产生完整图片结果，持久化不是首要问题。按你实际使用的官方服务或网关文档核对图片端点、模型权限、额度和支持的请求格式。</p>
+            <table class="content-table">
+              <thead><tr><th>可见信号</th><th>先做什么</th><th>不要做什么</th></tr></thead>
+              <tbody>
+                <tr><td>401 / 403</td><td>确认凭证来源、账户权限和图片模型授权</td><td>不要在聊天、截图或 Issue 中粘贴 Key</td></tr>
+                <tr><td>400 / 404</td><td>按提供方文档核对图片端点、模型名和请求能力</td><td>不要因为文本接口可用就假定 Images API 也兼容</td></tr>
+                <tr><td>429</td><td>等待配额或限流恢复，保留原始请求时间</td><td>不要并行重试绕过限制</td></tr>
+                <tr><td>5xx / timeout</td><td>记录时间、请求 ID（如有）和已脱敏错误</td><td>不要把超时写成“图片已生成但没保存”</td></tr>
+              </tbody>
+            </table>
+            <p>“OpenAI-compatible”可能只覆盖文本接口。是否支持 Images API、图片编辑、返回格式和等待时长，需要由端点提供方分别说明和验证。</p>
+          </section>
+
+          <section id="bug-report">
+            <p class="content-step">BUG REPORT / REDACT BEFORE SHARING</p>
+            <h2>提交一份能复现、但不泄密的报告</h2>
+            <p>Codex 官方排障文档建议先搜索 <a href="https://github.com/openai/codex/issues">现有 Issues</a>，再通过 Codex 的反馈入口或 <a href="https://github.com/openai/codex/issues/new?template=2-bug-report.yml">Bug report 模板</a>提交。日志在分享前必须人工检查。</p>
+            <ul class="checklist">
+              <li>Codex 界面（App、CLI 或 IDE）、精确版本、操作系统与架构。</li>
+              <li>最小复现提示词、发生时间和时区，以及任务最后显示的状态。</li>
+              <li>是否出现图片预览、是否返回路径、该路径是否真实可打开。</li>
+              <li>是否看到 HTTP 状态、请求 ID 或等待批准；错误只保留必要片段。</li>
+              <li>预期结果与实际结果，以及同一会话重试是否会产生额外调用。</li>
+            </ul>
+            <div class="content-callout"><strong>提交前删除</strong><span>API Key、Authorization 头、私有 Base URL、账户或工作区标识、私人提示词与图片、完整网关响应、session base64、无关文件路径和未经检查的完整日志。</span></div>
+          </section>
+
+          <section class="resolution-panel" id="image2-option" data-boundary="image2-independent">
+            <p class="content-step">TWO DIFFERENT PATHS</p>
+            <h2>先继续修 Codex；需要独立流程时再看 Image2</h2>
+            <p>Image2 Studio 不能修复 Codex，也不是 Codex 配置工具。它是独立的本地桌面图片工作流，只适合已经合法拥有 OpenAI 兼容 Images API 端点和 Key 的用户。Image2 不隶属于 OpenAI 或 Sub2API，不保证任意网关兼容，也不提供或背书中转服务。</p>
+            <p>如果你的目标仍是找回本轮 Codex 结果，继续走 Codex 官方排障和反馈路径。只有当你本来就希望把图片任务与编码会话分离，再评估 Image2；宣传站不会接收 Key。</p>
+            <div class="resolution-actions">
+              <a class="button button-primary" data-cta="continue-codex" href="https://learn.chatgpt.com/docs/reference/troubleshooting">继续排查 Codex</a>
+              <a class="button button-secondary" data-cta="image2-releases" href="https://github.com/weilaiqishi/image2-web/releases">查看 Image2 Releases</a>
+            </div>
+            <small class="resolution-note">Image2 当前安装包未签名，系统可能显示安全提示。下载前请阅读<a href="/guide/">安装与连接指南</a>，并只使用你有权使用的端点与凭证。</small>
+          </section>
+
+          <section id="sources">
+            <p class="content-step">SOURCES / EVIDENCE LEVELS</p>
+            <h2>来源与证据边界</h2>
+            <ul class="source-list">
+              <li><strong>官方文档：</strong><a href="https://learn.chatgpt.com/docs/image-generation">Codex 图片生成</a>，用于核对 <code>$imagegen</code>、界面差异和可用性边界。</li>
+              <li><strong>官方文档：</strong><a href="https://learn.chatgpt.com/docs/reference/troubleshooting">Codex 排障</a>，用于版本、卡住状态、反馈、日志位置和脱敏要求。</li>
+              <li><strong>项目公开报告：</strong><a href="https://github.com/openai/codex/issues/32153">openai/codex #32153</a>，记录特定旧版本下 result 存在但缺少显示、保存和 <code>saved_path</code> 的已关闭报告。</li>
+              <li><strong>社区报告：</strong><a href="https://linux.do/t/topic/2588635">Linux.do 用户报告</a>与 <a href="https://www.reddit.com/r/codex/comments/1u8orlk/codex_stopped_saving_generated_images_in_the/">r/codex 用户报告</a>说明有人遇到 UI 可见或磁盘不可见的症状；它们是个案，不是官方结论、普遍发生率或市场规模证据。</li>
+              <li><strong>API 参考：</strong><a href="https://developers.openai.com/api/docs/guides/image-generation">OpenAI 图片生成 API 指南</a>，仅用于理解官方 API；第三方端点应以各自文档和实际测试为准。</li>
+            </ul>
+          </section>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main"><a class="brand-lockup footer-brand" href="/"><span class="brand-symbol" aria-hidden="true">I²</span><span><strong>Image2</strong><small>LOCAL IMAGE SYSTEM</small></span></a><p>先解决眼前问题，再选择合适的图片工作流。</p><nav aria-label="页脚导航"><a href="/guide/">指南</a><a href="/cases/">案例</a><a href="/about/">关于</a><a href="/privacy/">隐私与 Cookie</a><button type="button" data-consent-reset hidden>广告隐私选择</button><a href="/en/troubleshooting/codex-image-not-saved/" lang="en">English</a></nav></div>
+      <div class="footer-meta"><span>© <span data-current-year>2026</span> Image2 Studio</span><span>TROUBLESHOOT / PRESERVE / VERIFY / REPORT</span></div>
+    </footer>
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

@@ -103,6 +103,7 @@ Use a mineral plinth and restrained cyan edge light. No copy, logo, or watermark
           <section id="troubleshoot">
             <p class="content-step">STEP / 08</p><h2>Troubleshoot the failing stage</h2>
             <dl class="content-ledger"><div><dt>401 / 403</dt><dd>Check the key, gateway permission, and model access. Never paste the key into a web page or Issue.</dd></div><div><dt>404</dt><dd>Check the Base URL, its <code>/v1</code> path, and whether the chosen protocol endpoint exists.</dd></div><div><dt>429</dt><dd>Wait for quota to recover. Keep execution serial instead of opening parallel windows.</dd></div><div><dt>INVALID JSON</dt><dd>The agent response did not match the task contract. Switch to a supported model or protocol.</dd></div></dl>
+            <p>If this happened in Codex and the image was generated but is not visible, not saved, or has no <code>saved_path</code>, follow the <a href="/en/troubleshooting/codex-image-not-saved/">Codex image display and save troubleshooting guide</a> stage by stage.</p>
             <p>Use <a href="https://github.com/weilaiqishi/image2-web/issues">GitHub Issues</a> for public bug reports. Include reproducible steps and redacted errors, never keys, full gateway responses, or private images.</p>
           </section>
         </div>
