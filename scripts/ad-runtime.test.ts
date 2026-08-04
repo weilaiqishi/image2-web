@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 import { APPROVED_ADSTERRA_BANNER } from "./ad-config.mjs";
 
@@ -53,6 +53,7 @@ function runScenario(provider: "none" | "adsense" | "adsterra", options: {
   noAds?: boolean;
   storageBlocked?: boolean;
   instrumentReload?: boolean;
+  adsterraRenderTimeoutMs?: number;
 } = {}) {
   const dom = new JSDOM(
     `<!doctype html><html><head></head><body data-locale="en"${options.noAds ? " data-no-ads" : ""}><aside data-ad-unit aria-hidden="true" hidden></aside><button data-consent-reset hidden>Reset</button></body></html>`,
@@ -73,9 +74,15 @@ function runScenario(provider: "none" | "adsense" | "adsterra", options: {
       },
     });
   }
-  const runtimeSource = options.instrumentReload
+  let runtimeSource = options.instrumentReload
     ? withConfig(provider).replaceAll("window.location.reload();", "window.__consentReloads = (window.__consentReloads || 0) + 1;")
     : withConfig(provider);
+  if (options.adsterraRenderTimeoutMs !== undefined) {
+    runtimeSource = runtimeSource.replace(
+      "const ADSTERRA_RENDER_TIMEOUT_MS = 10000;",
+      `const ADSTERRA_RENDER_TIMEOUT_MS = ${options.adsterraRenderTimeoutMs};`,
+    );
+  }
   dom.window.eval(runtimeSource);
   dom.window.document.dispatchEvent(new dom.window.Event("DOMContentLoaded"));
   return dom;
@@ -121,6 +128,69 @@ describe("advertising runtime", () => {
     expect(unit.dataset.adPlacement).toBe(adsterraKey);
     expect(unit.hidden).toBe(false);
     expect(dom.window.document.querySelectorAll("ins.adsbygoogle")).toHaveLength(0);
+    dom.window.close();
+  });
+
+  it("collapses and diagnoses an empty Adsterra response after the render deadline", async () => {
+    const dom = runScenario("adsterra", { consent: "accepted", adsterraRenderTimeoutMs: 10 });
+    const warn = vi.spyOn(dom.window.console, "warn").mockImplementation(() => {});
+    const unit = dom.window.document.querySelector("[data-ad-unit]") as HTMLElement;
+    const loader = unit.querySelector("[data-image2-adsterra]") as HTMLScriptElement;
+
+    loader.dispatchEvent(new dom.window.Event("load"));
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(unit.dataset.adState).toBe("no-fill");
+    expect(unit.hidden).toBe(true);
+    expect(unit.getAttribute("aria-hidden")).toBe("true");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("no-fill"));
+    expect(unit.querySelectorAll("script[data-image2-adsterra]")).toHaveLength(1);
+
+    const lateIframe = dom.window.document.createElement("iframe");
+    lateIframe.width = "300";
+    lateIframe.height = "250";
+    unit.append(lateIframe);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(unit.dataset.adState).toBe("rendered");
+    expect(unit.hidden).toBe(false);
+    dom.window.close();
+  });
+
+  it("collapses and diagnoses an Adsterra loader error without retrying", async () => {
+    const dom = runScenario("adsterra", { consent: "accepted", adsterraRenderTimeoutMs: 10 });
+    const warn = vi.spyOn(dom.window.console, "warn").mockImplementation(() => {});
+    const unit = dom.window.document.querySelector("[data-ad-unit]") as HTMLElement;
+    const loader = unit.querySelector("[data-image2-adsterra]") as HTMLScriptElement;
+
+    loader.dispatchEvent(new dom.window.Event("error"));
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(unit.dataset.adState).toBe("loader-error");
+    expect(unit.hidden).toBe(true);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("loader-error"));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(unit.querySelectorAll("script[data-image2-adsterra]")).toHaveLength(1);
+    dom.window.close();
+  });
+
+  it("keeps a delayed Adsterra iframe visible after the render deadline", async () => {
+    const dom = runScenario("adsterra", { consent: "accepted", adsterraRenderTimeoutMs: 30 });
+    const unit = dom.window.document.querySelector("[data-ad-unit]") as HTMLElement;
+
+    expect(unit.dataset.adState).toBe("loading");
+    expect(unit.hidden).toBe(false);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    const iframe = dom.window.document.createElement("iframe");
+    iframe.width = "300";
+    iframe.height = "250";
+    unit.append(iframe);
+    await new Promise((resolve) => setTimeout(resolve, 40));
+
+    expect(unit.dataset.adState).toBe("rendered");
+    expect(unit.hidden).toBe(false);
+    expect(unit.getAttribute("aria-hidden")).toBe("false");
+    expect(unit.querySelector("iframe")).toBe(iframe);
     dom.window.close();
   });
 

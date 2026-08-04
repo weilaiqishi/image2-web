@@ -6,6 +6,7 @@ const ADSTERRA_PLACEMENT_ID = "__ADSTERRA_PLACEMENT_ID__";
 const ADSTERRA_OPTIONS_SOURCE = __ADSTERRA_OPTIONS_SOURCE_JSON__;
 const ADSTERRA_SCRIPT_ORIGIN = "__ADSTERRA_SCRIPT_ORIGIN__";
 const ADSTERRA_SCRIPT_URL = "__ADSTERRA_SCRIPT_URL__";
+const ADSTERRA_RENDER_TIMEOUT_MS = 10000;
 const AD_CONSENT_KEY = "image2.ads.consent.v2";
 const LEGACY_AD_CONSENT_KEY = "image2.ads.consent.v1";
 const VALID_CONSENT = new Set(["accepted", "rejected"]);
@@ -184,16 +185,44 @@ function initializeAdsense(units) {
   return true;
 }
 
+function setAdsterraUnitState(unit, state) {
+  const visible = state === "loading" || state === "rendered";
+  unit.dataset.adState = state;
+  unit.classList.toggle("is-ad-ready", visible);
+  unit.hidden = !visible;
+  unit.setAttribute("aria-hidden", String(!visible));
+}
+
+function monitorAdsterraUnit(unit, loaderScript) {
+  let renderTimeout;
+  const detectCreative = () => {
+    if (!unit.querySelector("iframe")) return false;
+    window.clearTimeout(renderTimeout);
+    setAdsterraUnitState(unit, "rendered");
+    observer.disconnect();
+    return true;
+  };
+  const reportFailure = (state) => {
+    if (detectCreative() || unit.dataset.adState === state) return;
+    window.clearTimeout(renderTimeout);
+    setAdsterraUnitState(unit, state);
+    console.warn(`[Image2 ads] Adsterra ${state}; collapsing unrendered ad slot.`);
+  };
+  const observer = new MutationObserver(detectCreative);
+  observer.observe(unit, { childList: true, subtree: true });
+  loaderScript.addEventListener("load", detectCreative, { once: true });
+  loaderScript.addEventListener("error", () => reportFailure("loader-error"), { once: true });
+  renderTimeout = window.setTimeout(() => reportFailure("no-fill"), ADSTERRA_RENDER_TIMEOUT_MS);
+}
+
 function initializeAdsterra(units) {
   units.forEach((unit) => {
     if (unit.hasAttribute("data-ad-initialized")) return;
     unit.replaceChildren();
-    unit.classList.add("is-ad-ready");
-    unit.hidden = false;
     unit.dataset.adProvider = "adsterra";
     unit.dataset.adPlacement = ADSTERRA_PLACEMENT_ID;
     unit.setAttribute("data-ad-initialized", "");
-    unit.setAttribute("aria-hidden", "false");
+    setAdsterraUnitState(unit, "loading");
     const optionsScript = document.createElement("script");
     optionsScript.textContent = ADSTERRA_OPTIONS_SOURCE;
     unit.append(optionsScript);
@@ -203,6 +232,7 @@ function initializeAdsterra(units) {
     loaderScript.async = false;
     loaderScript.src = ADSTERRA_SCRIPT_URL;
     loaderScript.setAttribute("data-image2-adsterra", "");
+    monitorAdsterraUnit(unit, loaderScript);
     unit.append(loaderScript);
   });
   return true;

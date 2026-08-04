@@ -103,6 +103,8 @@ ADSTERRA_POLICY_REVIEWED=true
 
 Adsterra 构建保留 CSP，并仅允许 `ADSTERRA_CSP_ORIGINS` 中逐项校验过的 HTTPS Origin；脚本 Origin 不在列表中时构建会自动禁用广告。若真实广告还需要其他动态 Origin，浏览器将按默认拒绝策略阻止资源，需根据官方 Tag 和实际网络记录补齐后重新验证。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
 
+同意后，Adsterra 广告位通过 `data-ad-state` 暴露非敏感运行状态：`loading`、`rendered`、`no-fill` 或 `loader-error`。loader 报错或 10 秒内没有创建 iframe 时，页面会隐藏空广告位并在控制台输出一次警告，不会重试或请求其他提供商；监视器仍会接受稍后到达的 iframe，并将广告位恢复为 `rendered`，因此真实的 300x250 素材不会被永久折叠。
+
 ## Wrangler 可选部署
 
 需要命令行部署时，可以显式指定构建目录：
