@@ -240,6 +240,18 @@ if (!adConfig.csp) {
   if (adConfig.activeProvider === "none") {
     assert.match(cspHeaders[0], /default-src 'self'/, "ad-disabled CSP must remain self-only by default");
     assert.doesNotMatch(headers, /googlesyndication|doubleclick/i, "default CSP must not allow Google ad domains");
+  } else if (adConfig.activeProvider === "adsterra") {
+    const directives = new Map(cspHeaders[0]
+      .replace(/^Content-Security-Policy:\s*/, "")
+      .split(";")
+      .map((directive) => directive.trim().split(/\s+/))
+      .map(([name, ...sources]) => [name, sources]));
+    for (const origin of adConfig.adsterra.frameOrigins) {
+      assert.ok(directives.get("frame-src")?.includes(origin), `frame-src must allow reviewed Adsterra frame origin ${origin}`);
+      for (const directive of ["connect-src", "img-src", "script-src"]) {
+        assert.ok(!directives.get(directive)?.includes(origin), `${directive} must not allow frame-only Adsterra origin ${origin}`);
+      }
+    }
   }
 }
 

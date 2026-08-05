@@ -52,7 +52,7 @@ function parseCspOrigins(value) {
   const validated = [];
   for (const entry of origins) {
     const url = parseHttpsUrl(entry);
-    if (!url || url.origin !== entry || url.pathname !== "/" || url.search) return [];
+    if (!url || url.hostname.includes("*") || url.origin !== entry || url.pathname !== "/" || url.search) return [];
     if (!validated.includes(url.origin)) validated.push(url.origin);
   }
   return validated;
@@ -63,9 +63,10 @@ function isValidAdsTxtRecord(value) {
     && !/[\r\n]/.test(value);
 }
 
-function buildAdsterraCsp(origins) {
-  const sources = origins.join(" ");
-  return `Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self' ${sources} ${CLOUDFLARE_ANALYTICS_CONNECT_ORIGIN}; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'self' ${sources}; img-src 'self' data: ${sources}; object-src 'none'; script-src 'self' 'unsafe-inline' ${sources} ${CLOUDFLARE_ANALYTICS_SCRIPT_ORIGIN}; style-src 'self' 'unsafe-inline'; upgrade-insecure-requests`;
+function buildAdsterraCsp(resourceOrigins, frameOrigins) {
+  const resourceSources = resourceOrigins.join(" ");
+  const frameSources = [...new Set([...resourceOrigins, ...frameOrigins])].join(" ");
+  return `Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self' ${resourceSources} ${CLOUDFLARE_ANALYTICS_CONNECT_ORIGIN}; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src 'self' ${frameSources}; img-src 'self' data: ${resourceSources}; object-src 'none'; script-src 'self' 'unsafe-inline' ${resourceSources} ${CLOUDFLARE_ANALYTICS_SCRIPT_ORIGIN}; style-src 'self' 'unsafe-inline'; upgrade-insecure-requests`;
 }
 
 export function resolveAdConfig(env, warn = console.warn) {
@@ -96,7 +97,11 @@ export function resolveAdConfig(env, warn = console.warn) {
 
   const requestedPlacementId = (env.ADSTERRA_PLACEMENT_ID || "").trim().toLowerCase();
   const requestedAdsTxtRecord = (env.ADSTERRA_ADS_TXT_RECORD || "").trim();
-  const cspOrigins = parseCspOrigins((env.ADSTERRA_CSP_ORIGINS || "").trim());
+  const requestedCspOrigins = (env.ADSTERRA_CSP_ORIGINS || "").trim();
+  const requestedFrameOrigins = (env.ADSTERRA_FRAME_ORIGINS || "").trim();
+  const cspOrigins = parseCspOrigins(requestedCspOrigins);
+  const frameOrigins = parseCspOrigins(requestedFrameOrigins);
+  const validFrameOrigins = !requestedFrameOrigins || frameOrigins.length > 0;
   const validAdsTxtRecord = isValidAdsTxtRecord(requestedAdsTxtRecord);
   const policyReviewed = env.ADSTERRA_POLICY_REVIEWED === "true";
   const approvedPlacementSelected = requestedPlacementId === APPROVED_ADSTERRA_BANNER.placementId;
@@ -105,12 +110,15 @@ export function resolveAdConfig(env, warn = console.warn) {
     && approvedPlacementSelected
     && cspOrigins.length > 0
     && scriptOriginAllowed
+    && validFrameOrigins
     && policyReviewed;
 
   if (requestedProvider === "adsterra" && !approvedPlacementSelected) {
     warn("Adsterra disabled: ADSTERRA_PLACEMENT_ID must match the approved image2-studio.pages.dev 300x250 Display Banner");
   } else if (requestedProvider === "adsterra" && (!cspOrigins.length || !scriptOriginAllowed)) {
     warn("Adsterra disabled: ADSTERRA_CSP_ORIGINS must contain reviewed HTTPS origins including the banner script origin");
+  } else if (requestedProvider === "adsterra" && !validFrameOrigins) {
+    warn("Adsterra disabled: ADSTERRA_FRAME_ORIGINS must contain only exact reviewed HTTPS origins");
   } else if (requestedProvider === "adsterra" && !policyReviewed) {
     warn("Adsterra disabled: set ADSTERRA_POLICY_REVIEWED=true only after the approved tag, privacy disclosure, CSP, and ad quality controls are reviewed");
   }
@@ -131,7 +139,7 @@ export function resolveAdConfig(env, warn = console.warn) {
     activeProvider,
     adsEnabled: activeProvider !== "none",
     adsTxtRecords,
-    csp: adsenseEnabled ? "" : adsterraEnabled ? buildAdsterraCsp(cspOrigins) : SELF_ONLY_CSP,
+    csp: adsenseEnabled ? "" : adsterraEnabled ? buildAdsterraCsp(cspOrigins, frameOrigins) : SELF_ONLY_CSP,
     adsense: {
       publisherClient: adsensePublisherClient,
       client: adsenseEnabled ? requestedAdsenseClient : "",
@@ -148,6 +156,7 @@ export function resolveAdConfig(env, warn = console.warn) {
       width: adsterraEnabled ? APPROVED_ADSTERRA_BANNER.width : 0,
       height: adsterraEnabled ? APPROVED_ADSTERRA_BANNER.height : 0,
       cspOrigins: adsterraEnabled ? cspOrigins : [],
+      frameOrigins: adsterraEnabled ? frameOrigins : [],
       adsTxtRecord: adsterraEnabled && validAdsTxtRecord ? requestedAdsTxtRecord : "",
     },
   };

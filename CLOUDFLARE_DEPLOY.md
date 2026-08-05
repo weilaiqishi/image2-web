@@ -93,17 +93,20 @@ SITE_ORIGIN=https://你的域名
 AD_PROVIDER=adsterra
 ADSTERRA_PLACEMENT_ID=后台已批准的 image2-studio.pages.dev 300x250 Banner placement ID
 ADSTERRA_CSP_ORIGINS=https://www.highperformanceformat.com
+ADSTERRA_FRAME_ORIGINS=https://zoologyfibre.com
 ADSTERRA_ADS_TXT_RECORD=可选；仅在 Adsterra 后台或支持团队明确提供时填写完整卖方记录
 ADSTERRA_POLICY_REVIEWED=true
 ```
 
 完整 Banner Tag、其中的公开广告位 key、脚本地址和 `ads.txt` 行会出现在公开网页或公开标准文件中，不是密码。真实 Tag 已按后台原文固定在构建配置中；环境变量只选择与该 Tag 精确匹配的 placement ID，不能传入任意脚本。不得提供或写入账户密码、Cookie、Token 或登录会话。
 
-当前适配器只接受本次已批准网站后台生成的两段式 300x250 Display Banner Tag：第一段是未经修改的 `atOptions`，第二段是匹配同一公开 key 的 HTTPS loader。构建会严格校验已批准的 placement ID、尺寸、iframe 格式、loader 主机和 key 一致性；任一处缺失或不匹配都会自动保持 `AD_PROVIDER=none`。运行时只在用户明确同意后，按原顺序创建这两段脚本，不接受任意 HTML 或脚本配置。当前生产 CSP 只加入 Tag 直接证明必需的 `https://www.highperformanceformat.com`；没有证据的动态 Origin 不加入允许列表。
+当前适配器只接受本次已批准网站后台生成的两段式 300x250 Display Banner Tag：第一段是未经修改的 `atOptions`，第二段是匹配同一公开 key 的 HTTPS loader。构建会严格校验已批准的 placement ID、尺寸、iframe 格式、loader 主机和 key 一致性；任一处缺失或不匹配都会自动保持 `AD_PROVIDER=none`。运行时只在用户明确同意后，按原顺序创建这两段脚本，不接受任意 HTML 或脚本配置。
 
-Adsterra 构建保留 CSP，并仅允许 `ADSTERRA_CSP_ORIGINS` 中逐项校验过的 HTTPS Origin；脚本 Origin 不在列表中时构建会自动禁用广告。若真实广告还需要其他动态 Origin，浏览器将按默认拒绝策略阻止资源，需根据官方 Tag 和实际网络记录补齐后重新验证。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
+2026 年 8 月 5 日的生产浏览器证据显示：获准的广告位已经创建 300x250 iframe，因此不是 no-fill；该矩形同时对应控制台中的 `Framing 'https://zoologyfibre.com/' violates CSP directive: frame-src 'self' https://www.highperformanceformat.com`。这只证明 `https://zoologyfibre.com` 是当时实际返回的 Adsterra creative frame Origin。脱离广告上下文直接请求该域名会重定向至 Google，因此不能据此把它视为普遍可信的资源域，也不能授予脚本、连接或图片权限；creative Origin 还可能轮换，任何新增 Origin 都必须根据新的真实浏览器证据单独复核。
 
-同意后，Adsterra 广告位通过 `data-ad-state` 暴露非敏感运行状态：`loading`、`rendered`、`no-fill` 或 `loader-error`。loader 报错或 10 秒内没有创建 iframe 时，页面会隐藏空广告位并在控制台输出一次警告，不会重试或请求其他提供商；监视器仍会接受稍后到达的 iframe，并将广告位恢复为 `rendered`，因此真实的 300x250 素材不会被永久折叠。
+Adsterra 构建保留 CSP。`ADSTERRA_CSP_ORIGINS` 仅保存 loader 及其已复核资源 Origin，并用于 `connect-src`、`img-src`、`script-src` 以及 loader 所需的 `frame-src`。独立的 `ADSTERRA_FRAME_ORIGINS` 只扩展 `frame-src`；当前精确允许 `https://zoologyfibre.com`，不会把它加入 `connect-src`、`img-src` 或 `script-src`。两个变量都只接受无路径、查询、凭据或通配符的精确 HTTPS Origin；非空畸形值会使所选 Adsterra 构建自动禁用，预览默认值保持为空且不放行 creative Origin。若真实广告还需要其他动态 Origin，浏览器将按默认拒绝策略阻止资源，需在复核后精确补充，绝不使用 `https:` 或通配符。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
+
+同意后，Adsterra 广告位通过 `data-ad-state` 暴露非敏感运行状态：`loading`、`rendered`、`no-fill`、`loader-error` 或 `csp-blocked`。loader 报错、10 秒内没有创建 iframe，或广告位内可见/加载中的 iframe 触发与自身 Origin 匹配的 `frame-src` 违规时，页面会隐藏损坏的广告位并在控制台输出一次不含目标 URL 的警告，不会重试或请求其他提供商。其他页面 CSP 违规不会折叠广告位；监视器仍会接受 no-fill 或 loader-error 后稍晚到达的 iframe，并将广告位恢复为 `rendered`，因此成功创建且未触发匹配违规的 300x250 素材不会被永久折叠。
 
 ## Wrangler 可选部署
 

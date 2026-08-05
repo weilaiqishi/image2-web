@@ -11,9 +11,18 @@ const validAdsense = {
 const validAdsterra = {
   ADSTERRA_PLACEMENT_ID: APPROVED_ADSTERRA_BANNER.placementId,
   ADSTERRA_CSP_ORIGINS: "https://www.highperformanceformat.com, https://media.example.test",
+  ADSTERRA_FRAME_ORIGINS: "https://zoologyfibre.com",
   ADSTERRA_ADS_TXT_RECORD: "example.test, seller-123, DIRECT, authority456",
   ADSTERRA_POLICY_REVIEWED: "true",
 };
+
+function cspDirective(csp: string, name: string) {
+  return csp
+    .replace(/^Content-Security-Policy:\s*/, "")
+    .split(";")
+    .map((directive) => directive.trim().split(/\s+/))
+    .find(([directiveName]) => directiveName === name) || [];
+}
 
 describe("resolveAdConfig", () => {
   it.each([
@@ -85,9 +94,39 @@ describe("resolveAdConfig", () => {
     expect(config.adsterra.format).toBe("display-banner-300x250");
     expect(config.adsterra.width).toBe(300);
     expect(config.adsterra.height).toBe(250);
+    expect(config.adsterra.frameOrigins).toEqual(["https://zoologyfibre.com"]);
     expect(config.adsTxtRecords).toContain(validAdsterra.ADSTERRA_ADS_TXT_RECORD);
     expect(config.csp).toContain("script-src 'self' 'unsafe-inline' https://www.highperformanceformat.com https://media.example.test");
-    expect(config.csp).toContain("frame-src 'self' https://www.highperformanceformat.com https://media.example.test");
+    expect(config.csp).toContain("frame-src 'self' https://www.highperformanceformat.com https://media.example.test https://zoologyfibre.com");
+  });
+
+  it("grants a reviewed creative origin to frames only", () => {
+    const config = resolveAdConfig({ AD_PROVIDER: "adsterra", ...validAdsterra });
+
+    expect(cspDirective(config.csp, "frame-src")).toContain("https://zoologyfibre.com");
+    for (const directive of ["connect-src", "img-src", "script-src"]) {
+      expect(cspDirective(config.csp, directive)).not.toContain("https://zoologyfibre.com");
+    }
+  });
+
+  it.each([
+    ["non-HTTPS", "http://zoologyfibre.com"],
+    ["path", "https://zoologyfibre.com/creative"],
+    ["query", "https://zoologyfibre.com/?placement=1"],
+    ["credentials", "https://publisher@zoologyfibre.com"],
+    ["wildcard", "https://*.zoologyfibre.com"],
+  ])("rejects a %s Adsterra frame origin", (_, frameOrigins) => {
+    const warn = vi.fn();
+    const config = resolveAdConfig({
+      AD_PROVIDER: "adsterra",
+      ...validAdsterra,
+      ADSTERRA_FRAME_ORIGINS: frameOrigins,
+    }, warn);
+
+    expect(config.activeProvider).toBe("none");
+    expect(config.adsterra.frameOrigins).toEqual([]);
+    expect(config.csp).not.toContain("zoologyfibre.com");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("ADSTERRA_FRAME_ORIGINS"));
   });
 
   it("preserves the validated Google seller record when Adsterra is selected", () => {
