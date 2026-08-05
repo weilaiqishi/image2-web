@@ -60,15 +60,15 @@ SITE_ORIGIN=https://你的域名
 
 ## 广告提供商与隐私边界
 
-`AD_PROVIDER` 只接受 `none`、`adsense` 或 `adsterra`，预览默认值是 `none`，当前生产值是 `adsterra`。一次构建最多启用一个广告提供商，不做自动失败回退，也不会在同一广告位并发加载两个平台。生产构建保留公开的 AdSense 发布商 ID 和卖方验证记录，但 `AD_PROVIDER=adsterra` 时不会包含或加载 AdSense 广告脚本和广告位。
+`AD_PROVIDER` 只接受 `none`、`adsense` 或 `adsterra`，预览默认值是 `none`，当前生产值是 `adsterra`。一次构建最多启用一个广告提供商，不做自动失败回退，也不会在同一广告位并发加载两个平台。生产构建保留公开的 AdSense 发布商 ID 和卖方验证记录，但 `AD_PROVIDER=adsterra` 时不会包含或加载 AdSense 广告脚本。
 
-所有广告页面先输出隐藏且无子节点的 `[data-ad-unit]`。只有配置完整、页面不是 `data-no-ads`，并且用户明确同意后，运行时才会向选定提供商插入广告标签。拒绝或尚未选择时不会产生广告平台请求。隐私、关于和 404 页面永不投放，但隐私页可以管理或撤回已有选择。
+Adsterra 部署到中英文首页、指南、案例和 Codex 排障文章共 8 个既有广告位。构建在每个 `aside class="ad-unit"` 中直接写入固定两段式 Tag：内联 `atOptions` 后面紧跟已批准的 loader。浏览器按解析顺序执行，页面解析时立即加载；没有 Adsterra 同意提示、本地存储闸门或重置控件。隐私、关于和 404 页面不包含 Adsterra Tag 或第三方广告资源。
 
-同意记录使用 `image2.ads.consent.v2`，接受状态会绑定到具体广告提供商。从旧版本升级或切换提供商时，旧的拒绝会继续生效；旧的同意不会自动授权新增或替换后的广告提供商，用户需要重新选择。
+保留的 `image2.ads.consent.v2` 同意记录和浏览器同意运行时仅供尚未投入生产的 Google AdSense 路径使用。它们不参与 Adsterra 的加载。
 
 项目所有者已决定对宣传站的所有构建都省略 `Content-Security-Policy` 响应头，包括默认/`none`、Adsterra 和 AdSense；也不使用 `Content-Security-Policy-Report-Only` 或 meta CSP。这个决定仅适用于当前静态宣传站：它没有用户账户、登录状态、传输秘密的表单，也不提供在线图片生成或 API Key 输入。Adsterra 素材会使用平台动态分配且可能轮换的域名，静态 CSP Origin 列表无法准确描述实际资源集合。
 
-省略 CSP 不改变广告授权边界。构建仍只接受固定在源码中的已批准 Adsterra Tag 和与其精确匹配的 placement ID，运行时也不接受任意脚本 URL；Adsterra 和 AdSense 仍只在用户明确同意后请求，拒绝保持零广告请求，`data-no-ads` 页面保持无广告。`_headers` 继续设置 `X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin` 和限制性的 `Permissions-Policy`。
+省略 CSP 不改变构建时的广告授权边界。只有源码中固定的已批准 Adsterra Tag、与其精确匹配的 placement ID 和 `ADSTERRA_POLICY_REVIEWED=true` 能产生 Adsterra 输出；环境变量不能提供任意 HTML 或脚本 URL。Adsterra Tag 会立即请求平台资源，平台可能处理隐私页披露的技术数据，并不代表“无隐私影响”。`_headers` 继续设置 `X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin` 和限制性的 `Permissions-Policy`。
 
 ### Google AdSense
 
@@ -102,11 +102,11 @@ ADSTERRA_POLICY_REVIEWED=true
 
 完整 Banner Tag、其中的公开广告位 key、脚本地址和 `ads.txt` 行会出现在公开网页或公开标准文件中，不是密码。真实 Tag 已按后台原文固定在构建配置中；环境变量只选择与该 Tag 精确匹配的 placement ID，不能传入任意脚本。不得提供或写入账户密码、Cookie、Token 或登录会话。
 
-当前适配器只接受本次已批准网站后台生成的两段式 300x250 Display Banner Tag：第一段是未经修改的 `atOptions`，第二段是匹配同一公开 key 的 HTTPS loader。构建会严格校验已批准的 placement ID、尺寸、iframe 格式、loader 主机和 key 一致性；任一处缺失或不匹配都会自动保持 `AD_PROVIDER=none`。运行时只在用户明确同意后，按原顺序创建这两段脚本，不接受任意 HTML 或脚本配置。
+构建器只接受本次已批准网站后台生成的两段式 300x250 Display Banner Tag：第一段是未经修改的 `atOptions`，第二段是匹配同一公开 key 的 HTTPS loader。构建会严格校验已批准的 placement ID 和政策复核闸门；任一处缺失或不匹配都会自动保持 `AD_PROVIDER=none`。通过闸门后，构建器把源码中硬编码的完整 Tag 原样替换到 8 个既有广告位占位符中，不从环境变量读取 HTML、options 或 loader URL。
 
 Adsterra 的固定 loader 可以继续加载由平台选择的 iframe 和其他资源域名；这些 creative 域名是动态的，可能随时间、地区、素材和投放响应变化。历史上观察到某个域名只说明一次广告响应使用过它，不表示该域名可作为长期固定清单，也不会让项目把它接受为运行时 loader 配置。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
 
-同意后，Adsterra 广告位通过 `data-ad-state` 暴露非敏感运行状态：`loading`、`rendered`、`no-fill` 或 `loader-error`。loader 报错或 10 秒内没有创建 iframe 时，页面会隐藏损坏的广告位并在控制台输出一次警告，不会重试或请求其他提供商。监视器仍会接受 no-fill 或 loader-error 后稍晚到达的 iframe，并将广告位恢复为 `rendered`。
+广告位使用固定可见尺寸保持文章布局稳定。站点 JavaScript 不监视 Adsterra 响应、不设置加载状态、不自动折叠广告位，也不动态创建或重试 Adsterra 脚本。
 
 ## Wrangler 可选部署
 
@@ -142,6 +142,6 @@ Wrangler 登录、项目创建和生产发布会改变 Cloudflare 账户状态�
 3. `robots.txt`、`sitemap.xml`、8 张生成案例和社交分享图返回 `200`。
 4. 页面源码中的 canonical 与实际生产域名一致。
 5. 任意不存在的路径返回真实 `404`，不以首页内容和 `200` 伪装成功。
-6. 未配置广告时，HTML 与 JavaScript 都不含广告平台域名；`/ads.txt` 只保留独立验证通过的公开卖方记录（当前为 Google 发布商验证记录）。
+6. 未配置广告时，HTML 与 JavaScript 都不含第三方广告资源或未解析占位符；生产 Adsterra 构建只在 8 个既有广告页中包含已批准 loader；`/ads.txt` 只保留独立验证通过的公开卖方记录（当前为 Google 发布商验证记录）。
 7. Cloudflare 响应不包含 CSP 或 CSP Report-Only，并包含 `_headers` 中的 `nosniff`、`DENY`、Referrer Policy 与 Permissions Policy。
 8. Git 仓库、完整 Git 历史和构建日志中不存在任何 API Key。

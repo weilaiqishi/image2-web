@@ -2,11 +2,6 @@ const AD_PROVIDER = "__AD_PROVIDER__";
 const ADSENSE_CLIENT = "__ADSENSE_CLIENT__";
 const ADSENSE_SLOT = "__ADSENSE_SLOT__";
 const ADSENSE_SCRIPT_URL = "__ADSENSE_SCRIPT_URL__";
-const ADSTERRA_PLACEMENT_ID = "__ADSTERRA_PLACEMENT_ID__";
-const ADSTERRA_OPTIONS_SOURCE = __ADSTERRA_OPTIONS_SOURCE_JSON__;
-const ADSTERRA_SCRIPT_ORIGIN = "__ADSTERRA_SCRIPT_ORIGIN__";
-const ADSTERRA_SCRIPT_URL = "__ADSTERRA_SCRIPT_URL__";
-const ADSTERRA_RENDER_TIMEOUT_MS = 10000;
 const AD_CONSENT_KEY = "image2.ads.consent.v2";
 const LEGACY_AD_CONSENT_KEY = "image2.ads.consent.v1";
 const VALID_CONSENT = new Set(["accepted", "rejected"]);
@@ -61,24 +56,9 @@ function adsenseIsConfigured() {
     && ADSENSE_SCRIPT_URL.startsWith("https://");
 }
 
-function adsterraIsConfigured() {
-  return /^[a-f0-9]{32}$/.test(ADSTERRA_PLACEMENT_ID)
-    && ADSTERRA_OPTIONS_SOURCE.includes(`'key' : '${ADSTERRA_PLACEMENT_ID}'`)
-    && ADSTERRA_OPTIONS_SOURCE.includes("'format' : 'iframe'")
-    && ADSTERRA_OPTIONS_SOURCE.includes("'height' : 250")
-    && ADSTERRA_OPTIONS_SOURCE.includes("'width' : 300")
-    && ADSTERRA_OPTIONS_SOURCE.includes("'params' : {}")
-    && ADSTERRA_SCRIPT_URL === `${ADSTERRA_SCRIPT_ORIGIN}/${ADSTERRA_PLACEMENT_ID}/invoke.js`;
-}
-
-const AD_PROVIDERS = {
-  adsense: { label: "Google AdSense", isConfigured: adsenseIsConfigured, initialize: initializeAdsense },
-  adsterra: { label: "Adsterra", isConfigured: adsterraIsConfigured, initialize: initializeAdsterra },
-};
-
 function activeAdProvider() {
-  const provider = AD_PROVIDERS[AD_PROVIDER];
-  return provider?.isConfigured() ? provider : null;
+  if (AD_PROVIDER !== "adsense" || !adsenseIsConfigured()) return null;
+  return { label: "Google AdSense", initialize: initializeAdsense };
 }
 
 function adsAreConfigured() {
@@ -86,19 +66,14 @@ function adsAreConfigured() {
 }
 
 function pageAllowsAds() {
-  return !document.body.hasAttribute("data-no-ads") && document.querySelector("[data-ad-unit]") !== null;
+  return !document.body.hasAttribute("data-no-ads") && document.querySelector(".ad-unit") !== null;
 }
 
 function adLabels() {
-  const provider = activeAdProvider();
-  const providerLabel = provider?.label || "the selected advertising provider";
-  const isAdsense = AD_PROVIDER === "adsense";
   return document.body.getAttribute("data-locale") === "zh-CN"
     ? {
         title: "是否允许加载广告？",
-        description: isAdsense
-          ? "只有你明确同意后，本页才会连接 Google AdSense，并默认请求非个性化广告。拒绝不会产生 Google 广告请求。"
-          : `只有你明确同意后，本页才会连接 ${providerLabel} 并加载展示横幅。拒绝不会产生该广告平台的请求。`,
+        description: "只有你明确同意后，本页才会连接 Google AdSense，并默认请求非个性化广告。拒绝不会产生 Google 广告请求。",
         accept: "同意并加载",
         reject: "拒绝",
         label: "广告隐私选择",
@@ -107,9 +82,7 @@ function adLabels() {
       }
     : {
         title: "Allow ads on this site?",
-        description: isAdsense
-          ? "This page connects to Google AdSense only after you opt in, and requests non-personalized ads by default. Rejecting sends no Google advertising request."
-          : `This page connects to ${providerLabel} and loads a display banner only after you opt in. Rejecting sends no request to that advertising provider.`,
+        description: "This page connects to Google AdSense only after you opt in, and requests non-personalized ads by default. Rejecting sends no Google advertising request.",
         accept: "Allow and load",
         reject: "Reject",
         label: "Advertising privacy choice",
@@ -185,63 +158,10 @@ function initializeAdsense(units) {
   return true;
 }
 
-function setAdsterraUnitState(unit, state) {
-  const visible = state === "loading" || state === "rendered";
-  unit.dataset.adState = state;
-  unit.classList.toggle("is-ad-ready", visible);
-  unit.hidden = !visible;
-  unit.setAttribute("aria-hidden", String(!visible));
-}
-
-function monitorAdsterraUnit(unit, loaderScript) {
-  let renderTimeout;
-  const detectCreative = () => {
-    if (!unit.querySelector("iframe")) return false;
-    window.clearTimeout(renderTimeout);
-    setAdsterraUnitState(unit, "rendered");
-    observer.disconnect();
-    return true;
-  };
-  const reportFailure = (state) => {
-    if (detectCreative() || unit.dataset.adState === state) return;
-    window.clearTimeout(renderTimeout);
-    setAdsterraUnitState(unit, state);
-    console.warn(`[Image2 ads] Adsterra ${state}; collapsing unrendered ad slot.`);
-  };
-  const observer = new MutationObserver(detectCreative);
-  observer.observe(unit, { childList: true, subtree: true });
-  loaderScript.addEventListener("load", detectCreative, { once: true });
-  loaderScript.addEventListener("error", () => reportFailure("loader-error"), { once: true });
-  renderTimeout = window.setTimeout(() => reportFailure("no-fill"), ADSTERRA_RENDER_TIMEOUT_MS);
-}
-
-function initializeAdsterra(units) {
-  units.forEach((unit) => {
-    if (unit.hasAttribute("data-ad-initialized")) return;
-    unit.replaceChildren();
-    unit.dataset.adProvider = "adsterra";
-    unit.dataset.adPlacement = ADSTERRA_PLACEMENT_ID;
-    unit.setAttribute("data-ad-initialized", "");
-    setAdsterraUnitState(unit, "loading");
-    const optionsScript = document.createElement("script");
-    optionsScript.textContent = ADSTERRA_OPTIONS_SOURCE;
-    unit.append(optionsScript);
-
-    const loaderScript = document.createElement("script");
-    // Match the approved parser-ordered tag: the loader must observe atOptions.
-    loaderScript.async = false;
-    loaderScript.src = ADSTERRA_SCRIPT_URL;
-    loaderScript.setAttribute("data-image2-adsterra", "");
-    monitorAdsterraUnit(unit, loaderScript);
-    unit.append(loaderScript);
-  });
-  return true;
-}
-
 function initializeAds() {
   const provider = activeAdProvider();
   if (adsInitialized || !provider || !pageAllowsAds() || readAdConsent() !== "accepted") return false;
-  const units = Array.from(document.querySelectorAll("[data-ad-unit]"));
+  const units = Array.from(document.querySelectorAll(".ad-unit"));
   if (!units.length) return false;
   adsInitialized = provider.initialize(units);
   return adsInitialized;
@@ -413,7 +333,7 @@ function initializeSite() {
   document.querySelectorAll("[data-current-year]").forEach((node) => {
     node.textContent = String(new Date().getFullYear());
   });
-  initializeConsent();
+  if (AD_PROVIDER === "adsense") initializeConsent();
   initializeCaseLightbox();
 }
 

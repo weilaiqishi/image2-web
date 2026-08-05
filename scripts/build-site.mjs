@@ -24,10 +24,7 @@ const replacements = new Map([
   ["__ADSENSE_SCRIPT_URL__", adConfig.adsense.scriptUrl],
   ["__ADSENSE_PUBLISHER_ID__", adConfig.adsense.publisherClient.replace(/^ca-/, "")],
   ["__ADSENSE_ADS_TXT_RECORD__", adConfig.adsTxtRecords.find((record) => record.startsWith("google.com,")) || ""],
-  ["__ADSTERRA_PLACEMENT_ID__", adConfig.adsterra.placementId],
-  ["__ADSTERRA_OPTIONS_SOURCE_JSON__", JSON.stringify(adConfig.adsterra.optionsSource)],
-  ["__ADSTERRA_SCRIPT_ORIGIN__", adConfig.adsterra.scriptOrigin],
-  ["__ADSTERRA_SCRIPT_URL__", adConfig.adsterra.scriptUrl],
+  ["__ADSTERRA_BANNER_TAG__", adConfig.adsterra.tag],
   ["__ADSTERRA_ADS_TXT_RECORD__", adConfig.adsterra.adsTxtRecord],
 ]);
 

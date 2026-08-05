@@ -17,6 +17,18 @@ const validAdsterra = {
 };
 
 const headersTemplate = readFileSync(resolve(import.meta.dirname, "../site/_headers"), "utf8");
+const buildSource = readFileSync(resolve(import.meta.dirname, "./build-site.mjs"), "utf8");
+const deploymentCopy = readFileSync(resolve(import.meta.dirname, "../CLOUDFLARE_DEPLOY.md"), "utf8");
+const adPageSources = [
+  "../site/index.html",
+  "../site/en/index.html",
+  "../site/guide/index.html",
+  "../site/en/guide/index.html",
+  "../site/cases/index.html",
+  "../site/en/cases/index.html",
+  "../site/troubleshooting/codex-image-not-saved/index.html",
+  "../site/en/troubleshooting/codex-image-not-saved/index.html",
+].map((path) => readFileSync(resolve(import.meta.dirname, path), "utf8"));
 
 describe("resolveAdConfig", () => {
   it.each([
@@ -177,5 +189,26 @@ describe("resolveAdConfig", () => {
     expect(config.activeProvider).toBe("adsterra");
     expect(config.adsTxtRecords).toEqual([]);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("ADSTERRA_ADS_TXT_RECORD"));
+  });
+});
+
+describe("static Adsterra build contract", () => {
+  it("places the build-time banner placeholder directly in all eight approved page asides", () => {
+    expect(adPageSources).toHaveLength(8);
+    for (const html of adPageSources) {
+      expect(html).toContain('<aside class="ad-unit">__ADSTERRA_BANNER_TAG__</aside>');
+      expect(html).not.toMatch(/<aside class="ad-unit"[^>]+>/);
+    }
+
+    expect(buildSource).toContain('["__ADSTERRA_BANNER_TAG__", adConfig.adsterra.tag]');
+    expect(buildSource).not.toContain("process.env.ADSTERRA_TAG");
+  });
+
+  it("documents immediate static Adsterra loading without stale monitoring claims", () => {
+    expect(deploymentCopy).toContain("直接写入固定两段式 Tag");
+    expect(deploymentCopy).toContain("页面解析时立即加载");
+    expect(deploymentCopy).not.toContain("data-ad-state");
+    expect(deploymentCopy).not.toContain("10 秒");
+    expect(deploymentCopy).not.toContain("隐藏损坏的广告位");
   });
 });

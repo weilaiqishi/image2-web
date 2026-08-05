@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { load } from "cheerio";
 import { JSDOM } from "jsdom";
-import { resolveAdConfig } from "./ad-config.mjs";
+import { APPROVED_ADSTERRA_BANNER, resolveAdConfig } from "./ad-config.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const outputDir = resolve(root, "dist-site");
@@ -14,14 +14,14 @@ const adsenseClient = adConfig.adsense.client;
 const adsenseSlot = adConfig.adsense.slot;
 
 const pages = [
-  { path: "index.html", lang: "zh-CN", canonicalSuffix: "/", home: true, ads: true },
-  { path: "en/index.html", lang: "en", canonicalSuffix: "/en/", home: true, ads: true },
-  { path: "cases/index.html", lang: "zh-CN", canonicalSuffix: "/cases/", content: true, ads: true },
-  { path: "en/cases/index.html", lang: "en", canonicalSuffix: "/en/cases/", content: true, ads: true },
-  { path: "guide/index.html", lang: "zh-CN", canonicalSuffix: "/guide/", content: true, ads: true },
-  { path: "en/guide/index.html", lang: "en", canonicalSuffix: "/en/guide/", content: true, ads: true },
-  { path: "troubleshooting/codex-image-not-saved/index.html", lang: "zh-CN", canonicalSuffix: "/troubleshooting/codex-image-not-saved/", content: true, troubleshooting: true, ads: true },
-  { path: "en/troubleshooting/codex-image-not-saved/index.html", lang: "en", canonicalSuffix: "/en/troubleshooting/codex-image-not-saved/", content: true, troubleshooting: true, ads: true },
+  { path: "index.html", lang: "zh-CN", canonicalSuffix: "/", home: true, adsterraSlot: true },
+  { path: "en/index.html", lang: "en", canonicalSuffix: "/en/", home: true, adsterraSlot: true },
+  { path: "cases/index.html", lang: "zh-CN", canonicalSuffix: "/cases/", content: true, adsterraSlot: true },
+  { path: "en/cases/index.html", lang: "en", canonicalSuffix: "/en/cases/", content: true, adsterraSlot: true },
+  { path: "guide/index.html", lang: "zh-CN", canonicalSuffix: "/guide/", content: true, adsterraSlot: true },
+  { path: "en/guide/index.html", lang: "en", canonicalSuffix: "/en/guide/", content: true, adsterraSlot: true },
+  { path: "troubleshooting/codex-image-not-saved/index.html", lang: "zh-CN", canonicalSuffix: "/troubleshooting/codex-image-not-saved/", content: true, troubleshooting: true, adsterraSlot: true },
+  { path: "en/troubleshooting/codex-image-not-saved/index.html", lang: "en", canonicalSuffix: "/en/troubleshooting/codex-image-not-saved/", content: true, troubleshooting: true, adsterraSlot: true },
   { path: "about/index.html", lang: "zh-CN", canonicalSuffix: "/about/", content: true, noAds: true },
   { path: "en/about/index.html", lang: "en", canonicalSuffix: "/en/about/", content: true, noAds: true },
   { path: "privacy/index.html", lang: "zh-CN", canonicalSuffix: "/privacy/", content: true, noAds: true },
@@ -66,7 +66,12 @@ for (const page of pages) {
   if ($("img:not([alt])").length > 0) failures.push("every image needs an alt attribute");
   if ($('a[href^="/app/"]').length > 0) failures.push("marketing pages must not expose the browser app");
   if ($('script[src="/assets/site.js"]').length !== 1) failures.push("site.js must be loaded exactly once");
-  if ($(thirdPartyResourceSelector).length > 0) failures.push("third-party resources must never be present in static HTML");
+  const thirdPartyResources = $(thirdPartyResourceSelector);
+  const expectsAdsterraTag = page.adsterraSlot && adConfig.activeProvider === "adsterra";
+  if (expectsAdsterraTag) {
+    if (thirdPartyResources.length !== 1
+      || !thirdPartyResources.is(`script[src="${APPROVED_ADSTERRA_BANNER.scriptUrl}"]`)) failures.push("the approved Adsterra loader must be the only third-party resource");
+  } else if (thirdPartyResources.length > 0) failures.push("third-party resources are allowed only on the eight approved Adsterra pages");
   if ($("meta[http-equiv]").toArray().some((meta) => /^Content-Security-Policy(?:-Report-Only)?$/i.test($(meta).attr("http-equiv") || ""))) failures.push("marketing pages must not use a meta CSP");
   if ($("ins.adsbygoogle").length > 0) failures.push("AdSense elements must be created only after consent");
   if (/__[A-Z0-9_]+__/.test(html)) failures.push("contains an unresolved build placeholder");
@@ -149,30 +154,51 @@ for (const page of pages) {
 
   if (page.noAds) {
     if (!$("body").is("[data-no-ads]")) failures.push("page must opt out with data-no-ads");
-    if ($("[data-ad-unit]").length > 0) failures.push("no-ads page must not contain ad units");
-    if (page.canonicalSuffix.endsWith("/privacy/")
-      && ($("[data-consent-reset]").length !== 1 || !$("[data-consent-reset]").is("[hidden]"))) failures.push("privacy reset control must start hidden");
+    if ($(".ad-unit").length > 0) failures.push("no-ads page must not contain ad units");
+    if (page.canonicalSuffix.endsWith("/privacy/") && adConfig.activeProvider === "adsense"
+      && ($("[data-consent-reset]").length !== 1 || !$("[data-consent-reset]").is("[hidden]"))) failures.push("AdSense privacy reset control must start hidden");
+    if (page.canonicalSuffix.endsWith("/privacy/") && adConfig.activeProvider !== "adsense"
+      && $("[data-consent-reset]").length > 0) failures.push("non-AdSense builds must not contain a consent reset control");
     if (page.canonicalSuffix.endsWith("/privacy/")) {
       const privacyText = $("main").text();
       if (!privacyText.includes("Google AdSense") || !privacyText.includes("Adsterra")) failures.push("privacy page must disclose both supported advertising providers");
       if ($('a[href="https://adsterra.com/privacy-policy-managed/"]').length !== 1) failures.push("official Adsterra privacy link is missing");
       if ($('a[href="https://adsterra.com/publishers-terms-managed/"]').length !== 1) failures.push("official Adsterra publisher terms link is missing");
       if ($("[data-ad-provider-status]").text().trim() !== adConfig.activeProvider) failures.push("active advertising provider disclosure is incorrect");
+      if (page.lang === "zh-CN") {
+        if (!privacyText.includes("页面解析时立即加载") || !privacyText.includes("不会先显示同意提示")) failures.push("Chinese privacy copy must disclose immediate Adsterra loading");
+        if (privacyText.includes("在你明确同意前，本网站不会加载任何广告标签")) failures.push("Chinese privacy copy contains the stale pre-consent Adsterra claim");
+      } else {
+        if (!privacyText.includes("loads immediately as the page is parsed") || !privacyText.includes("without a prior consent prompt")) failures.push("English privacy copy must disclose immediate Adsterra loading");
+        if (privacyText.includes("Before you explicitly consent, this site does not load any advertising tag")) failures.push("English privacy copy contains the stale pre-consent Adsterra claim");
+      }
     }
   }
 
-  if (page.ads) {
-    if ($("[data-ad-unit]").length !== 1) failures.push("ad-bearing page needs exactly one inert data-ad-unit");
+  if (page.adsterraSlot) {
+    const unit = $("aside.ad-unit");
+    if (unit.length !== 1) failures.push("approved Adsterra page needs exactly one aside.ad-unit");
     if ($('meta[name="google-adsense-account"]').length !== 1
       || $('meta[name="google-adsense-account"]').attr("content") !== adsensePublisherClient) failures.push("official AdSense account meta is incorrect");
     if ($('meta[name="adsense-client"]').attr("content") !== adsenseClient) failures.push("AdSense client build value is incorrect");
     if ($('meta[name="adsense-slot"]').attr("content") !== adsenseSlot) failures.push("AdSense slot build value is incorrect");
-    $("[data-ad-unit]").each((_, unit) => {
-      const element = $(unit);
-      if (!element.is("[hidden]")) failures.push("ad units must start hidden");
-      if (element.attr("aria-hidden") !== "true") failures.push("ad units must start aria-hidden");
-      if (element.children().length > 0) failures.push("ad units must be inert before consent");
-    });
+    if (unit.length === 1) {
+      const attributes = Object.keys(unit.get(0).attribs);
+      if (attributes.length !== 1 || attributes[0] !== "class" || unit.attr("class") !== "ad-unit") failures.push("ad-unit must contain only its class attribute");
+      if (expectsAdsterraTag) {
+        const scripts = unit.children("script");
+        if (scripts.length !== 2 || unit.children().length !== 2) failures.push("ad-unit must contain exactly the approved two-part tag");
+        if (scripts.eq(0).attr("src") !== undefined || scripts.eq(0).html() !== APPROVED_ADSTERRA_BANNER.optionsSource) failures.push("the exact inline atOptions script must be first");
+        if (scripts.eq(1).attr("src") !== APPROVED_ADSTERRA_BANNER.scriptUrl || Object.keys(scripts.get(1)?.attribs || {}).length !== 1) failures.push("the exact approved loader script must immediately follow atOptions");
+        if (unit.html() !== APPROVED_ADSTERRA_BANNER.tag) failures.push("ad-unit markup must exactly match APPROVED_ADSTERRA_BANNER.tag");
+      } else if (unit.children().length !== 0 || unit.text().trim()) failures.push("non-Adsterra builds must leave the build-time slot empty");
+    }
+  } else if ($(".ad-unit").length > 0) {
+    failures.push("ad-unit is allowed only on the eight approved Adsterra pages");
+  }
+
+  if (adConfig.activeProvider === "adsterra") {
+    if ($("[data-consent-banner], [data-consent-reset]").length > 0) failures.push("Adsterra builds must not contain consent banner or reset controls");
   }
 
   if (page.notFound && !($('meta[name="robots"]').attr("content") || "").includes("noindex")) failures.push("404 must be noindex");
@@ -253,12 +279,21 @@ const builtSiteScript = await readFile(resolve(outputDir, "assets/site.js"), "ut
 assert.ok(!/__(?:AD|ADSENSE|ADSTERRA)_[A-Z_]+__/.test(builtSiteScript), "site.js contains unresolved advertising placeholders");
 assert.match(builtSiteScript, /requestNonPersonalizedAds\s*=\s*1/, "AdSense must default to non-personalized ads");
 assert.match(builtSiteScript, new RegExp(`const AD_PROVIDER = "${adConfig.activeProvider}";`), "site.js has the wrong active provider");
+for (const forbiddenAdsterraRuntime of [
+  /ADSTERRA_/,
+  /Adsterra/,
+  /atOptions/,
+  /highperformanceformat/,
+  /MutationObserver/,
+  /data-ad-state/,
+  /no-fill/,
+  /loader-error/,
+  /monitorAdsterraUnit/,
+  /initializeAdsterra/,
+  /data-image2-adsterra/,
+]) assert.doesNotMatch(builtSiteScript, forbiddenAdsterraRuntime, "site.js must contain no Adsterra adapter, insertion, or monitoring code");
 if (adConfig.activeProvider === "none") {
   assert.doesNotMatch(builtSiteScript, /https:\/\/pagead2\.googlesyndication\.com/, "disabled site.js must contain no Google loader URL");
-  assert.match(builtSiteScript, /const ADSTERRA_OPTIONS_SOURCE = "";/, "disabled site.js must contain no Adsterra options");
-  assert.match(builtSiteScript, /const ADSTERRA_SCRIPT_ORIGIN = "";/, "disabled site.js must contain no Adsterra script origin");
-  assert.match(builtSiteScript, /const ADSTERRA_SCRIPT_URL = "";/, "disabled site.js must contain no Adsterra loader URL");
-  assert.doesNotMatch(builtSiteScript, /highperformanceformat/i, "disabled site.js must contain no Adsterra domain");
 }
 
 function withAdConfig(source, client, slot, scriptUrl) {
@@ -266,15 +301,11 @@ function withAdConfig(source, client, slot, scriptUrl) {
     .replace(/const AD_PROVIDER = "[^"]*";/, 'const AD_PROVIDER = "adsense";')
     .replace(/const ADSENSE_CLIENT = "[^"]*";/, `const ADSENSE_CLIENT = "${client}";`)
     .replace(/const ADSENSE_SLOT = "[^"]*";/, `const ADSENSE_SLOT = "${slot}";`)
-    .replace(/const ADSENSE_SCRIPT_URL = "[^"]*";/, `const ADSENSE_SCRIPT_URL = "${scriptUrl}";`)
-    .replace(/const ADSTERRA_PLACEMENT_ID = "[^"]*";/, 'const ADSTERRA_PLACEMENT_ID = "";')
-    .replace(/^const ADSTERRA_OPTIONS_SOURCE = .*;$/m, 'const ADSTERRA_OPTIONS_SOURCE = "";')
-    .replace(/const ADSTERRA_SCRIPT_ORIGIN = "[^"]*";/, 'const ADSTERRA_SCRIPT_ORIGIN = "";')
-    .replace(/const ADSTERRA_SCRIPT_URL = "[^"]*";/, 'const ADSTERRA_SCRIPT_URL = "";');
+    .replace(/const ADSENSE_SCRIPT_URL = "[^"]*";/, `const ADSENSE_SCRIPT_URL = "${scriptUrl}";`);
 }
 
 function runConsentScenario(source, { consent, noAds = false, resetControl = false, storageBlocked = false, instrumentReload = false } = {}) {
-  const dom = new JSDOM(`<!doctype html><html><head></head><body data-locale="en"${noAds ? " data-no-ads" : ""}><aside data-ad-unit aria-hidden="true" hidden></aside>${resetControl ? "<button data-consent-reset hidden>Reset</button>" : ""}</body></html>`, {
+  const dom = new JSDOM(`<!doctype html><html><head></head><body data-locale="en"${noAds ? " data-no-ads" : ""}><aside class="ad-unit"></aside>${resetControl ? "<button data-consent-reset hidden>Reset</button>" : ""}</body></html>`, {
     url: "https://image2.test/guide/",
     runScripts: "outside-only",
   });
@@ -341,7 +372,7 @@ acceptButton.click();
 assert.equal(acceptedScenario.dom.window.localStorage.getItem("image2.ads.consent.v2"), "accepted:adsense", "accept choice must persist for the active provider");
 assert.equal(acceptedScenario.document.querySelectorAll("script[data-image2-adsense]").length, 1, "accepted consent must load AdSense once");
 assert.equal(acceptedScenario.document.querySelectorAll("ins.adsbygoogle").length, 1, "accepted consent must initialize each ad unit once");
-assert.equal(acceptedScenario.document.querySelector("[data-ad-unit]").hidden, false, "accepted ad unit must become visible");
+assert.equal(acceptedScenario.document.querySelector(".ad-unit").hidden, false, "accepted ad unit must become visible");
 assert.equal(acceptedScenario.dom.window.adsbygoogle.requestNonPersonalizedAds, 1, "accepted ads must remain non-personalized by default");
 assert.equal(acceptedScenario.requests.length, 0, "site code must not issue fetch/XHR calls while loading AdSense");
 acceptedScenario.dom.window.close();

@@ -36,7 +36,7 @@
           <p class="section-index">LEGAL / PRIVACY</p>
           <h1>Privacy & Cookies</h1>
           <p>The Image2 desktop app and this marketing site are separate data boundaries. This page explains what each one processes and what choices you have if display advertising is enabled.</p>
-          <p><small>Last updated: July 21, 2026</small></p>
+          <p><small>Last updated: August 5, 2026</small></p>
         </header>
 
         <div class="content-body">
@@ -53,21 +53,20 @@
 
           <section aria-labelledby="advertising-consent">
             <h2 id="advertising-consent">Advertising providers and your choice</h2>
-            <p>The advertising provider enabled in this build is: <strong data-ad-provider-status>__AD_PROVIDER__</strong>. A build selects at most one provider; Google AdSense and Adsterra are never loaded together in the same ad unit. Before you explicitly consent, this site does not load any advertising tag or send a request to the selected advertising provider.</p>
+            <p>The advertising provider enabled in this build is: <strong data-ad-provider-status>__AD_PROVIDER__</strong>. A build selects at most one provider; Google AdSense and Adsterra are never loaded together in the same ad unit. Their loading behavior differs: Google AdSense loads only after explicit consent. When Adsterra is enabled, the fixed approved tag appears in 8 existing ad slots across the Chinese and English home, guide, cases, and Codex troubleshooting pages, and loads immediately as the page is parsed without a prior consent prompt.</p>
             <p>When Google AdSense is selected, this site requests non-personalized ads only. Even so, Google and participating ad technology providers may use cookies or similar technologies and process IP addresses, device and browser information, current-page information, and ad-impression and interaction data for ad delivery, measurement, security, and fraud prevention. See <a href="https://policies.google.com/technologies/partner-sites">How Google uses information from sites or apps that use its services</a> and the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</p>
             <p>When Adsterra is selected, this site permits only a standard Display Banner for an approved website and placement. It does not integrate Popunder, Push, Direct Link, or Social Bar formats. Adsterra's policies state that it may process technical data such as IP address, browser type and version, time zone and approximate location, operating system and platform, visited URLs, page interactions, and advertising details, and may use cookies or similar technologies. See the <a href="https://adsterra.com/privacy-policy-managed/">Adsterra Privacy Policy</a> and <a href="https://adsterra.com/publishers-terms-managed/">Adsterra Publisher Terms</a>.</p>
-            <p>If you decline, this site does not request display ads. Declining ads does not prevent you from reading the site or downloading Image2 from GitHub.</p>
+            <p>The Google AdSense consent interface allows you to reject loading; rejection does not prevent you from reading site content or downloading Image2 from GitHub. The production Adsterra build does not offer this pre-load choice.</p>
           </section>
 
           <section aria-labelledby="cookies-storage">
             <h2 id="cookies-storage">Cookies, local storage, and consent records</h2>
-            <p>This site's advertising privacy control uses local storage to remember your choice. Google AdSense or Adsterra may use cookies or similar technologies after that provider is selected and you consent. Beyond data needed to deliver the site, remember your privacy choice, and display ads after consent, this site does not require an account or receive image-generation content.</p>
+            <p>The Google AdSense privacy control uses local storage to remember your choice. The Adsterra tag does not use this site's local storage as a loading gate; it and the advertising resources it loads may use cookies or similar technologies. Beyond data needed to deliver the site, support AdSense privacy choices, and display ads, this site does not require an account or receive image-generation content.</p>
           </section>
 
           <section aria-labelledby="privacy-controls">
-            <h2 id="privacy-controls">Manage or withdraw consent</h2>
-            <p id="consent-help">You can reopen this site's advertising privacy choices at any time. If ads have already loaded, withdrawing consent reloads the page to stop future ad requests; it cannot undo data the selected advertising provider has already processed. When Google AdSense is used, you can also manage Google's personalized-ad settings in My Ad Center.</p>
-            <p><button class="button button-secondary" type="button" data-ad-privacy-open data-consent-reset aria-describedby="consent-help" hidden>Manage or withdraw ad consent</button></p>
+            <h2 id="privacy-controls">Advertising privacy choices</h2>
+            <p id="consent-help">When Google AdSense is used, the page provides a consent interface before loading, and you can also manage Google's personalized-ad settings in My Ad Center. When Adsterra is enabled, this consent or reset control is not shown. Leaving the troubleshooting article prevents later loads of that page, but cannot undo data the advertising provider has already processed.</p>
             <p><a href="https://myadcenter.google.com/">Open Google My Ad Center</a></p>
           </section>
 
