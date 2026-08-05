@@ -66,6 +66,10 @@ SITE_ORIGIN=https://你的域名
 
 同意记录使用 `image2.ads.consent.v2`，接受状态会绑定到具体广告提供商。从旧版本升级或切换提供商时，旧的拒绝会继续生效；旧的同意不会自动授权新增或替换后的广告提供商，用户需要重新选择。
 
+项目所有者已决定对宣传站的所有构建都省略 `Content-Security-Policy` 响应头，包括默认/`none`、Adsterra 和 AdSense；也不使用 `Content-Security-Policy-Report-Only` 或 meta CSP。这个决定仅适用于当前静态宣传站：它没有用户账户、登录状态、传输秘密的表单，也不提供在线图片生成或 API Key 输入。Adsterra 素材会使用平台动态分配且可能轮换的域名，静态 CSP Origin 列表无法准确描述实际资源集合。
+
+省略 CSP 不改变广告授权边界。构建仍只接受固定在源码中的已批准 Adsterra Tag 和与其精确匹配的 placement ID，运行时也不接受任意脚本 URL；Adsterra 和 AdSense 仍只在用户明确同意后请求，拒绝保持零广告请求，`data-no-ads` 页面保持无广告。`_headers` 继续设置 `X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin` 和限制性的 `Permissions-Policy`。
+
 ### Google AdSense
 
 接入分为两个阶段：
@@ -73,7 +77,7 @@ SITE_ORIGIN=https://你的域名
 1. 站点验证：账号所有者确认 AdSense 条款并取得发布商 ID 后，只配置 `ADSENSE_CLIENT=ca-pub-...`。构建会生成官方 `google-adsense-account` meta 与 `ads.txt` 记录，但不会包含广告脚本、广告位或同意条，也不会请求 Google 广告。由于本项目的 `wrangler.toml` 含 `pages_build_output_dir`，该文件是 Pages 配置的唯一来源；Dashboard 中同名文本变量不会覆盖它。生产值写在 `[env.production.vars]`，顶层 `[vars]` 保持空值，避免预览部署携带验证标记。
 2. 开始投放：`image2-studio.pages.dev` 通过站点审核、真实广告位创建、Google 认证 CMP 配置并验证后，再配置 `ADSENSE_SLOT=...` 与 `ADSENSE_CMP_CERTIFIED=true`。三个值全部有效时才会启用广告代码。
 
-`ADSENSE_CMP_CERTIFIED=true` 只是防止误部署的人工闸门，不会安装或替代 CMP。启用前还必须完成隐私页、撤回入口、`ads.txt` 和真实流量回归。Google 当前只支持为 AdSense 使用每次响应随机 nonce 的严格 CSP；纯静态 Pages 无法安全地产生这种 nonce，因此广告启用构建会移除 CSP 响应头，其他安全响应头仍保留。广告禁用和仅验证发布商的构建继续使用 self-only CSP。
+`ADSENSE_CMP_CERTIFIED=true` 只是防止误部署的人工闸门，不会安装或替代 CMP。启用前还必须完成隐私页、撤回入口、`ads.txt` 和真实流量回归。
 
 `ADSENSE_CLIENT` 和 `ADSENSE_SLOT` 会按 AdSense 规范公开在浏览器广告标记中，不是密钥；不要把它们误写成中转站 API Key。广告采用显式同意后加载，并默认请求非个性化广告。非个性化广告仍可能让 Google 处理 IP、设备、页面、衡量、安全和反作弊所需数据，因此不得宣称“AdSense 完全不获取用户信息”。用户拒绝时，本站不加载 AdSense 脚本，也不向 Google 发起展示广告请求。
 
@@ -92,8 +96,6 @@ SITE_ORIGIN=https://你的域名
 ```text
 AD_PROVIDER=adsterra
 ADSTERRA_PLACEMENT_ID=后台已批准的 image2-studio.pages.dev 300x250 Banner placement ID
-ADSTERRA_CSP_ORIGINS=https://www.highperformanceformat.com
-ADSTERRA_FRAME_ORIGINS=https://zoologyfibre.com
 ADSTERRA_ADS_TXT_RECORD=可选；仅在 Adsterra 后台或支持团队明确提供时填写完整卖方记录
 ADSTERRA_POLICY_REVIEWED=true
 ```
@@ -102,11 +104,9 @@ ADSTERRA_POLICY_REVIEWED=true
 
 当前适配器只接受本次已批准网站后台生成的两段式 300x250 Display Banner Tag：第一段是未经修改的 `atOptions`，第二段是匹配同一公开 key 的 HTTPS loader。构建会严格校验已批准的 placement ID、尺寸、iframe 格式、loader 主机和 key 一致性；任一处缺失或不匹配都会自动保持 `AD_PROVIDER=none`。运行时只在用户明确同意后，按原顺序创建这两段脚本，不接受任意 HTML 或脚本配置。
 
-2026 年 8 月 5 日的生产浏览器证据显示：获准的广告位已经创建 300x250 iframe，因此不是 no-fill；该矩形同时对应控制台中的 `Framing 'https://zoologyfibre.com/' violates CSP directive: frame-src 'self' https://www.highperformanceformat.com`。这只证明 `https://zoologyfibre.com` 是当时实际返回的 Adsterra creative frame Origin。脱离广告上下文直接请求该域名会重定向至 Google，因此不能据此把它视为普遍可信的资源域，也不能授予脚本、连接或图片权限；creative Origin 还可能轮换，任何新增 Origin 都必须根据新的真实浏览器证据单独复核。
+Adsterra 的固定 loader 可以继续加载由平台选择的 iframe 和其他资源域名；这些 creative 域名是动态的，可能随时间、地区、素材和投放响应变化。历史上观察到某个域名只说明一次广告响应使用过它，不表示该域名可作为长期固定清单，也不会让项目把它接受为运行时 loader 配置。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
 
-Adsterra 构建保留 CSP。`ADSTERRA_CSP_ORIGINS` 仅保存 loader 及其已复核资源 Origin，并用于 `connect-src`、`img-src`、`script-src` 以及 loader 所需的 `frame-src`。独立的 `ADSTERRA_FRAME_ORIGINS` 只扩展 `frame-src`；当前精确允许 `https://zoologyfibre.com`，不会把它加入 `connect-src`、`img-src` 或 `script-src`。两个变量都只接受无路径、查询、凭据或通配符的精确 HTTPS Origin；非空畸形值会使所选 Adsterra 构建自动禁用，预览默认值保持为空且不放行 creative Origin。若真实广告还需要其他动态 Origin，浏览器将按默认拒绝策略阻止资源，需在复核后精确补充，绝不使用 `https:` 或通配符。Adsterra 当前不强制 `ads.txt`，因此缺失记录不会阻止 Banner；若后台明确提供卖方记录，项目只发布完整匹配标准格式的原文，畸形内容会被忽略，绝不猜测。
-
-同意后，Adsterra 广告位通过 `data-ad-state` 暴露非敏感运行状态：`loading`、`rendered`、`no-fill`、`loader-error` 或 `csp-blocked`。loader 报错、10 秒内没有创建 iframe，或广告位内可见/加载中的 iframe 触发与自身 Origin 匹配的 `frame-src` 违规时，页面会隐藏损坏的广告位并在控制台输出一次不含目标 URL 的警告，不会重试或请求其他提供商。其他页面 CSP 违规不会折叠广告位；监视器仍会接受 no-fill 或 loader-error 后稍晚到达的 iframe，并将广告位恢复为 `rendered`，因此成功创建且未触发匹配违规的 300x250 素材不会被永久折叠。
+同意后，Adsterra 广告位通过 `data-ad-state` 暴露非敏感运行状态：`loading`、`rendered`、`no-fill` 或 `loader-error`。loader 报错或 10 秒内没有创建 iframe 时，页面会隐藏损坏的广告位并在控制台输出一次警告，不会重试或请求其他提供商。监视器仍会接受 no-fill 或 loader-error 后稍晚到达的 iframe，并将广告位恢复为 `rendered`。
 
 ## Wrangler 可选部署
 
@@ -142,6 +142,6 @@ Wrangler 登录、项目创建和生产发布会改变 Cloudflare 账户状态�
 3. `robots.txt`、`sitemap.xml`、8 张生成案例和社交分享图返回 `200`。
 4. 页面源码中的 canonical 与实际生产域名一致。
 5. 任意不存在的路径返回真实 `404`，不以首页内容和 `200` 伪装成功。
-6. 未配置广告时，HTML、JavaScript 与 CSP 都不含广告平台域名；`/ads.txt` 只保留独立验证通过的公开卖方记录（当前为 Google 发布商验证记录）。
-7. Cloudflare 响应包含 `_headers` 中的 CSP、`nosniff`、Referrer Policy 与 Permissions Policy。
+6. 未配置广告时，HTML 与 JavaScript 都不含广告平台域名；`/ads.txt` 只保留独立验证通过的公开卖方记录（当前为 Google 发布商验证记录）。
+7. Cloudflare 响应不包含 CSP 或 CSP Report-Only，并包含 `_headers` 中的 `nosniff`、`DENY`、Referrer Policy 与 Permissions Policy。
 8. Git 仓库、完整 Git 历史和构建日志中不存在任何 API Key。

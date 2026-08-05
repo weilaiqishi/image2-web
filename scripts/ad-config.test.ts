@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { APPROVED_ADSTERRA_BANNER, resolveAdConfig } from "./ad-config.mjs";
@@ -10,38 +12,35 @@ const validAdsense = {
 
 const validAdsterra = {
   ADSTERRA_PLACEMENT_ID: APPROVED_ADSTERRA_BANNER.placementId,
-  ADSTERRA_CSP_ORIGINS: "https://www.highperformanceformat.com, https://media.example.test",
-  ADSTERRA_FRAME_ORIGINS: "https://zoologyfibre.com",
   ADSTERRA_ADS_TXT_RECORD: "example.test, seller-123, DIRECT, authority456",
   ADSTERRA_POLICY_REVIEWED: "true",
 };
 
-function cspDirective(csp: string, name: string) {
-  return csp
-    .replace(/^Content-Security-Policy:\s*/, "")
-    .split(";")
-    .map((directive) => directive.trim().split(/\s+/))
-    .find(([directiveName]) => directiveName === name) || [];
-}
+const headersTemplate = readFileSync(resolve(import.meta.dirname, "../site/_headers"), "utf8");
 
 describe("resolveAdConfig", () => {
   it.each([
-    ["the default configuration", {}],
-    ["the Adsterra configuration", { AD_PROVIDER: "adsterra", ...validAdsterra }],
-  ])("allows Cloudflare Web Analytics in %s CSP", (_, env) => {
-    const { csp } = resolveAdConfig(env);
+    ["default/none", {}, "none"],
+    ["Adsterra", { AD_PROVIDER: "adsterra", ...validAdsterra }, "adsterra"],
+    ["AdSense", { AD_PROVIDER: "adsense", ...validAdsense }, "adsense"],
+  ])("renders zero CSP headers for the %s build", (_, env, expectedProvider) => {
+    const config = resolveAdConfig(env);
+    const headerLines = headersTemplate.split(/\r?\n/).map((line) => line.trim());
 
-    expect(csp).toMatch(/script-src[^;]*https:\/\/static\.cloudflareinsights\.com(?:[ ;]|$)/);
-    expect(csp).toMatch(/connect-src[^;]*https:\/\/cloudflareinsights\.com(?:[ ;]|$)/);
+    expect(config.activeProvider).toBe(expectedProvider);
+    expect(headerLines.filter((line) => /^Content-Security-Policy(?:-Report-Only)?:/i.test(line))).toHaveLength(0);
+    expect(headerLines).toContain("X-Content-Type-Options: nosniff");
+    expect(headerLines).toContain("X-Frame-Options: DENY");
+    expect(headerLines).toContain("Referrer-Policy: strict-origin-when-cross-origin");
+    expect(headerLines).toContain("Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()");
   });
 
-  it("defaults to no active provider and a self-only CSP", () => {
+  it("defaults to no active provider and no CSP", () => {
     const config = resolveAdConfig({});
 
     expect(config.requestedProvider).toBe("none");
     expect(config.activeProvider).toBe("none");
     expect(config.adsEnabled).toBe(false);
-    expect(config.csp).toContain("default-src 'self'");
     expect(config.adsTxtRecords).toEqual([]);
   });
 
@@ -64,7 +63,6 @@ describe("resolveAdConfig", () => {
     expect(config.adsense.client).toBe(validAdsense.ADSENSE_CLIENT);
     expect(config.adsense.slot).toBe(validAdsense.ADSENSE_SLOT);
     expect(config.adsense.scriptUrl).toContain("googlesyndication.com");
-    expect(config.csp).toBe("");
   });
 
   it("fails closed when selected AdSense configuration is incomplete", () => {
@@ -77,7 +75,6 @@ describe("resolveAdConfig", () => {
 
     expect(config.activeProvider).toBe("none");
     expect(config.adsEnabled).toBe(false);
-    expect(config.csp).toContain("default-src 'self'");
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("ADSENSE_CMP_CERTIFIED"));
   });
 
@@ -94,39 +91,24 @@ describe("resolveAdConfig", () => {
     expect(config.adsterra.format).toBe("display-banner-300x250");
     expect(config.adsterra.width).toBe(300);
     expect(config.adsterra.height).toBe(250);
-    expect(config.adsterra.frameOrigins).toEqual(["https://zoologyfibre.com"]);
     expect(config.adsTxtRecords).toContain(validAdsterra.ADSTERRA_ADS_TXT_RECORD);
-    expect(config.csp).toContain("script-src 'self' 'unsafe-inline' https://www.highperformanceformat.com https://media.example.test");
-    expect(config.csp).toContain("frame-src 'self' https://www.highperformanceformat.com https://media.example.test https://zoologyfibre.com");
   });
 
-  it("grants a reviewed creative origin to frames only", () => {
-    const config = resolveAdConfig({ AD_PROVIDER: "adsterra", ...validAdsterra });
-
-    expect(cspDirective(config.csp, "frame-src")).toContain("https://zoologyfibre.com");
-    for (const directive of ["connect-src", "img-src", "script-src"]) {
-      expect(cspDirective(config.csp, directive)).not.toContain("https://zoologyfibre.com");
-    }
-  });
-
-  it.each([
-    ["non-HTTPS", "http://zoologyfibre.com"],
-    ["path", "https://zoologyfibre.com/creative"],
-    ["query", "https://zoologyfibre.com/?placement=1"],
-    ["credentials", "https://publisher@zoologyfibre.com"],
-    ["wildcard", "https://*.zoologyfibre.com"],
-  ])("rejects a %s Adsterra frame origin", (_, frameOrigins) => {
-    const warn = vi.fn();
+  it("does not accept runtime tag or loader overrides for Adsterra", () => {
     const config = resolveAdConfig({
       AD_PROVIDER: "adsterra",
       ...validAdsterra,
-      ADSTERRA_FRAME_ORIGINS: frameOrigins,
-    }, warn);
+      ADSTERRA_OPTIONS_SOURCE: "atOptions = { key: 'attacker' };",
+      ADSTERRA_SCRIPT_ORIGIN: "https://attacker.example",
+      ADSTERRA_SCRIPT_URL: "https://attacker.example/invoke.js",
+    });
 
-    expect(config.activeProvider).toBe("none");
-    expect(config.adsterra.frameOrigins).toEqual([]);
-    expect(config.csp).not.toContain("zoologyfibre.com");
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("ADSTERRA_FRAME_ORIGINS"));
+    expect(config.activeProvider).toBe("adsterra");
+    expect(config.adsterra.tag).toBe(APPROVED_ADSTERRA_BANNER.tag);
+    expect(config.adsterra.optionsSource).toBe(APPROVED_ADSTERRA_BANNER.optionsSource);
+    expect(config.adsterra.placementId).toBe(APPROVED_ADSTERRA_BANNER.placementId);
+    expect(config.adsterra.scriptOrigin).toBe(new URL(APPROVED_ADSTERRA_BANNER.scriptUrl).origin);
+    expect(config.adsterra.scriptUrl).toBe(APPROVED_ADSTERRA_BANNER.scriptUrl);
   });
 
   it("preserves the validated Google seller record when Adsterra is selected", () => {
@@ -158,7 +140,6 @@ describe("resolveAdConfig", () => {
     ["missing placement ID", { ...validAdsterra, ADSTERRA_PLACEMENT_ID: "" }],
     ["unapproved placement ID", { ...validAdsterra, ADSTERRA_PLACEMENT_ID: "0123456789abcdef0123456789abcdef" }],
     ["unreviewed policy", { ...validAdsterra, ADSTERRA_POLICY_REVIEWED: "false" }],
-    ["script origin outside CSP", { ...validAdsterra, ADSTERRA_CSP_ORIGINS: "https://media.example.test" }],
   ])("fails closed for %s", (_, env) => {
     const warn = vi.fn();
     const config = resolveAdConfig({ AD_PROVIDER: "adsterra", ...env }, warn);
@@ -167,7 +148,6 @@ describe("resolveAdConfig", () => {
     expect(config.adsEnabled).toBe(false);
     expect(config.adsterra.tag).toBe("");
     expect(config.adsterra.scriptUrl).toBe("");
-    expect(config.csp).toContain("default-src 'self'");
     expect(warn).toHaveBeenCalled();
   });
 

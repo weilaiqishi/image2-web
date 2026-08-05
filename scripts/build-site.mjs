@@ -29,7 +29,6 @@ const replacements = new Map([
   ["__ADSTERRA_SCRIPT_ORIGIN__", adConfig.adsterra.scriptOrigin],
   ["__ADSTERRA_SCRIPT_URL__", adConfig.adsterra.scriptUrl],
   ["__ADSTERRA_ADS_TXT_RECORD__", adConfig.adsterra.adsTxtRecord],
-  ["__CONTENT_SECURITY_POLICY__", adConfig.csp],
 ]);
 
 function renderTemplate(source) {
@@ -47,11 +46,7 @@ async function renderTextFiles(directory) {
     }
     if (!/\.(?:css|html|js|txt|xml)$/i.test(entry.name) && !entry.name.startsWith("_")) continue;
     const source = await readFile(path, "utf8");
-    let rendered = renderTemplate(source);
-    if (entry.name === "_headers") {
-      rendered = rendered.replace(/(Content-Security-Policy:[^\n]+)/, (line) => line.replace(/[ \t]{2,}/g, " ").replace(/\s+;/g, ";"));
-    }
-    await writeFile(path, rendered);
+    await writeFile(path, renderTemplate(source));
   }
 }
 

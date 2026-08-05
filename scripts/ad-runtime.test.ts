@@ -92,23 +92,12 @@ function externalResources(dom: JSDOM) {
   return dom.window.document.querySelectorAll('script[src^="http"], iframe[src^="http"], img[src^="http"]');
 }
 
-function dispatchCspViolation(dom: JSDOM, {
-  blockedURI,
-  effectiveDirective = "frame-src",
-}: {
-  blockedURI: string;
-  effectiveDirective?: string;
-}) {
-  const event = new dom.window.Event("securitypolicyviolation");
-  Object.defineProperties(event, {
-    blockedURI: { value: blockedURI },
-    effectiveDirective: { value: effectiveDirective },
-    violatedDirective: { value: effectiveDirective },
-  });
-  dom.window.document.dispatchEvent(event);
-}
-
 describe("advertising runtime", () => {
+  it("contains no CSP-specific diagnostics or listener", () => {
+    expect(source).not.toContain("securitypolicyviolation");
+    expect(source).not.toContain("csp-blocked");
+  });
+
   it.each(["adsense", "adsterra"] as const)("makes zero third-party requests before consent for %s", (provider) => {
     const dom = runScenario(provider);
 
@@ -207,53 +196,6 @@ describe("advertising runtime", () => {
     expect(unit.hidden).toBe(false);
     expect(unit.getAttribute("aria-hidden")).toBe("false");
     expect(unit.querySelector("iframe")).toBe(iframe);
-    dom.window.close();
-  });
-
-  it("collapses an Adsterra frame blocked by CSP and warns once", async () => {
-    const dom = runScenario("adsterra", { consent: "accepted" });
-    const warn = vi.spyOn(dom.window.console, "warn").mockImplementation(() => {});
-    const unit = dom.window.document.querySelector("[data-ad-unit]") as HTMLElement;
-    const iframe = dom.window.document.createElement("iframe");
-    iframe.src = "https://zoologyfibre.com/";
-    iframe.width = "300";
-    iframe.height = "250";
-    unit.append(iframe);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(unit.dataset.adState).toBe("rendered");
-    dispatchCspViolation(dom, { blockedURI: "https://zoologyfibre.com/" });
-    dispatchCspViolation(dom, { blockedURI: "https://zoologyfibre.com/" });
-
-    expect(unit.dataset.adState).toBe("csp-blocked");
-    expect(unit.hidden).toBe(true);
-    expect(unit.getAttribute("aria-hidden")).toBe("true");
-    expect(unit.querySelector("iframe")).toBe(iframe);
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("csp-blocked"));
-    expect(warn.mock.calls[0]?.[0]).not.toContain("zoologyfibre.com");
-    dom.window.close();
-  });
-
-  it("does not collapse a rendered Adsterra frame for unrelated CSP violations", async () => {
-    const dom = runScenario("adsterra", { consent: "accepted" });
-    const warn = vi.spyOn(dom.window.console, "warn").mockImplementation(() => {});
-    const unit = dom.window.document.querySelector("[data-ad-unit]") as HTMLElement;
-    const iframe = dom.window.document.createElement("iframe");
-    iframe.src = "https://zoologyfibre.com/";
-    unit.append(iframe);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    dispatchCspViolation(dom, { blockedURI: "https://unrelated.example/" });
-    dispatchCspViolation(dom, {
-      blockedURI: "https://zoologyfibre.com/invoke.js",
-      effectiveDirective: "script-src-elem",
-    });
-
-    expect(unit.dataset.adState).toBe("rendered");
-    expect(unit.hidden).toBe(false);
-    expect(unit.querySelector("iframe")).toBe(iframe);
-    expect(warn).not.toHaveBeenCalled();
     dom.window.close();
   });
 

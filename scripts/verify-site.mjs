@@ -67,6 +67,7 @@ for (const page of pages) {
   if ($('a[href^="/app/"]').length > 0) failures.push("marketing pages must not expose the browser app");
   if ($('script[src="/assets/site.js"]').length !== 1) failures.push("site.js must be loaded exactly once");
   if ($(thirdPartyResourceSelector).length > 0) failures.push("third-party resources must never be present in static HTML");
+  if ($("meta[http-equiv]").toArray().some((meta) => /^Content-Security-Policy(?:-Report-Only)?$/i.test($(meta).attr("http-equiv") || ""))) failures.push("marketing pages must not use a meta CSP");
   if ($("ins.adsbygoogle").length > 0) failures.push("AdSense elements must be created only after consent");
   if (/__[A-Z0-9_]+__/.test(html)) failures.push("contains an unresolved build placeholder");
 
@@ -231,28 +232,17 @@ const redirects = await readFile(resolve(outputDir, "_redirects"), "utf8");
 assert.ok(!/\/\*\s+\/index\.html\s+200/.test(redirects), "soft SPA fallback must not mask the real 404 page");
 
 const headers = await readFile(resolve(outputDir, "_headers"), "utf8");
-assert.ok(!/__(?:AD|ADSENSE|ADSTERRA)_[A-Z_]+__/.test(headers), "CSP contains unresolved advertising placeholders");
-const cspHeaders = headers.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.startsWith("Content-Security-Policy:"));
-if (!adConfig.csp) {
-  assert.equal(cspHeaders.length, 0, "static ad-enabled builds must omit CSP because AdSense only supports a fresh nonce-based strict CSP");
-} else {
-  assert.deepEqual(cspHeaders, [adConfig.csp], "the rendered CSP must exactly match the validated provider configuration");
-  if (adConfig.activeProvider === "none") {
-    assert.match(cspHeaders[0], /default-src 'self'/, "ad-disabled CSP must remain self-only by default");
-    assert.doesNotMatch(headers, /googlesyndication|doubleclick/i, "default CSP must not allow Google ad domains");
-  } else if (adConfig.activeProvider === "adsterra") {
-    const directives = new Map(cspHeaders[0]
-      .replace(/^Content-Security-Policy:\s*/, "")
-      .split(";")
-      .map((directive) => directive.trim().split(/\s+/))
-      .map(([name, ...sources]) => [name, sources]));
-    for (const origin of adConfig.adsterra.frameOrigins) {
-      assert.ok(directives.get("frame-src")?.includes(origin), `frame-src must allow reviewed Adsterra frame origin ${origin}`);
-      for (const directive of ["connect-src", "img-src", "script-src"]) {
-        assert.ok(!directives.get(directive)?.includes(origin), `${directive} must not allow frame-only Adsterra origin ${origin}`);
-      }
-    }
-  }
+assert.ok(!/__[A-Z0-9_]+__/.test(headers), "_headers contains an unresolved build placeholder");
+const headerLines = headers.split(/\r?\n/).map((line) => line.trim());
+const cspHeaders = headerLines.filter((line) => /^Content-Security-Policy(?:-Report-Only)?:/i.test(line));
+assert.equal(cspHeaders.length, 0, `all marketing builds must omit CSP headers (provider: ${adConfig.activeProvider})`);
+for (const retainedHeader of [
+  "X-Content-Type-Options: nosniff",
+  "X-Frame-Options: DENY",
+  "Referrer-Policy: strict-origin-when-cross-origin",
+  "Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+]) {
+  assert.equal(headerLines.filter((line) => line === retainedHeader).length, 1, `_headers must contain exactly one ${retainedHeader}`);
 }
 
 const adsText = await readFile(resolve(outputDir, "ads.txt"), "utf8");
@@ -393,4 +383,4 @@ assert.equal(resetScenario.dom.window.localStorage.getItem("image2.ads.consent.v
 assertNoAdRequest(resetScenario, "consent reset on data-no-ads page");
 resetScenario.dom.window.close();
 
-console.log(`Marketing page, privacy, asset, CSP, and consent checks passed (ads: ${adConfig.activeProvider}).`);
+console.log(`Marketing page, privacy, asset, security header, and consent checks passed (ads: ${adConfig.activeProvider}).`);

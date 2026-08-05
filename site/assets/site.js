@@ -193,35 +193,9 @@ function setAdsterraUnitState(unit, state) {
   unit.setAttribute("aria-hidden", String(!visible));
 }
 
-function adsterraFrameMatchesViolation(unit, event) {
-  const directive = event.effectiveDirective || event.violatedDirective;
-  if (directive !== "frame-src"
-    || unit.dataset.adProvider !== "adsterra"
-    || !["loading", "rendered"].includes(unit.dataset.adState)
-    || unit.hidden) return false;
-
-  let blockedOrigin;
-  try {
-    const blockedUrl = new URL(event.blockedURI);
-    if (blockedUrl.protocol !== "https:") return false;
-    blockedOrigin = blockedUrl.origin;
-  } catch {
-    return false;
-  }
-
-  return Array.from(unit.querySelectorAll("iframe")).some((frame) => {
-    try {
-      return new URL(frame.getAttribute("src") || "", document.baseURI).origin === blockedOrigin;
-    } catch {
-      return false;
-    }
-  });
-}
-
 function monitorAdsterraUnit(unit, loaderScript) {
   let renderTimeout;
   const detectCreative = () => {
-    if (unit.dataset.adState === "csp-blocked") return false;
     if (!unit.querySelector("iframe")) return false;
     window.clearTimeout(renderTimeout);
     setAdsterraUnitState(unit, "rendered");
@@ -229,22 +203,13 @@ function monitorAdsterraUnit(unit, loaderScript) {
     return true;
   };
   const reportFailure = (state) => {
-    if (unit.dataset.adState === "csp-blocked" || detectCreative() || unit.dataset.adState === state) return;
+    if (detectCreative() || unit.dataset.adState === state) return;
     window.clearTimeout(renderTimeout);
     setAdsterraUnitState(unit, state);
     console.warn(`[Image2 ads] Adsterra ${state}; collapsing unrendered ad slot.`);
   };
-  const reportCspViolation = (event) => {
-    if (!adsterraFrameMatchesViolation(unit, event)) return;
-    window.clearTimeout(renderTimeout);
-    observer.disconnect();
-    document.removeEventListener("securitypolicyviolation", reportCspViolation);
-    setAdsterraUnitState(unit, "csp-blocked");
-    console.warn("[Image2 ads] Adsterra csp-blocked; collapsing blocked ad slot.");
-  };
   const observer = new MutationObserver(detectCreative);
   observer.observe(unit, { childList: true, subtree: true });
-  document.addEventListener("securitypolicyviolation", reportCspViolation);
   loaderScript.addEventListener("load", detectCreative, { once: true });
   loaderScript.addEventListener("error", () => reportFailure("loader-error"), { once: true });
   renderTimeout = window.setTimeout(() => reportFailure("no-fill"), ADSTERRA_RENDER_TIMEOUT_MS);
