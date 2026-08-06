@@ -69,6 +69,12 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Verify release version
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/verify-release-version.mjs "$RELEASE_TAG"
+
       - name: Run frontend tests
         run: npm test
 
@@ -92,8 +98,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  release:
-    name: Create draft pre-release
+  release-assets:
+    name: Publish release assets
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
@@ -177,8 +183,7 @@ jobs:
               --verify-tag \
               --title "Image2 Studio $TAG_NAME" \
               --generate-notes \
-              --draft \
-              --prerelease
+              --latest
           fi
 
           expected_assets="$(find release-assets -maxdepth 1 -type f -exec basename {} \; | LC_ALL=C sort)"
