@@ -118,9 +118,9 @@ GitHub 工作流 `.github/workflows/desktop-build.yml` 会在推送到 `main`、
 - `image2-studio-macos-x64`
 - `image2-studio-windows10-x64`
 
-Actions Artifacts 默认保留 14 天。推送 `v*` 标签前，标签去掉前导 `v` 后的版本必须是严格 SemVer，并与 `package.json`、`package-lock.json`（顶层及根包）、`src-tauri/Cargo.toml` 和 `src-tauri/tauri.conf.json` 中的版本完全一致。可在推送前运行 `node scripts/verify-release-version.mjs v0.1.0` 检查。
+Actions Artifacts 默认保留 14 天。推送 `v*` 标签前，标签去掉前导 `v` 后的版本必须是严格 SemVer，并与 `package.json`、`package-lock.json`（顶层及根包）、`src-tauri/Cargo.toml` 和 `src-tauri/tauri.conf.json` 中的版本完全一致。可在推送前运行 `node scripts/verify-release-version.mjs v0.1.2` 检查。
 
-`v*` 标签构建完成后，工作流会聚合两个 DMG、Windows EXE/MSI 与 `SHA256SUMS`，并将它们附加到已有的同标签 GitHub Release；如果 Release 尚不存在，则创建带自动生成说明、标记为 Latest 的正常已发布 Release。非标签构建只保留 Actions Artifacts，不发布 Release 资产。当前安装包未签名，正式分发前仍需配置 macOS 和 Windows 代码签名。
+`v*` 标签构建完成后，工作流会聚合两个 DMG、Windows EXE/MSI 与 `SHA256SUMS`，并将它们附加到已有的同标签 GitHub Release；如果 Release 尚不存在，则创建带自动生成说明、标记为 Latest 的正常已发布 Release。非标签构建只保留 Actions Artifacts，不发布 Release 资产。macOS 安装包使用 ad-hoc 签名，CI 会校验 DMG 完整性、应用资源签名和版本；尚未进行 Apple Developer ID 签名和公证。Windows 安装包尚未进行发行者签名。首次安装说明见 [用户指南](USER_GUIDE.md#下载安装)。
 
 ## 本地灵感库
 

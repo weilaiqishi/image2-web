@@ -90,6 +90,15 @@ jobs:
       - name: Build desktop packages
         run: npm run tauri:build -- --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
 
+      - name: Verify macOS installers
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          for dmg in src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg; do
+            bash scripts/verify-macos-installer.sh "$dmg" "$version"
+          done
+
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
@@ -108,6 +117,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout release notes
+        uses: actions/checkout@v4
+
       - name: Download installers
         uses: actions/download-artifact@v4
         with:
@@ -182,6 +194,7 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --verify-tag \
               --title "Image2 Studio $TAG_NAME" \
+              --notes-file RELEASE_NOTES.md \
               --generate-notes \
               --latest
           fi

@@ -1,5 +1,18 @@
 # Image2 Studio 操作手册
 
+## 下载安装
+
+从 [GitHub Releases](https://github.com/weilaiqishi/image2-web/releases/latest) 下载与你的系统对应的安装包：
+
+- Apple Silicon（M1/M2/M3/M4 等）：`aarch64.dmg`。
+- Intel Mac：`x64.dmg`。打开 DMG 后，将 Image2 Studio 拖入 Applications。
+- Windows 10/11 x64：推荐 `x64-setup.exe`，也可使用 `.msi`，二者任选其一。
+
+macOS 版本目前采用 ad-hoc 签名，尚未通过 Apple 公证。首次打开若提示无法验证开发者，请在“系统设置 → 隐私与安全性”中为 Image2 Studio 选择“仍要打开”，再确认打开。仅对从上述官方 Release 下载且来源可信的安装包执行此操作。`v0.1.2` 修复了旧版应用资源签名缺失导致的“已损坏”问题，请重新下载新版替换旧应用。
+
+Windows 安装包尚未进行发行者签名，SmartScreen 可能显示“Windows 已保护你的电脑”；确认来源后可选择“更多信息 → 仍要运行”。
+
+
 本文面向使用 Image2 Studio 完成图片生成、参考图融合和局部精准编辑的用户。界面截图基于当前桌面版；真实图片请求只在 Tauri 桌面端执行，浏览器开发模式仅用于界面预览和模拟 Agent。
 
 ## 1. 快速开始

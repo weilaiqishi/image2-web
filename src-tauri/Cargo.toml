@@ -1,6 +1,6 @@
 [package]
 name = "image2-studio"
-version = "0.1.0"
+version = "0.1.2"
 description = "A local-first GPT Image generation and annotation studio"
 authors = ["Image2 Studio"]
 edition = "2021"
