@@ -121,7 +121,7 @@ impl Default for SettingsFile {
             base_url: "https://api.openai.com/v1".into(),
             agent_protocol: "responses".into(),
             agent_model: "gpt-5.6".into(),
-            image_model: "gpt-image-2.5".into(),
+            image_model: "gpt-image-2".into(),
         }
     }
 }

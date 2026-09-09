@@ -26,7 +26,7 @@ const initialSettings: Settings = {
   baseUrl: "https://api.openai.com/v1",
   agentProtocol: "responses",
   agentModel: "gpt-5.6",
-  imageModel: "gpt-image-2.5",
+  imageModel: "gpt-image-2",
   hasApiKey: false,
 };
 
