@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "20260907082737",
-  "generatedAt": "2026-09-07T08:27:37.845Z",
+  "catalogVersion": "20260914090519",
+  "generatedAt": "2026-09-14T09:05:19.680Z",
   "sources": [
     {
       "id": "image2-net",
@@ -12,16 +12,16 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 12,
-      "fetchedAt": "2026-09-07T08:27:37.845Z"
+      "fetchedAt": "2026-09-14T09:05:19.680Z"
     }
   ],
   "shards": [
     {
       "id": "catalog-0001",
       "url": "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/catalog-0001.json",
-      "checksum": "2226b2c59247c3591749e40989b15de5ee5f282eeb197523edd4c5fb41b5a014",
+      "checksum": "3a997765d695cef9e247d87495c9718bb480e044ddf68d471c56e58493a7562a",
       "itemCount": 12
     }
   ],
-  "checksum": "962063b54a11b9bf1fbfb3e501c1dac31a5ab373959b500ef99c75e8bb729604"
+  "checksum": "2f961c0ffd9aab74dc81df58ee1d36c61ff6d063e9b9eea806240e84b1b0493a"
 }
