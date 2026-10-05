@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "20260928095723",
-  "generatedAt": "2026-09-28T09:57:23.872Z",
+  "catalogVersion": "20261005103826",
+  "generatedAt": "2026-10-05T10:38:26.810Z",
   "items": [
     {
       "id": "image2-net:cherry-blossom-garden",
@@ -20,7 +20,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "3:2",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/cherry-blossom-garden.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/cherry-blossom-garden.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-cherry-blossom-garden-c020dad02c.webp",
       "promptHash": "c020dad02c4c76d4fe121fda3fceef8244a73cdd3b64698eecd78b4b090d3559",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -51,7 +51,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "16:9",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/cinematic-silhouette-portrait.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/cinematic-silhouette-portrait.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-cinematic-silhouette-portrait-7d8c09dec7.webp",
       "promptHash": "7d8c09dec780a4a31c09ab373458f49469d6e3a27ee77e40a62a20a1777129c4",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -82,7 +82,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "16:9",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/deep-ocean-underwater.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/deep-ocean-underwater.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-deep-ocean-underwater-3a7bc3433e.webp",
       "promptHash": "3a7bc3433e5d8f10a93ec97754aecb00b1b1f214e255f7e99e143e10b7ebecbe",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -113,7 +113,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "4:5",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/diner-menu-board-5am.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/diner-menu-board-5am.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-diner-menu-board-5am-06864912ef.webp",
       "promptHash": "06864912efa96d904678cc6522bfe34af82525f5c1d4a1a59f6768570d925762",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -144,7 +144,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "2:3",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/editorial-typographic-poster.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/editorial-typographic-poster.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-editorial-typographic-poster-3be49ff196.webp",
       "promptHash": "3be49ff19629dd3d93c3367e40473d6060a5a7b4da380ea49c4fb30175fee856",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -175,7 +175,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "3:2",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/fishmonger-coastal-market.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/fishmonger-coastal-market.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-fishmonger-coastal-market-e8d445dda5.webp",
       "promptHash": "e8d445dda5218ef21fb89ad5c795c2c447ba84783ecc237c12fa2abf613f97f2",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -206,7 +206,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "3:2",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/istanbul-florist-blue-hour.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/istanbul-florist-blue-hour.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-istanbul-florist-blue-hour-7b503ee70d.webp",
       "promptHash": "7b503ee70d08366ada57ba6de0eb3ac0c3646c0386f192e4550ebc92ead01093",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -237,7 +237,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "1:1",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/linkedin-professional-headshot.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/linkedin-professional-headshot.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-linkedin-professional-headshot-3f8a4cdb31.webp",
       "promptHash": "3f8a4cdb31645ab4f09b0402b1028993f7cddfadc1ae811f4a81ff78e4121890",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -268,7 +268,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "4:5",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/night-train-window-portrait.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/night-train-window-portrait.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-night-train-window-portrait-ff647a2791.webp",
       "promptHash": "ff647a279104083a5c2f18340704659ba1f9628408eef1eb9c4d76e155181159",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -299,7 +299,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "3:2",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/personal-brand-cafe-lifestyle.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/personal-brand-cafe-lifestyle.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-personal-brand-cafe-lifestyle-aacc305928.webp",
       "promptHash": "aacc3059289cdd62d37bb93569b3ef579fe7042fff40be42e177bb123c15b8d1",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -330,7 +330,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "4:5",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/photoreal-editorial-portrait.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/photoreal-editorial-portrait.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-photoreal-editorial-portrait-4a15cef046.webp",
       "promptHash": "4a15cef046b6d0a92df9bda02bbcd85f6b9af7308dd4778a0a0bfe7fe0f6f920",
       "importedAt": "2026-07-15T00:00:00.000Z",
@@ -361,7 +361,7 @@
         "gpt-image-2"
       ],
       "aspectRatio": "16:9",
-      "previewUrl": "https://static.image-2.net/templates/thumbs/vietnamese-coffee-plantation-morning.webp",
+      "previewUrl": "https://static.image-2.net/cdn-cgi/image/width=3840,quality=70,format=auto,fit=scale-down/templates/thumbs/vietnamese-coffee-plantation-morning.webp",
       "cachedThumbnailPath": "/prompt-catalog/thumbnails/image2-net-vietnamese-coffee-plantation-morning-b300a88c4b.webp",
       "promptHash": "b300a88c4b8905b3fe428890874cb4b273de4a195efc880c7772ff700ce4ab03",
       "importedAt": "2026-07-15T00:00:00.000Z",
