@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "20261102112529",
-  "generatedAt": "2026-11-02T11:25:29.916Z",
+  "catalogVersion": "20261109114842",
+  "generatedAt": "2026-11-09T11:48:42.150Z",
   "sources": [
     {
       "id": "image2-net",
@@ -12,18 +12,18 @@
       "enabledByDefault": true,
       "status": "success",
       "itemCount": 12,
-      "fetchedAt": "2026-11-02T11:25:29.916Z"
+      "fetchedAt": "2026-11-09T11:48:42.150Z"
     }
   ],
   "shards": [
     {
       "id": "catalog-0001",
       "url": "https://raw.githubusercontent.com/weilaiqishi/image2-web/main/public/prompt-catalog/catalog-0001.json",
-      "checksum": "aec4a4a0059d38f5176e5fbe07ff8dc828ec31170263e89912b75c6614a87de9",
+      "checksum": "609637ae74396e99114da0cb966b28ee564a9467be8007d94c70b4348c3d55cc",
       "itemCount": 12
     }
   ],
-  "checksum": "561ce2a41b4d5f7e3dc18bf0ee081c85fa0df664e28e12a5f6523c5d5c29df9c",
+  "checksum": "f3fa706c00c67c06a32d7d52441549dcb6aec0030ef3fa7b77155074e0aa5af6",
   "items": [
     {
       "id": "image2-net:cherry-blossom-garden",
